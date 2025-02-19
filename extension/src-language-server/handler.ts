@@ -17,21 +17,30 @@
 
 import { LangiumSprottySharedServices } from "langium-sprotty";
 import { Connection, Range } from "vscode-languageserver";
-import { handleFTAConfigInit, handleFTAConfigReset } from './fta/fta-message-handler';
-import { FtaServices } from './fta/fta-module';
-import { getRangeOfNodeFTA } from "./fta/utils";
-import { Model, isModel, isModelFTA } from "./generated/ast";
-import { handleSTPAConfigInit, handleSTPAConfigReset } from './stpa/message-handler';
-import { StpaServices } from './stpa/stpa-module';
-import { getRangeOfNodeSTPA } from "./stpa/utils";
-import { getModel } from "./utils";
+import { handleFTAConfigInit, handleFTAConfigReset } from "./fta/fta-message-handler.js";
+import { FtaServices } from "./fta/fta-module.js";
+import { getRangeOfNodeFTA } from "./fta/utils.js";
+import { Model, isModel, isModelFTA } from "./generated/ast.js";
+import { handleSTPAConfigInit, handleSTPAConfigReset } from "./stpa/message-handler.js";
+import { StpaServices } from "./stpa/stpa-module.js";
+import { getRangeOfNodeSTPA } from "./stpa/utils.js";
+import { getModel } from "./utils.js";
 
 /**
  * Adds handler for notifications.
  * @param connection Connection to the extension.
  * @param shared Shared services containing the workspace.
  */
-export function addNotificationHandler(connection: Connection, shared: LangiumSprottySharedServices,stpaServices: StpaServices, ftaServices: FtaServices): void {
+export function addNotificationHandler(
+    connection: Connection,
+    shared: LangiumSprottySharedServices,
+    stpaServices: StpaServices,
+    ftaServices: FtaServices
+): void {
+    // tells the extension that the language server is ready
+    shared.lsp.LanguageServer.onInitialized(() => {
+        connection.sendNotification("ready");
+    });
     // node selection in diagram
     connection.onNotification("diagram/selected", async (msg: { label: string; uri: string }) => {
         // get the current model

@@ -15,18 +15,18 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-import { SEdge, SModelElement, SNode } from "sprotty";
-import { PortSide, STPAAspect, STPAEdge, STPANode, PastaPort, STPA_EDGE_TYPE, STPA_INTERMEDIATE_EDGE_TYPE, STPA_NODE_TYPE, PORT_TYPE } from "./stpa-model";
+import { SEdgeImpl, SModelElementImpl, SNodeImpl } from "sprotty";
+import { PORT_TYPE, PastaPort, PortSide, STPAAspect, STPAEdge, STPANode, STPA_EDGE_TYPE, STPA_INTERMEDIATE_EDGE_TYPE, STPA_NODE_TYPE } from "./stpa-model";
 
 /**
  * Collects all children of the nodes in {@code nodes}.
  * @param nodes The nodes, which children should be selected.
  * @param children List that is filled by this method with the childrens of {@code nodes}.
  */
-export function collectAllChildren(nodes: SNode[], children: SNode[]): void {
+export function collectAllChildren(nodes: SNodeImpl[], children: SNodeImpl[]): void {
     for (const node of nodes) {
         if (node.children.length !== 0) {
-            const childrenNodes = node.children.filter(child => child.type.startsWith('node')) as SNode[];
+            const childrenNodes = node.children.filter(child => child.type.startsWith('node')) as SNodeImpl[];
             children.push(...childrenNodes);
             collectAllChildren(childrenNodes, children);
         }
@@ -38,7 +38,7 @@ export function collectAllChildren(nodes: SNode[], children: SNode[]): void {
  * @param node The node for which the connected elements should be determined.
  * @returns The highlighted nodes.
  */
-export function flagConnectedElements(node: SNode): (STPANode | STPAEdge)[] {
+export function flagConnectedElements(node: SNodeImpl): (STPANode | STPAEdge)[] {
     const elements: (STPANode | STPAEdge)[] = [];
     (node as STPANode).highlight = true;
     elements.push(node as STPANode);
@@ -72,8 +72,8 @@ export function flagConnectedElements(node: SNode): (STPANode | STPAEdge)[] {
  * Sets the highlight attribute of the predecessor nodes and edges based on the {@code edge}.
  * @param edge The edge which source and further predecessors should be inspected.
  */
-function flagPredNodes(edge: SEdge, elements: SModelElement[]): void {
-    const node = edge.source?.type.startsWith('port') ? edge.source.parent as SNode : edge.source as SNode;
+function flagPredNodes(edge: SEdgeImpl, elements: SModelElementImpl[]): void {
+    const node = edge.source?.type.startsWith('port') ? edge.source.parent as SNodeImpl : edge.source as SNodeImpl;
     (node as STPANode).highlight = true;
     elements.push(node as STPANode);
     if (isSubConstraint(node)) {
@@ -108,7 +108,7 @@ function flagPredNodes(edge: SEdge, elements: SModelElement[]): void {
  * Sets the highlight attribute of the successor nodes and edges based on the {@code edge}.
  * @param edge The edge which target and further successors should be inspected.
  */
-function flagSuccNodes(edge: SEdge, elements: SModelElement[]): void {
+function flagSuccNodes(edge: SEdgeImpl, elements: SModelElementImpl[]): void {
     const node = edge.target?.type.startsWith('port') ? edge.target.parent as STPANode : edge.target as STPANode;
     node.highlight = true;
     elements.push(node);
@@ -128,7 +128,7 @@ function flagSuccNodes(edge: SEdge, elements: SModelElement[]): void {
  * @param node The subcomponent node.
  * @param elements The elements to be highlighted.
  */
-function flaggingOutgoingForSubcomponents(node: STPANode, elements: SModelElement[]): void {
+function flaggingOutgoingForSubcomponents(node: STPANode, elements: SModelElementImpl[]): void {
     // for sub-systemconstraints the parent node(s) should be highlighted as well
     if (isSubConstraint(node)) {
         flagSubConsParent(node, elements);
@@ -153,7 +153,7 @@ function flaggingOutgoingForSubcomponents(node: STPANode, elements: SModelElemen
  * @param port The port which is checked to be the source of the {@code edge}.
  * @param elements The elements which should be highlighted.
  */
-function flagIncomingEdges(edge: STPAEdge, port: PastaPort, elements: SModelElement[]): void {
+function flagIncomingEdges(edge: STPAEdge, port: PastaPort, elements: SModelElementImpl[]): void {
     if (edge.targetId === port.id) {
         // if the edge leads to another edge, highlight all connected edges
         let furtherEdge: STPAEdge | undefined = edge;
@@ -174,7 +174,7 @@ function flagIncomingEdges(edge: STPAEdge, port: PastaPort, elements: SModelElem
  * @param port The port which is checked to be the source of the {@code edge}.
  * @param elements The elements which should be highlighted.
  */
-function flagOutgoingEdges(edge: STPAEdge, port: PastaPort, elements: SModelElement[]): void {
+function flagOutgoingEdges(edge: STPAEdge, port: PastaPort, elements: SModelElementImpl[]): void {
     if (edge.sourceId === port.id) {
         // if the edge leads to another edge, highlight all connected edges
         let furtherEdge: STPAEdge | undefined = edge;
@@ -198,7 +198,7 @@ function flagOutgoingEdges(edge: STPAEdge, port: PastaPort, elements: SModelElem
  * @param node The SNode that should be inspected.
  * @returns whether {@code node} is a sub-hazard.
  */
-function isSubHazard(node: SNode): boolean {
+function isSubHazard(node: SNodeImpl): boolean {
     return node.type === STPA_NODE_TYPE && (node as STPANode).aspect === STPAAspect.HAZARD
         && node.parent.type === STPA_NODE_TYPE && (node.parent as STPANode).aspect === STPAAspect.HAZARD;
 }
@@ -208,7 +208,7 @@ function isSubHazard(node: SNode): boolean {
  * @param node The SNode that should be inspected.
  * @returns whether {@code node} is a sub-constraint.
  */
-function isSubConstraint(node: SNode): boolean {
+function isSubConstraint(node: SNodeImpl): boolean {
     return node.type === STPA_NODE_TYPE && (node as STPANode).aspect === STPAAspect.SYSTEMCONSTRAINT
         && node.parent.type === STPA_NODE_TYPE && (node.parent as STPANode).aspect === STPAAspect.SYSTEMCONSTRAINT;
 }
@@ -217,7 +217,7 @@ function isSubConstraint(node: SNode): boolean {
  * Sets the highlight attribute of the parents of the system constraint {@code node}.
  * @param node The node, which parents should be added.
  */
-function flagSubConsParent(node: STPANode, elements: SModelElement[]): void {
+function flagSubConsParent(node: STPANode, elements: SModelElementImpl[]): void {
     let parent = node;
     while (parent.parent.type === STPA_NODE_TYPE && (parent.parent as STPANode).aspect === STPAAspect.SYSTEMCONSTRAINT) {
         parent = parent.parent as STPANode;
@@ -234,7 +234,7 @@ function flagSubConsParent(node: STPANode, elements: SModelElement[]): void {
 export function flagSameAspect(selected: STPANode): STPANode[] {
     const elements: STPANode[] = [];
     const allNodes: STPANode[] = [];
-    collectAllChildren((selected.parent as SNode).parent.children as SNode[], allNodes);
+    collectAllChildren((selected.parent as SNodeImpl).parent.children as SNodeImpl[], allNodes);
     allNodes.forEach(node => {
         if (node.aspect === selected.aspect) {
             elements.push(node);

@@ -55,6 +55,6 @@ export class OptionsPanel extends SidebarPanel {
     }
 
     get icon(): VNode {
-        return <FeatherIcon iconId={"sliders"}/>
+        return <FeatherIcon iconId={"sliders"}/>;
     }
 }

@@ -16,12 +16,12 @@
  */
 
 
-import { ContextMenuMouseListener, SLabel, SModelElement } from "sprotty";
+import { ContextMenuMouseListener, SLabelImpl, SModelElementImpl } from "sprotty";
 
 export class PastaContextMenuMouseListener extends ContextMenuMouseListener {
 
-    protected async showContextMenu(target: SModelElement, event: MouseEvent): Promise<void> {
-        if (target instanceof SLabel) {
+    protected async showContextMenu(target: SModelElementImpl, event: MouseEvent): Promise<void> {
+        if (target instanceof SLabelImpl) {
             super.showContextMenu(target.parent, event);
         } else {
             super.showContextMenu(target, event);

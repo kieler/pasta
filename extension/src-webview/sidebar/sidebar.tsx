@@ -122,7 +122,7 @@ export class Sidebar extends AbstractUIExtension {
         this.addClickOutsideListenser(containerElement);
     }
 
-    private handlePanelButtonClick(id: string) {
+    private handlePanelButtonClick(id: string): void {
         this.actionDispatcher.dispatch(ToggleSidebarPanelAction.create(id));
     }
 

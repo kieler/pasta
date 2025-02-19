@@ -15,8 +15,8 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-import { DropDownOption, SynthesisOption, TransformationOptionType, ValuedSynthesisOption } from "../../options/option-models";
-import { SynthesisOptions, layoutCategory } from "../../synthesis-options";
+import { DropDownOption, SynthesisOption, TransformationOptionType, ValuedSynthesisOption } from "../../options/option-models.js";
+import { SynthesisOptions, layoutCategory } from "../../synthesis-options.js";
 
 const cutSetsID = "cutSets";
 const showGateDescriptionsID = "showGateDescriptions";

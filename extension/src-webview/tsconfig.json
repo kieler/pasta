@@ -1,0 +1,15 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../pack/src-webview",
+    "target": "ES2017",
+    "lib": [
+        "es2017",
+        "dom"
+    ],
+    "rootDir": ".",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "jsx": "react",
+  }
+}

@@ -18,8 +18,9 @@
 /** @jsx svg */
 import { injectable } from 'inversify';
 import { VNode } from "snabbdom";
-import { IViewArgs, Point, PolylineEdgeView, RectangularNodeView, RenderingContext, SEdge, SGraph, SGraphView, svg } from 'sprotty';
-import { renderAndGate, renderEllipse, renderHorizontalLine, renderInhibitGate, renderKnGate, renderOrGate, renderRectangle, renderRoundedRectangle, renderVerticalLine } from "../views-rendering";
+import { IViewArgs, PolylineEdgeView, RectangularNodeView, RenderingContext, SEdgeImpl, SGraphImpl, SGraphView, svg } from 'sprotty';
+import { Point } from "sprotty-protocol";
+import { renderAndGate, renderEllipse, renderHorizontalLine, renderInhibitGate, renderKnGate, renderOrGate, renderRectangleForNode, renderRoundedRectangle, renderVerticalLine } from "../views-rendering";
 import { DescriptionNode, FTAEdge, FTAGraph, FTANode, FTAPort, FTA_DESCRIPTION_NODE_TYPE, FTA_EDGE_TYPE, FTA_NODE_TYPE, FTA_PORT_TYPE, FTNodeType } from './fta-model';
 
 @injectable()
@@ -48,7 +49,7 @@ export class PolylineArrowEdgeViewFTA extends PolylineEdgeView {
 
 @injectable()
 export class FTAInvisibleEdgeView extends PolylineArrowEdgeViewFTA {
-    render(edge: Readonly<SEdge>, context: RenderingContext, args?: IViewArgs | undefined): VNode | undefined {
+    render(edge: Readonly<SEdgeImpl>, context: RenderingContext, args?: IViewArgs | undefined): VNode | undefined {
         return <g></g>;
     }
 }
@@ -57,7 +58,7 @@ export class FTAInvisibleEdgeView extends PolylineArrowEdgeViewFTA {
 export class DescriptionNodeView extends RectangularNodeView {
     render(node: DescriptionNode, context: RenderingContext): VNode | undefined {
         // render the description node similar to an on edge label
-        const element = renderRectangle(node);
+        const element = renderRectangleForNode(node);
         const border1 = renderHorizontalLine(node);
         const border2 = renderHorizontalLine(node);
         const edge = renderVerticalLine(node);
@@ -92,7 +93,7 @@ export class FTANodeView extends RectangularNodeView {
                     {context.renderChildren(node)}
                 </g>;
             case FTNodeType.TOPEVENT:
-                element = renderRectangle(node);
+                element = renderRectangleForNode(node);
                 break;
             case FTNodeType.COMPONENT:
             case FTNodeType.CONDITION:
@@ -111,7 +112,7 @@ export class FTANodeView extends RectangularNodeView {
                 element = renderInhibitGate(node);
                 break;
             default:
-                element = renderRectangle(node);
+                element = renderRectangleForNode(node);
                 break;
         }
 
@@ -178,7 +179,7 @@ export class FTAGraphView extends SGraphView {
      * @param model The FTAGraph.
      * @param currentNode The current node, which should be handled including its targets.
      */
-    protected highlightConnectedToCutSet(model: SGraph, currentNode: FTANode): void {
+    protected highlightConnectedToCutSet(model: SGraphImpl, currentNode: FTANode): void {
         for (const port of currentNode.children.filter(child => child.type === FTA_PORT_TYPE)) {
             const edge = model.children.find(child => child.type === FTA_EDGE_TYPE && (child as FTAEdge).sourceId === port.id) as FTAEdge;
             if (edge) {

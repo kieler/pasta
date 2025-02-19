@@ -18,19 +18,20 @@
 import { AstNode } from "langium";
 import { IdCache } from "langium-sprotty";
 import { SLabel, SModelElement } from "sprotty-protocol";
-import { getDescription } from "../../utils";
-import { CSEdge, CSNode, PastaPort, STPAEdge, STPANode } from "./stpa-interfaces";
+import { getDescription } from "../../utils.js";
+import { CSEdge, CSNode, PastaPort, STPAEdge, STPANode } from "./stpa-interfaces.js";
 import {
     DUMMY_NODE_TYPE,
+    EDGE_LABEL_TYPE,
     EdgeType,
     HEADER_LABEL_TYPE,
     PORT_TYPE,
     PortSide,
     STPAAspect,
     STPA_NODE_TYPE,
-} from "./stpa-model";
-import { StpaSynthesisOptions } from "./stpa-synthesis-options";
-import { getAspect } from "./utils";
+} from "./stpa-model.js";
+import { StpaSynthesisOptions } from "./stpa-synthesis-options.js";
+import { getAspect } from "./utils.js";
 
 /**
  * Creates an STPANode.
@@ -77,6 +78,7 @@ export function createPort(id: string, side: PortSide, assocEdge?: { node1: stri
         type: PORT_TYPE,
         id: id,
         side: side,
+        size: {width: 1, height: 1},
         associatedEdge: assocEdge,
     };
 }
@@ -135,7 +137,7 @@ export function createControlStructureEdge(
         sourceId: sourceId!,
         targetId: targetId!,
         edgeType: edgeType,
-        children: createLabel(label, edgeId, idCache, undefined, dummyLabel),
+        children: createLabel(label, edgeId, idCache, EDGE_LABEL_TYPE, dummyLabel),
     };
 }
 
@@ -152,7 +154,7 @@ export function createLabel(
     label: string[],
     id: string,
     idCache: IdCache<AstNode>,
-    type: string = "label:xref",
+    type: string,
     dummyLabel: boolean = true
 ): SLabel[] {
     const children: SLabel[] = [];
@@ -186,6 +188,8 @@ export function createDummyNode(name: string, level: number | undefined, idCache
         type: DUMMY_NODE_TYPE,
         id: idCache.uniqueId("dummy" + name),
         layout: "stack",
+        hasChildren: false,
+        expanded: false,
         layoutOptions: {
             paddingTop: 10.0,
             paddingBottom: 10.0,

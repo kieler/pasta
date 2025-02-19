@@ -22,15 +22,33 @@
 @import "./fta-diagram.css";
 @import "./context-menu.css";
 
+.label-background {
+    fill: white;
+    stroke: none;
+    opacity: 0.8;
+}
+
+.collapse-expand-triangle {
+    fill: darkgrey;
+}
+
+.collapse-expand-sign {
+    stroke: white;
+}
+
 .header {
     text-decoration-line: underline;
     font-weight: bold;
 }
 
+.pasta-hidden {
+    opacity: 0;
+}
+
 /* sprotty and black/white colors */
 .vscode-high-contrast .print-node {
-    fill: black;
     stroke: white;
+    fill-opacity: 0;
 }
 
 .vscode-high-contrast .sprotty-node {
@@ -39,8 +57,8 @@
 }
 
 .vscode-dark .print-node {
-    fill: var(--dark-node);
     stroke: var(--vscode-editor-foreground);
+    fill-opacity: 0;
 }
 
 .vscode-dark .sprotty-node {
@@ -49,8 +67,8 @@
 }
 
 .vscode-light .print-node {
-    fill: var(--light-node);
     stroke: black;
+    fill-opacity: 0;
 }
 
 .vscode-light .sprotty-node {

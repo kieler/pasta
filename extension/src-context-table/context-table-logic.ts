@@ -15,7 +15,8 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-import { ContextCell, ContextTableRule, Type, ContextTableVariable } from "./utils";
+import { ContextCell } from "./utils";
+import { ContextTableRule, ContextTableVariable, Type } from "./utils-classes";
 
 /**
 /**
@@ -27,8 +28,13 @@ import { ContextCell, ContextTableRule, Type, ContextTableVariable } from "./uti
  * @param selectedType The currently selected control action type.
  * @returns the used rules, whereby the index determines the column they apply to.
  */
-export function determineUsedRules(variables: ContextTableVariable[], rules: ContextTableRule[], selectedController: string,
-    selectedAction: string, selectedType: number): ContextTableRule[][] {
+export function determineUsedRules(
+    variables: ContextTableVariable[],
+    rules: ContextTableRule[],
+    selectedController: string,
+    selectedAction: string,
+    selectedType: number
+): ContextTableRule[][] {
     // keeps track of the used rules, whereby the index determines the column
     let usedRules: ContextTableRule[][] = [[], [], [], []];
     switch (selectedType) {
@@ -46,19 +52,28 @@ export function determineUsedRules(variables: ContextTableVariable[], rules: Con
     }
     // determine the used rules
     rules.forEach(rule => {
-        // compare control action of the rule with the selected one and  
+        // compare control action of the rule with the selected one and
         // the context of the rule with the current context
-        if (rule.controlAction.controller === selectedController && rule.controlAction.action === selectedAction
-            && checkValues(rule.variables, variables)) {
+        if (
+            rule.controlAction.controller === selectedController &&
+            rule.controlAction.action === selectedAction &&
+            checkValues(rule.variables, variables)
+        ) {
             // determine the column for which the rule applies
             const ruleType = rule.type.toLowerCase();
             if (selectedType === Type.NOT_PROVIDED && ruleType === "not-provided") {
                 usedRules[0].push(rule);
             } else if (selectedType !== Type.NOT_PROVIDED && ruleType === "provided") {
                 usedRules[0].push(rule);
-            } else if (selectedType !== Type.NOT_PROVIDED && (ruleType === "too-early" || ruleType === "too-late" || ruleType === "wrong-time")) {
+            } else if (
+                selectedType !== Type.NOT_PROVIDED &&
+                (ruleType === "too-early" || ruleType === "too-late" || ruleType === "wrong-time")
+            ) {
                 usedRules[1].push(rule);
-            } else if (selectedType !== Type.NOT_PROVIDED && (ruleType === "stopped-too-soon" || ruleType === "applied-too-long")) {
+            } else if (
+                selectedType !== Type.NOT_PROVIDED &&
+                (ruleType === "stopped-too-soon" || ruleType === "applied-too-long")
+            ) {
                 usedRules[2].push(rule);
             } else if (selectedType === Type.BOTH && ruleType === "not-provided") {
                 usedRules[3].push(rule);
@@ -73,7 +88,7 @@ export function determineUsedRules(variables: ContextTableVariable[], rules: Con
  * @param results The hazards and rules for the result columns.
  * @returns The cells for the "Hazardous?"-column.
  */
-export function createResults(results: { hazards: string[], rules: ContextTableRule[]; }[]): ContextCell[] {
+export function createResults(results: { hazards: string[]; rules: ContextTableRule[] }[]): ContextCell[] {
     const cells: ContextCell[] = [];
     // keeps track on how many neihbouring columns have no rule applied
     let noAppliedRuleCounter: number = 0;
@@ -95,7 +110,12 @@ export function createResults(results: { hazards: string[], rules: ContextTableR
             }
             const ucas = results[hazardColumn].rules.map(rule => rule.id);
             // add the hazards, defined by the rule, as a cell
-            cells.push({ cssClass: "result", value: ucas.toString(), colSpan: 1, title: results[hazardColumn].hazards.toString() });
+            cells.push({
+                cssClass: "result",
+                value: ucas.toString(),
+                colSpan: 1,
+                title: results[hazardColumn].hazards.toString(),
+            });
         }
     }
     return cells;

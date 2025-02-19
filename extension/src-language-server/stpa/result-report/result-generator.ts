@@ -28,9 +28,9 @@ import {
     SafetyConstraint,
     SystemConstraint,
     UCA
-} from "../../generated/ast";
-import { getModel } from "../../utils";
-import { StpaComponent, StpaResult, UCA_TYPE } from "../utils";
+} from "../../generated/ast.js";
+import { getModel } from "../../utils.js";
+import { StpaComponent, StpaResult, UCA_TYPE } from "../utils.js";
 
 /**
  * Creates the STPA result data.
@@ -43,9 +43,25 @@ export async function createResultData(uri: string, shared: LangiumSprottyShared
     // get the current model
     const model = await getModel(uri, shared) as Model;
 
+    // TODO: make more generic (see goals, assumptions, losses)
+
+    // goals
+    const resultGoals: { id: string; description: string }[] = [];
+    model.goals?.forEach((component) => {
+        resultGoals.push({ id: component.name, description: component.description });
+    });
+    result.goals = resultGoals;
+
+    // assumptions
+    const resultAssumptions: { id: string; description: string }[] = [];
+    model.assumptions?.forEach((component) => {
+        resultAssumptions.push({ id: component.name, description: component.description });
+    });
+    result.assumptions = resultAssumptions;
+
     // losses
     const resultLosses: { id: string; description: string }[] = [];
-    model.losses.forEach((component) => {
+    model.losses?.forEach((component) => {
         resultLosses.push({ id: component.name, description: component.description });
     });
     result.losses = resultLosses;
@@ -55,7 +71,7 @@ export async function createResultData(uri: string, shared: LangiumSprottyShared
     result.systemLevelConstraints = createHazardOrSystemConstraintComponents(model.systemLevelConstraints);
 
     // controller constraints sorted by control action
-    model.controllerConstraints.forEach((component) => {
+    model.controllerConstraints?.forEach((component) => {
         const resultComponent = createSingleComponent(component);
         const controlAction = createControlActionText(component.refs[0].ref?.$container);
         if (result.controllerConstraints[controlAction] === undefined) {
@@ -70,23 +86,23 @@ export async function createResultData(uri: string, shared: LangiumSprottyShared
     result.safetyConstraints = createResultComponents(model.safetyCons);
 
     // responsibilities
-    model.responsibilities.forEach((component) => {
+    model.responsibilities?.forEach((component) => {
         const responsibilities = createResultComponents(component.responsiblitiesForOneSystem);
         // responsibilities are grouped by their system component
         result.responsibilities[component.system.$refText] = responsibilities;
     });
 
     // loss scenarios
-    model.scenarios.forEach((component) => {
+    model.scenarios?.forEach((component) => {
         createScenarioResult(component, result);
     });
 
     //UCAs
-    model.allUCAs.forEach((component) => {
+    model.allUCAs?.forEach((component) => {
         const ucaResult = createUCAResult(component);
         result.ucas[ucaResult.controlAction] = ucaResult.ucas;
     });
-    model.rules.forEach((component) => {
+    model.rules?.forEach((component) => {
         addRuleUCA(component, result);
     });
 

@@ -15,9 +15,9 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-import { SetSynthesisOptionsAction } from "../../options/actions";
-import { labelManagementValue } from '../../synthesis-options';
-import { StpaSynthesisOptions } from "../diagram/stpa-synthesis-options";
+import { SetSynthesisOptionsAction } from "../../options/actions.js";
+import { labelManagementValue } from '../../synthesis-options.js';
+import { StpaSynthesisOptions } from "../diagram/stpa-synthesis-options.js";
 
 /* the paths for the several diagrams of the STPA aspects */
 export const SVG_PATH = "/images";

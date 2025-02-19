@@ -17,7 +17,7 @@
 
 import { inject, injectable } from "inversify";
 import { VNode } from "snabbdom";
-import { IVNodePostprocessor, SModelElement, SModelRoot, TYPES } from "sprotty";
+import { IVNodePostprocessor, SModelElementImpl, SModelRootImpl, TYPES } from "sprotty";
 import { Action } from "sprotty-protocol";
 import { RequestSvgAction } from "./actions";
 import { CustomSvgExporter } from "./exporter";
@@ -26,12 +26,12 @@ import { CustomSvgExporter } from "./exporter";
 @injectable()
 export class SvgPostprocessor implements IVNodePostprocessor {
 
-    root: SModelRoot;
+    root: SModelRootImpl;
 
     @inject(TYPES.SvgExporter) protected svgExporter: CustomSvgExporter;
 
-    decorate(vnode: VNode, element: SModelElement): VNode {
-        if (element instanceof SModelRoot) { this.root = element; }
+    decorate(vnode: VNode, element: SModelElementImpl): VNode {
+        if (element instanceof SModelRootImpl) { this.root = element; }
         return vnode;
     }
 

@@ -20,10 +20,11 @@ import {
     SynthesisOption,
     TransformationOptionType,
     ValuedSynthesisOption,
-} from "../../options/option-models";
-import { SynthesisOptions, layoutCategory } from "../../synthesis-options";
+} from "../../options/option-models.js";
+import { SynthesisOptions, layoutCategory } from "../../synthesis-options.js";
 
 const hierarchyID = "hierarchy";
+const useHyperedgesID = "useHyperedges";
 const groupingUCAsID = "groupingUCAs";
 export const filteringUCAsID = "filteringUCAs";
 
@@ -41,6 +42,7 @@ const filterCategoryID = "filterCategory";
 
 const showControlStructureID = "showControlStructure";
 const showProcessModelsID = "showProcessModels";
+const showUnclosedFeedbackLoopsID = "showUnclosedFeedbackLoops";
 const showRelationshipGraphID = "showRelationshipGraph";
 
 /**
@@ -291,9 +293,10 @@ const showLabelsOption: ValuedSynthesisOption = {
         id: showLabelsID,
         name: "Show Labels of",
         type: TransformationOptionType.DROPDOWN,
-        currentId: "losses",
+        currentId: "automatic",
         availableValues: [
             { displayName: "All", id: "all" },
+            { displayName: "Automatic", id: "automatic" },
             { displayName: "Losses", id: "losses" },
             { displayName: "Hazards", id: "hazards" },
             { displayName: "System Constraints", id: "systemConstraints" },
@@ -302,14 +305,45 @@ const showLabelsOption: ValuedSynthesisOption = {
             { displayName: "Controller Constraints", id: "controllerConstraints" },
             { displayName: "Scenarios", id: "scenarios" },
             { displayName: "Safety Constraints", id: "safetyConstraints" },
-            { displayName: "Automatic", id: "automatic" },
         ],
-        initialValue: "losses",
-        currentValue: "losses",
+        initialValue: "automatic",
+        currentValue: "automatic",
         values: [],
         category: layoutCategory,
     } as DropDownOption,
-    currentValue: "losses",
+    currentValue: "automatic",
+};
+
+/**
+ * Boolean option to toggle the visualization of missing feedback in the control structure.
+ */
+const showUnclosedFeedbackLoopsOption: ValuedSynthesisOption = {
+    synthesisOption: {
+        id: showUnclosedFeedbackLoopsID,
+        name: "Missing Feedback Loops",
+        type: TransformationOptionType.CHECK,
+        initialValue: true,
+        currentValue: true,
+        values: [true, false],
+        category: filterCategory,
+    },
+    currentValue: true,
+};
+
+/**
+ * Boolean option to toggle the visualization of loss scenarios.
+ */
+const useHyperedgesOption: ValuedSynthesisOption = {
+    synthesisOption: {
+        id: useHyperedgesID,
+        name: "Merge Edges",
+        type: TransformationOptionType.CHECK,
+        initialValue: true,
+        currentValue: true,
+        values: [true, false],
+        category: layoutCategory,
+    },
+    currentValue: true,
 };
 
 /**
@@ -317,6 +351,7 @@ const showLabelsOption: ValuedSynthesisOption = {
  */
 export enum showLabelsValue {
     ALL,
+    AUTOMATIC,
     LOSSES,
     HAZARDS,
     SYSTEM_CONSTRAINTS,
@@ -325,7 +360,6 @@ export enum showLabelsValue {
     CONTROLLER_CONSTRAINTS,
     SCENARIOS,
     SAFETY_CONSTRAINTS,
-    AUTOMATIC,
 }
 
 export class StpaSynthesisOptions extends SynthesisOptions {
@@ -336,10 +370,12 @@ export class StpaSynthesisOptions extends SynthesisOptions {
                 filterCategoryOption,
                 showLabelsOption,
                 groupingOfUCAs,
+                useHyperedgesOption,
                 hierarchicalGraphOption,
                 filteringOfUCAs,
                 showControlStructureOption,
                 showProcessModelsOption,
+                showUnclosedFeedbackLoopsOption,
                 showRelationshipGraphOption,
                 showSysConsOption,
                 showRespsOption,
@@ -509,6 +545,22 @@ export class StpaSynthesisOptions extends SynthesisOptions {
 
     getShowSafetyConstraints(): boolean {
         return this.getOption(showSafetyConstraintsID)?.currentValue;
+    }
+
+    setShowUnclosedFeedbackLoops(value: boolean): void {
+        this.setOption(showUnclosedFeedbackLoopsID, value);
+    }
+
+    getShowUnclosedFeedbackLoopsOption(): boolean {
+        return this.getOption(showUnclosedFeedbackLoopsID)?.currentValue;
+    }
+
+    setUseHyperEdges(value: boolean): void {
+        this.setOption(useHyperedgesID, value);
+    }
+
+    getUseHyperEdges(): boolean {
+        return this.getOption(useHyperedgesID)?.currentValue;
     }
 
     /**

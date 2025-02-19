@@ -25,8 +25,8 @@ import {
     isKNGate,
     isOR,
     isTopEvent,
-} from "../../generated/ast";
-import { FTNodeType } from "./fta-model";
+} from "../../generated/ast.js";
+import { FTNodeType } from "./fta-model.js";
 
 /**
  * Determines the type of the given {@code node}.

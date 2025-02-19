@@ -16,6 +16,7 @@
  */
 
 import { Action, JsonMap } from "sprotty-protocol";
+import { ContextTableData } from "./utils-classes";
 
 /** Contains storage option values. Is sent between webview and extension. */
 export interface UpdateStorageAction extends Action {
@@ -174,5 +175,26 @@ export namespace ResetRenderOptionsAction {
 
     export function isThisAction(action: Action): action is ResetRenderOptionsAction {
         return action.kind === ResetRenderOptionsAction.KIND;
+    }
+}
+
+/** Adds a row to the table. */
+export interface SendContextTableDataAction extends Action {
+    kind: typeof SendContextTableDataAction.KIND;
+    data: ContextTableData;
+}
+
+export namespace SendContextTableDataAction {
+    export const KIND = "sendContextTableData";
+
+    export function create(data: ContextTableData): SendContextTableDataAction {
+        return {
+            kind: SendContextTableDataAction.KIND,
+            data,
+        };
+    }
+
+    export function isThisAction(action: Action): action is SendContextTableDataAction {
+        return action.kind === SendContextTableDataAction.KIND;
     }
 }

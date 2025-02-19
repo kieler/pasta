@@ -16,11 +16,10 @@
  */
 
 import {
-    Point,
-    SEdge,
-    SGraph,
-    SNode,
-    SPort,
+    SEdgeImpl,
+    SGraphImpl,
+    SNodeImpl,
+    SPortImpl,
     connectableFeature,
     fadeFeature,
     hoverFeedbackFeature,
@@ -28,6 +27,7 @@ import {
     popupFeature,
     selectFeature
 } from "sprotty";
+import { Point } from "sprotty-protocol";
 
 /* fault tree element types */
 export const FTA_NODE_TYPE = "node:fta";
@@ -40,7 +40,7 @@ export const FTA_PORT_TYPE = "port:fta";
 /**
  * Node of a fault tree.
  */
-export class FTANode extends SNode {
+export class FTANode extends SNodeImpl {
     static readonly DEFAULT_FEATURES = [
         connectableFeature,
         selectFeature,
@@ -63,14 +63,14 @@ export class FTANode extends SNode {
 /**
  * FTA Graph.
  */
-export class FTAGraph extends SGraph {
+export class FTAGraph extends SGraphImpl {
     modelOrder?: boolean;
 }
 
 /**
  * Description node of a fault tree.
  */
-export class DescriptionNode extends SNode {
+export class DescriptionNode extends SNodeImpl {
     static readonly DEFAULT_FEATURES = [
         connectableFeature,
         selectFeature,
@@ -88,13 +88,13 @@ export class DescriptionNode extends SNode {
 /**
  * Edge of a fault tree.
  */
-export class FTAEdge extends SEdge {
+export class FTAEdge extends SEdgeImpl {
     notConnectedToSelectedCutSet?: boolean;
     junctionPoints?: Point[];
 }
 
 /** Port representing a port in the FTA graph. */
-export class FTAPort extends SPort {
+export class FTAPort extends SPortImpl {
     side?: PortSide;
 }
 

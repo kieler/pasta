@@ -1,0 +1,15 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../pack/src-context-table",
+    "target": "ES2017",
+    "lib": [
+        "es2017",
+        "dom"
+    ],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "jsx": "react",
+    "jsxFactory": "jsx"
+  }
+}

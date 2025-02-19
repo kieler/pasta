@@ -15,26 +15,20 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-import "./css/table.css";
 import { Table } from "@kieler/table-webview/lib/table";
+import { VNode } from "snabbdom";
 import { SendContextTableDataAction } from "./actions";
+import { createResults, determineUsedRules } from "./context-table-logic";
+import "./css/table.css";
 import { createHeaderElement, createHeaderRow, createRow, createTable, createTHead, initContextTable, patch } from "./html";
 import {
     addSelector,
     addText,
     ContextCell,
-    ContextTableControlAction,
     convertControlActionsToStrings,
     replaceSelector,
-    ContextTableRule,
-    ContextTableSystemVariables,
-    Type,
-    ContextTableVariable,
-    ContextTableVariableValues,
-    Row,
 } from "./utils";
-import { VNode } from "snabbdom";
-import { createResults, determineUsedRules } from "./context-table-logic";
+import { ContextTableControlAction, ContextTableRule, ContextTableSystemVariables, ContextTableVariable, ContextTableVariableValues, Row, Type } from './utils-classes';
 
 interface vscode {
     postMessage(message: any): void;

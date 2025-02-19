@@ -33,10 +33,10 @@ import {
     Rule,
     SafetyConstraint,
     SystemConstraint,
-    SystemResponsibilities
-} from "../generated/ast";
-import { StpaServices } from "./stpa-module";
-import { collectElementsWithSubComps, elementWithName, elementWithRefs } from "./utils";
+    SystemResponsibilities,
+} from "../../generated/ast.js";
+import { StpaServices } from "../stpa-module.js";
+import { collectElementsWithSubComps, elementWithName, elementWithRefs } from "../utils.js";
 
 /**
  * Default prefixes for the different STPA aspects.
@@ -100,7 +100,7 @@ export class IDEnforcer {
         }
         // update current document information
         this.currentUri = uri;
-        this.currentDocument = this.stpaServices.shared.workspace.LangiumDocuments.getOrCreateDocument(
+        this.currentDocument = this.stpaServices.shared.workspace.LangiumDocuments.getDocument(
             uri as any
         ) as LangiumDocument<Model>;
 
@@ -167,11 +167,15 @@ export class IDEnforcer {
         if (modifiedElement && modifiedElement.$cstNode && modifiedElement.name !== prefix + index) {
             // calculate the range of the ID of the modified element
             const range = modifiedElement.$cstNode.range;
-            this.fixHazardRange(range, prefix, modifiedElement);
-            range.end.character = range.start.character + modifiedElement.name.length;
-            range.end.line = range.start.line;
+            const newRange = {
+                start: { line: range.start.line, character: range.start.character },
+                end: { line: range.start.line, character: range.start.character + modifiedElement.name.length },
+            };
+            this.fixHazardRange(newRange, prefix, modifiedElement);
+            newRange.end.character = newRange.start.character + modifiedElement.name.length;
+            newRange.end.line = newRange.start.line;
             // create the edit
-            const modifiedElementEdit = TextEdit.replace(range, prefix + index);
+            const modifiedElementEdit = TextEdit.replace(newRange, prefix + index);
             edits.push(modifiedElementEdit);
         }
         return edits;

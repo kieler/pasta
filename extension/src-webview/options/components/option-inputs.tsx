@@ -34,20 +34,20 @@ type CheckOptionProps = BaseProps<boolean>;
 
 /** Render a labeled checkbox input. */
 export function CheckOption(props: CheckOptionProps): VNode {
-    // The sprotty jsx function always puts an additional 'props' key around the element, requiring this hack.
-    props = (props as any as {props: CheckOptionProps}).props
     return (
-        <label htmlFor={props.id} title={props.description ?? props.name}>
-            <input
-                class-options__input="true"
-                type="checkbox"
-                title={props.description ?? props.name}
-                id={props.id}
-                checked={props.value}
-                on-change={() => props.onChange(!props.value)}
-            />
-            {props.name}
-        </label>
+        <div class-options__column="true">
+            <label htmlFor={props.id} title={props.description ?? props.name}>
+                <input
+                    class-options__input="true"
+                    type="checkbox"
+                    title={props.description ?? props.name}
+                    id={props.id}
+                    checked={props.value}
+                    on-change={(): void => props.onChange(!props.value)}
+                />
+                {props.name}
+            </label>
+        </div>
     );
 }
 
@@ -58,8 +58,6 @@ interface ChoiceOptionProps extends BaseProps<string> {
 
 /** Render a labeled group of radio inputs. */
 export function ChoiceOption(props: ChoiceOptionProps): VNode {
-    // The sprotty jsx function always puts an additional 'props' key around the element, requiring this hack.
-    props = (props as any as {props: ChoiceOptionProps}).props
     return (
         <div class-options__input-container="true">
             <legend>{props.name}</legend>
@@ -71,7 +69,7 @@ export function ChoiceOption(props: ChoiceOptionProps): VNode {
                         title={props.description ?? props.name}
                         id={props.availableValuesLabels?.[i] ?? value}
                         checked={props.value === value}
-                        on-change={() => props.onChange(value)}
+                        on-change={(): void => props.onChange(value)}
                     />
                     {props.availableValuesLabels?.[i] ?? value}
                 </label>
@@ -90,8 +88,6 @@ interface RangeOptionProps extends BaseProps<number> {
 
 /** Render a labeled range slider as input. */
 export function RangeOption(props: RangeOptionProps): VNode {
-    // The sprotty jsx function always puts an additional 'props' key around the element, requiring this hack.
-    props = (props as any as {props: RangeOptionProps}).props
     return (
         <div class-options__column="true">
             <label htmlFor={props.id} title={props.description ?? props.name}>
@@ -106,8 +102,8 @@ export function RangeOption(props: RangeOptionProps): VNode {
                 max={props.maxValue}
                 attrs={{ "value": props.value }}
                 step={props.stepSize}
-                on-change={(e: any) => props.onChange(e.target.value)}
-                on-input={(e: any) => props.onInput ? props.onInput(e.target.value) : undefined}
+                on-change={(e: any): void => props.onChange(e.target.value)}
+                on-input={(e: any): void => props.onInput ? props.onInput(e.target.value) : undefined}
             />
         </div>
     );
@@ -117,8 +113,6 @@ type TextOptionProps = BaseProps<string>;
 
 /** Renders a labeled text input. */
 export function TextOption(props: TextOptionProps): VNode {
-    // The sprotty jsx function always puts an additional 'props' key around the element, requiring this hack.
-    props = (props as any as {props: TextOptionProps}).props
     return (
         <div class-options__column="true">
             <label htmlFor={props.id} title={props.description ?? props.name}>{props.name}</label>
@@ -128,7 +122,7 @@ export function TextOption(props: TextOptionProps): VNode {
                 title={props.description ?? props.name}
                 id={props.id}
                 value={props.value}
-                on-change={(e: any) => props.onChange(e.target.value)}
+                on-change={(e: any): void => props.onChange(e.target.value)}
             />
         </div>
     );
@@ -136,8 +130,6 @@ export function TextOption(props: TextOptionProps): VNode {
 
 /** Renders a named separator. */
 export function SeparatorOption(props: { name: string; key?: string }): VNode {
-    // The sprotty jsx function always puts an additional 'props' key around the element, requiring this hack.
-    props = (props as any as {props: { name: string; key?: string }}).props
     return <span class-options__separator="true">{props.name}</span>;
 }
 
@@ -148,9 +140,7 @@ interface CategoryOptionProps extends BaseProps<boolean> {
 
 /** Renders a labeled options group. */
 export function CategoryOption(props: CategoryOptionProps, children: VNode[]): VNode {
-    // The sprotty jsx function always puts an additional 'props' key around the element, requiring this hack.
-    props = (props as any as {props: CategoryOptionProps}).props
-    function handleToggle(e: any) {
+    function handleToggle(e: any): void {
         // The toggle event is also fired if the details are rendered default open.
         // To prevent an infinite toggle loop, change is only called if the state has really changed.
         if (e.target.open !== props.value) props.onChange(e.target.open);
@@ -177,12 +167,10 @@ interface DropDownMenuProps extends BaseProps<string> {
 
 /** Renders a dropdown menu. */
 export function DropDownMenuOption(props: DropDownMenuProps): VNode {
-    // The sprotty jsx function always puts an additional 'props' key around the element, requiring this hack.
-    props = (props as any as {props: DropDownMenuProps}).props
     return (
         <div class-options__column="true">
             <label htmlFor="itemSelect">{props.name}</label>
-            <select id="itemSelect" class-options__selection="true" on-change={(e: any) => props.onChange(e.target.value)}>
+            <select id="itemSelect" class-options__selection="true" on-change={(e: any): void => props.onChange(e.target.value)}>
                 {props.availableValues.map((item) => (
                     <option value={item.id} selected={item.id === props.currentId}>
                         {item.displayName}

@@ -60,5 +60,8 @@
     --stpa-scenario-light: #cccc00;
     --stpa-safety-requirement-light: #8fbcbc;
 
+    --stpa-feedback-grey-light: darkgrey;
+    --stpa-feedback-grey-dark: slategrey;
+
     /* background: #feffe8 */
 }

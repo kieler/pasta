@@ -19,15 +19,15 @@ import { DocumentState } from "langium";
 import { LangiumSprottySharedServices } from "langium-sprotty";
 import { TextDocumentContentChangeEvent } from "vscode";
 import { Connection, URI } from "vscode-languageserver";
-import { diagramSizes } from "../diagram-server";
-import { serializeFTAAST } from "../fta/utils";
-import { updateValidationChecks } from "../utils";
-import { setCurrentCursorOffset } from "./diagram/utils";
-import { createFaultTrees } from "./ftaGeneration/fta-generation";
-import { generateLTLFormulae } from "./modelChecking/model-checking";
-import { createResultData } from "./result-report/result-generator";
-import { StpaServices } from "./stpa-module";
-import { getControlActions } from "./utils";
+import { diagramSizes } from "../diagram-server.js";
+import { serializeFTAAST } from "../fta/utils.js";
+import { updateValidationChecks } from "../utils.js";
+import { setCurrentCursorOffset } from "./diagram/utils.js";
+import { createFaultTrees } from "./ftaGeneration/fta-generation.js";
+import { generateLTLFormulae } from "./modelChecking/model-checking.js";
+import { createResultData } from "./result-report/result-generator.js";
+import { StpaServices } from "./stpa-module.js";
+import { getControlActions } from "./utils.js";
 
 let lastUri: URI;
 
@@ -218,6 +218,7 @@ export function handleSTPAConfigReset(stpaServices: StpaServices): void {
     validator.checkConstraintsForUCAs = true;
     validator.checkScenariosForUCAs = true;
     validator.checkSafetyRequirementsForUCAs = true;
+    validator.checkMissingFeedback = true;
     // reset synthesis options
     stpaServices.options.SynthesisOptions.resetAll();
     // reset ID generation option

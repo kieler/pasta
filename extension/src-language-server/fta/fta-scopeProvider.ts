@@ -18,12 +18,12 @@
 import {
     AstNode,
     AstNodeDescription,
+    AstUtils,
     DefaultScopeProvider,
     ReferenceInfo,
     Scope,
     Stream,
-    getDocument,
-    stream,
+    stream
 } from "langium";
 
 export class FtaScopeProvider extends DefaultScopeProvider {
@@ -32,15 +32,14 @@ export class FtaScopeProvider extends DefaultScopeProvider {
         const scopes: Array<Stream<AstNodeDescription>> = [];
         const referenceType = this.reflection.getReferenceType(context);
 
-        const precomputed = getDocument(context.container).precomputedScopes;
+        const precomputed = AstUtils.getDocument(context.container).precomputedScopes;
         if (precomputed) {
             let currentNode: AstNode | undefined = context.container;
             do {
                 const allDescriptions = precomputed.get(currentNode);
                 if (allDescriptions.length > 0) {
-                    scopes.push(
-                        stream(allDescriptions).filter((desc) => this.reflection.isSubtype(desc.type, referenceType))
-                    );
+                    scopes.push(stream(allDescriptions).filter(
+                        desc => this.reflection.isSubtype(desc.type, referenceType)));
                 }
                 currentNode = currentNode.$container;
             } while (currentNode);

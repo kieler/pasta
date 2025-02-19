@@ -15,7 +15,13 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-import { RangeOption, SynthesisOption, TransformationOptionType, ValuedSynthesisOption } from "./options/option-models";
+import {
+    DropDownOption,
+    RangeOption,
+    SynthesisOption,
+    TransformationOptionType,
+    ValuedSynthesisOption,
+} from "./options/option-models.js";
 
 const labelManagementID = "labelManagement";
 const labelShorteningWidthID = "labelShorteningWidth";
@@ -129,6 +135,9 @@ export class SynthesisOptions {
         if (option) {
             option.currentValue = value;
             option.synthesisOption.currentValue = value;
+        }
+        if (option?.synthesisOption.type === TransformationOptionType.DROPDOWN) {
+            (option.synthesisOption as DropDownOption).currentId = value;
         }
     }
 

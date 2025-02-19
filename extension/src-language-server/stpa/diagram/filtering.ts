@@ -23,12 +23,12 @@ import {
     Loss,
     LossScenario,
     Model,
-    SystemResponsibilities,
     Rule,
     SafetyConstraint,
     SystemConstraint,
-} from "../../generated/ast";
-import { StpaSynthesisOptions } from "./stpa-synthesis-options";
+    SystemResponsibilities,
+} from "../../generated/ast.js";
+import { StpaSynthesisOptions } from "./stpa-synthesis-options.js";
 
 /**
  * Needed to work on a filtered model without changing the original model.

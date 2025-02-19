@@ -16,7 +16,7 @@
  */
 
 import { Point, SEdge, SGraph, SNode, SPort } from "sprotty-protocol";
-import { FTNodeType, PortSide } from "./fta-model";
+import { FTNodeType, PortSide } from "./fta-model.js";
 
 /**
  * Node of a fault tree.

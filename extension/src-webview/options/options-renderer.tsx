@@ -162,13 +162,13 @@ export class OptionsRenderer {
     }
 
     /** Handler for synthesis options onInput, e.g. while a slider is being dragged. */
-    private handleSynthesisOptionInput(option: SynthesisOption, newValue: any) {
+    private handleSynthesisOptionInput(option: SynthesisOption, newValue: any): void {
         this.actionDispatcher.dispatch(
             SetSynthesisOptionsAction.create([{ ...option, currentValue: newValue }])
         );
     }
 
-    private handleSynthesisOptionChange(option: SynthesisOption, newValue: any) {
+    private handleSynthesisOptionChange(option: SynthesisOption, newValue: any): void {
         this.actionDispatcher.dispatch(
             SetSynthesisOptionsAction.create([{ ...option, currentValue: newValue }])
         );
@@ -223,7 +223,7 @@ export class OptionsRenderer {
         });
     }
 
-    private handleRenderOptionChange(option: RenderOption, newValue: any) {
+    private handleRenderOptionChange(option: RenderOption, newValue: any): void {
         this.actionDispatcher.dispatch(SetRenderOptionAction.create(option.id, newValue));
     }
 

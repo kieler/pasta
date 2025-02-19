@@ -21,22 +21,22 @@ import "./css/diagram.css";
 import { Container, ContainerModule } from "inversify";
 import {
     ConsoleLogger,
-    HtmlRoot,
+    HtmlRootImpl,
     HtmlRootView,
     LogLevel,
     ModelViewer,
-    PreRenderedElement,
+    PreRenderedElementImpl,
     PreRenderedView,
-    SGraph,
-    SLabel,
+    SGraphImpl,
+    SLabelImpl,
     SLabelView,
-    SNode,
+    SNodeImpl,
     TYPES,
     configureCommand,
     configureModelElement,
     contextMenuModule,
     loadDefaultModules,
-    overrideViewerOptions,
+    overrideViewerOptions
 } from "sprotty";
 import { SvgCommand } from "./actions";
 import { ContextMenuProvider } from "./context-menu/context-menu-provider";
@@ -67,6 +67,7 @@ import {
 import { PastaModelViewer } from "./model-viewer";
 import { optionsModule } from "./options/options-module";
 import { sidebarModule } from "./sidebar";
+import { snippetModule } from './snippets/snippet-module';
 import {
     CSEdge,
     CSNode,
@@ -75,10 +76,14 @@ import {
     CS_INVISIBLE_SUBCOMPONENT_TYPE,
     CS_NODE_TYPE,
     DUMMY_NODE_TYPE,
+    EDGE_LABEL_TYPE,
+    EdgeLabel,
     HEADER_LABEL_TYPE,
     PARENT_TYPE,
+    PASTA_LABEL_TYPE,
     PORT_TYPE,
     PROCESS_MODEL_PARENT_NODE_TYPE,
+    ParentNode,
     PastaPort,
     STPAEdge,
     STPANode,
@@ -89,15 +94,15 @@ import {
 import { StpaMouseListener } from "./stpa/stpa-mouselistener";
 import {
     CSNodeView,
+    EdgeLabelView,
     HeaderLabelView,
     IntermediateEdgeView,
     InvisibleNodeView,
     PolylineArrowEdgeView,
     PortView,
     STPAGraphView,
-    STPANodeView,
+    STPANodeView
 } from "./stpa/stpa-views";
-import { snippetModule } from './snippets/snippet-module';
 
 const pastaDiagramModule = new ContainerModule((bind, unbind, isBound, rebind) => {
     rebind(TYPES.ILogger).to(ConsoleLogger).inSingletonScope();
@@ -119,20 +124,20 @@ const pastaDiagramModule = new ContainerModule((bind, unbind, isBound, rebind) =
 
     // configure the diagram elements
     const context = { bind, unbind, isBound, rebind };
-    configureModelElement(context, "label", SLabel, SLabelView);
-    configureModelElement(context, "label:xref", SLabel, SLabelView);
-    configureModelElement(context, HEADER_LABEL_TYPE, SLabel, HeaderLabelView);
-    configureModelElement(context, "html", HtmlRoot, HtmlRootView);
-    configureModelElement(context, "pre-rendered", PreRenderedElement, PreRenderedView);
+    configureModelElement(context, PASTA_LABEL_TYPE, SLabelImpl, SLabelView);
+    configureModelElement(context, EDGE_LABEL_TYPE, EdgeLabel, EdgeLabelView);
+    configureModelElement(context, HEADER_LABEL_TYPE, SLabelImpl, HeaderLabelView);
+    configureModelElement(context, "html", HtmlRootImpl, HtmlRootView);
+    configureModelElement(context, "pre-rendered", PreRenderedElementImpl, PreRenderedView);
 
     // STPA
-    configureModelElement(context, "graph", SGraph, STPAGraphView);
-    configureModelElement(context, CS_INVISIBLE_SUBCOMPONENT_TYPE, SNode, InvisibleNodeView);
-    configureModelElement(context, PROCESS_MODEL_PARENT_NODE_TYPE, SNode, InvisibleNodeView);
+    configureModelElement(context, "graph", SGraphImpl, STPAGraphView);
+    configureModelElement(context, CS_INVISIBLE_SUBCOMPONENT_TYPE, SNodeImpl, InvisibleNodeView);
+    configureModelElement(context, PROCESS_MODEL_PARENT_NODE_TYPE, SNodeImpl, InvisibleNodeView);
     configureModelElement(context, DUMMY_NODE_TYPE, CSNode, CSNodeView);
     configureModelElement(context, CS_NODE_TYPE, CSNode, CSNodeView);
     configureModelElement(context, STPA_NODE_TYPE, STPANode, STPANodeView);
-    configureModelElement(context, PARENT_TYPE, SNode, CSNodeView);
+    configureModelElement(context, PARENT_TYPE, ParentNode, CSNodeView);
     configureModelElement(context, STPA_EDGE_TYPE, STPAEdge, PolylineArrowEdgeView);
     configureModelElement(context, STPA_INTERMEDIATE_EDGE_TYPE, STPAEdge, IntermediateEdgeView);
     configureModelElement(context, CS_INTERMEDIATE_EDGE_TYPE, CSEdge, IntermediateEdgeView);
@@ -151,7 +156,7 @@ const pastaDiagramModule = new ContainerModule((bind, unbind, isBound, rebind) =
 export function createPastaDiagramContainer(widgetId: string): Container {
     const container = new Container();
     loadDefaultModules(container, { exclude: [contextMenuModule] });
-    container.load(pastaContextMenuModule, pastaDiagramModule, sidebarModule, optionsModule, snippetModule);
+    container.load(pastaContextMenuModule, pastaDiagramModule, optionsModule, sidebarModule, snippetModule);
     overrideViewerOptions(container, {
         needsClientLayout: true,
         needsServerLayout: true,

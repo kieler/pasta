@@ -19,11 +19,49 @@
 
 .stpa-node {
     stroke: black;
-} 
+}
+
+/* red highlighting for visualization of missing feedback edges */
+.missing-feedback-label {
+    fill: red !important;
+}
+
+.missing-feedback-node {
+    stroke: red !important;
+    stroke-width: 3 !important;
+}
+
+.missing-edge {
+    stroke: red !important;
+    stroke-width: 3 !important;
+}
+
+.missing-edge-arrow {
+    stroke: red !important;
+    fill: red !important;
+}
 
 /* Feedback edges */
-.feedback-edge {
+.feedback-dotted {
     stroke-dasharray: 5, 5;
+}
+
+.vscode-light .feedback-grey {
+    stroke: var(--stpa-feedback-grey-light);
+}
+
+.vscode-light .feedback-grey-arrow {
+    stroke: var(--stpa-feedback-grey-light) !important;
+    fill: var(--stpa-feedback-grey-light) !important;
+}
+
+.vscode-dark .feedback-grey {
+    stroke: var(--stpa-feedback-grey-dark);
+}
+
+.vscode-dark .feedback-grey-arrow {
+    stroke: var(--stpa-feedback-grey-dark) !important;
+    fill: var(--stpa-feedback-grey-dark) !important;
 }
 
 /* High contrast theme */

@@ -14,7 +14,7 @@
                 "--extensionDevelopmentPath=${workspaceFolder}/extension"
             ],
             "outFiles": [
-                "${workspaceFolder}/extension/pack/*.js"
+                "${workspaceFolder}/extension/pack/**/*.cjs"
             ],
             "sourceMaps": true
         },
@@ -27,7 +27,7 @@
             ],
             "sourceMaps": true,
             "outFiles": [
-                "${workspaceFolder}/extension/pack/language-server.js"
+                "${workspaceFolder}/extension/pack/src-language-server/*.cjs"
             ],
             "sourceMapPathOverrides": {
 				"meteor://💻app/*": "${workspaceFolder}/*",

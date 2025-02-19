@@ -17,11 +17,11 @@
 
 import { LangiumSprottySharedServices } from "langium-sprotty";
 import { Connection } from "vscode-languageserver";
-import { ModelFTA } from "../generated/ast";
-import { getModel } from "../utils";
-import { determineCutSetsForFT, determineMinimalCutSets } from "./analysis/fta-cutSet-calculator";
-import { FtaServices } from "./fta-module";
-import { cutSetsToString, namedFtaElement } from "./utils";
+import { ModelFTA } from "../generated/ast.js";
+import { getModel } from "../utils.js";
+import { determineCutSetsForFT, determineMinimalCutSets } from "./analysis/fta-cutSet-calculator.js";
+import { FtaServices } from "./fta-module.js";
+import { cutSetsToString, namedFtaElement } from "./utils.js";
 
 /**
  * Adds handlers for notifications regarding fta.

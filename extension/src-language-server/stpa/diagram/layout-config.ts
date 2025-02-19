@@ -17,18 +17,18 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { LayoutOptions } from "elkjs";
-import { DefaultLayoutConfigurator } from "sprotty-elk/lib/elk-layout";
-import { SGraph, SModelIndex, SNode, SPort } from "sprotty-protocol";
-import { CSNode, ParentNode, STPANode, PastaPort } from "./stpa-interfaces";
+import { DefaultLayoutConfigurator } from "sprotty-elk/lib/elk-layout.js";
+import { SGraph, SLabel, SModelIndex, SNode, SPort } from "sprotty-protocol";
+import { CSNode, ParentNode, PastaPort, STPANode } from "./stpa-interfaces.js";
 import {
-    CS_NODE_TYPE,
     CS_INVISIBLE_SUBCOMPONENT_TYPE,
+    CS_NODE_TYPE,
     PARENT_TYPE,
+    PORT_TYPE,
     PROCESS_MODEL_PARENT_NODE_TYPE,
     PortSide,
     STPA_NODE_TYPE,
-    PORT_TYPE,
-} from "./stpa-model";
+} from "./stpa-model.js";
 
 export class StpaLayoutConfigurator extends DefaultLayoutConfigurator {
     protected graphOptions(sgraph: SGraph, index: SModelIndex): LayoutOptions {
@@ -46,7 +46,8 @@ export class StpaLayoutConfigurator extends DefaultLayoutConfigurator {
         let direction = "";
         // priority is used to determine the order of the nodes
         let priority = "";
-        if (snode.children?.find(child => child.type === CS_NODE_TYPE)) {
+        const csParent = snode.children?.find(child => child.type === CS_NODE_TYPE);
+        if (csParent) {
             // options for the control structure
             direction = "DOWN";
             priority = "1";
@@ -74,6 +75,11 @@ export class StpaLayoutConfigurator extends DefaultLayoutConfigurator {
             options["org.eclipse.elk.layered.considerModelOrder.strategy"] = "NODES_AND_EDGES";
             options["org.eclipse.elk.layered.crossingMinimization.forceNodeModelOrder"] = "true";
             options["org.eclipse.elk.separateConnectedComponents"] = "false";
+        }
+        if (csParent) {
+            options["org.eclipse.elk.layered.considerModelOrder.strategy"] = "NODES_AND_EDGES";
+            options["org.eclipse.elk.layered.crossingMinimization.forceNodeModelOrder"] = "true";
+            options["org.eclipse.elk.layered.cycleBreaking.strategy"] = "MODEL_ORDER";
         }
 
         return options;
@@ -118,6 +124,7 @@ export class StpaLayoutConfigurator extends DefaultLayoutConfigurator {
             "org.eclipse.elk.portConstraints": "FIXED_SIDE",
             "org.eclipse.elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",
             "org.eclipse.elk.layered.crossingMinimization.forceNodeModelOrder": "true",
+            "org.eclipse.elk.layered.cycleBreaking.strategy": "MODEL_ORDER",
             // nodes with many edges are streched
             "org.eclipse.elk.layered.nodePlacement.strategy": "NETWORK_SIMPLEX",
             "org.eclipse.elk.layered.nodePlacement.networkSimplex.nodeFlexibility.default": "NODE_SIZE",
@@ -176,7 +183,7 @@ export class StpaLayoutConfigurator extends DefaultLayoutConfigurator {
     protected csNodeOptions(node: CSNode): LayoutOptions {
         const options: LayoutOptions = {
             "org.eclipse.elk.alignment": "CENTER",
-            "org.eclipse.elk.partitioning.partition": "" + node.level,
+            // "org.eclipse.elk.partitioning.partition": "" + node.level,
             "org.eclipse.elk.nodeSize.constraints": "NODE_LABELS",
             // edges do no start at the border of the node
             "org.eclipse.elk.spacing.portsSurrounding": "[top=10.0,left=10.0,bottom=10.0,right=10.0]",
@@ -184,6 +191,9 @@ export class StpaLayoutConfigurator extends DefaultLayoutConfigurator {
             // nodes with many edges are streched
             "org.eclipse.elk.layered.nodePlacement.strategy": "NETWORK_SIMPLEX",
             "org.eclipse.elk.layered.nodePlacement.networkSimplex.nodeFlexibility.default": "NODE_SIZE",
+            "org.eclipse.elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",
+            "org.eclipse.elk.layered.crossingMinimization.forceNodeModelOrder": "true",
+            "org.eclipse.elk.layered.cycleBreaking.strategy": "MODEL_ORDER"
         };
         if (node.children?.find(child => child.type.startsWith("node"))) {
             // node has children nodes
@@ -223,5 +233,12 @@ export class StpaLayoutConfigurator extends DefaultLayoutConfigurator {
                 "org.eclipse.elk.port.side": side,
             };
         }
+    }
+
+    protected labelOptions(slabel: SLabel, index: SModelIndex): LayoutOptions | undefined {
+        return {
+            // enables on edge labels
+            "org.eclipse.elk.edgeLabels.inline": "true",
+        };
     }
 }

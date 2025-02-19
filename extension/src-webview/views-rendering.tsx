@@ -17,14 +17,14 @@
 
 /** @jsx svg */
 import { VNode } from 'snabbdom';
-import { SNode, svg } from 'sprotty';
+import { SNodeImpl, svg } from 'sprotty';
 
 /**
  * Creates a circle for {@code node}.
  * @param node The node that should be represented by a circle.
  * @returns A circle for {@code node}.
  */
-export function renderOval(node: SNode): VNode {
+export function renderOval(node: SNodeImpl): VNode {
     const nodeWidth = node.size.width < node.size.height ? node.size.height : node.size.width;
     return <ellipse cx={Math.max(node.size.width, 0) / 2.0}
         cy={Math.max(node.size.height, 0) / 2.0}
@@ -56,10 +56,32 @@ export function renderEllipse(x: number | undefined, y: number | undefined, widt
  * @param node The node that should be represented by a rectangle.
  * @returns A rectangle for {@code node}.
  */
-export function renderRectangle(node: SNode): VNode {
+export function renderRectangleForNode(node: SNodeImpl): VNode {
     return <rect
         x="0" y="0"
         width={Math.max(node.size.width, 0)} height={Math.max(node.size.height, 0)}
+    />;
+}
+
+/**
+ * Creates a rectangle for with the given parameters.
+ * @param x The x-coordinate of the rectangle.
+ * @param y The y-coordinate of the rectangle.
+ * @param width The width of the rectangle.
+ * @param height The height of the rectangle.
+ * @returns A rectangle with the given parameters.
+ */
+export function renderRectangle(x: number, y: number, width: number, height: number): VNode {
+    return <rect
+        x={x} y={y}
+        width={Math.max(width, 0)} height={Math.max(height, 0)}
+    />;
+}
+
+export function renderPort(x:number, y: number, width: number, height: number): VNode {
+    return <rect
+        x={x} y={y}
+        width={Math.max(width, 0)} height={Math.max(height, 0)}
     />;
 }
 
@@ -68,7 +90,7 @@ export function renderRectangle(node: SNode): VNode {
  * @param node The node that should be represented by a rectangle.
  * @returns rectangle borders for {@code node} at the top and bottom.
  */
-export function renderHorizontalLine(node: SNode): VNode {
+export function renderHorizontalLine(node: SNodeImpl): VNode {
     return <g>
         <line x="0" y="0" x2={Math.max(node.size.width, 0)} y2="0" />
     </g>;
@@ -79,7 +101,7 @@ export function renderHorizontalLine(node: SNode): VNode {
  * @param node The node for which the line should be created.
  * @returns a vertical line for {@code node} going through its mid.
  */
-export function renderVerticalLine(node: SNode): VNode {
+export function renderVerticalLine(node: SNodeImpl): VNode {
     return <g>
         <line x="0" y="0" x2="0" y2={Math.max(node.size.height, 0)} />
     </g>;
@@ -92,7 +114,7 @@ export function renderVerticalLine(node: SNode): VNode {
  * @param ry The y-radius of the rounded corners.
  * @returns A rounded rectangle for {@code node}.
  */
-export function renderRoundedRectangle(node: SNode, rx = 5, ry = 5): VNode {
+export function renderRoundedRectangle(node: SNodeImpl, rx = 5, ry = 5): VNode {
     return <rect
         x="0" y="0"
         rx={rx} ry={ry}
@@ -106,7 +128,7 @@ export function renderRoundedRectangle(node: SNode, rx = 5, ry = 5): VNode {
  * @param node The node that should be represented by a triangle.
  * @returns A triangle for {@code node}.
  */
-export function renderTriangle(node: SNode): VNode {
+export function renderTriangle(node: SNodeImpl): VNode {
     const leftX = 0;
     const midX = Math.max(node.size.width, 0) / 2.0;
     const rightX = Math.max(node.size.width, 0);
@@ -123,7 +145,7 @@ export function renderTriangle(node: SNode): VNode {
  * @param node The node that should be represented by a mirrored triangle.
  * @returns A mrrored triangle for {@code node}.
  */
-export function renderMirroredTriangle(node: SNode): VNode {
+export function renderMirroredTriangle(node: SNodeImpl): VNode {
     const leftX = 0;
     const midX = Math.max(node.size.width, 0) / 2.0;
     const rightX = Math.max(node.size.width, 0);
@@ -140,7 +162,7 @@ export function renderMirroredTriangle(node: SNode): VNode {
  * @param node The node that should be represented by a trapez.
  * @returns A trapez for {@code node}.
  */
-export function renderTrapez(node: SNode): VNode {
+export function renderTrapez(node: SNodeImpl): VNode {
     const leftX = 0;
     const midX1 = Math.max(node.size.width, 0) / 4.0;
     const midX2 = Math.max(node.size.width, 0) * (3.0 / 4.0);
@@ -159,7 +181,7 @@ export function renderTrapez(node: SNode): VNode {
  * @param node The node that should be represented by a diamond.
  * @returns A diamond for {@code node}.
  */
-export function renderDiamond(node: SNode): VNode {
+export function renderDiamond(node: SNodeImpl): VNode {
     const leftX = 0;
     const midX = Math.max(node.size.width, 0) / 2.0;
     const rightX = Math.max(node.size.width, 0);
@@ -178,7 +200,7 @@ export function renderDiamond(node: SNode): VNode {
  * @param node The node that should be represented by a pentagon.
  * @returns A pentagon for {@code node}.
  */
-export function renderPentagon(node: SNode): VNode {
+export function renderPentagon(node: SNodeImpl): VNode {
     const startX = 5;
     const leftX = 0;
     const midX = Math.max(node.size.width, 0) / 2.0;
@@ -199,7 +221,7 @@ export function renderPentagon(node: SNode): VNode {
  * @param node The node that should be represented by a hexagon.
  * @returns A hexagon for {@code node}.
  */
-export function renderHexagon(node: SNode): VNode {
+export function renderHexagon(node: SNodeImpl): VNode {
     const leftX = 0;
     const midX1 = 5;
     const midX2 = Math.max(node.size.width, 0) - 5;
@@ -219,7 +241,7 @@ export function renderHexagon(node: SNode): VNode {
  * @param node The node that should be represented by an And-Gate.
  * @returns An And-Gate for {@code node}.
  */
-export function renderAndGate(node: SNode): VNode {
+export function renderAndGate(node: SNodeImpl): VNode {
     const leftX = 0;
     const midX = Math.max(node.size.width, 0) / 2.0;
     const rightX = Math.max(node.size.width, 0);
@@ -239,7 +261,7 @@ export function renderAndGate(node: SNode): VNode {
  * @param node The node that should be represented by an Or-Gate.
  * @returns An Or-Gate for {@code node}.
  */
-export function renderOrGate(node: SNode): VNode {
+export function renderOrGate(node: SNodeImpl): VNode {
     const path = createOrGate(node);
     return <path
         d={path}
@@ -251,7 +273,7 @@ export function renderOrGate(node: SNode): VNode {
  * @param node The node that should be represented by an Kn-Gate.
  * @returns An Kn-Gate for {@code node}.
  */
-export function renderKnGate(node: SNode, k: number, n: number): VNode {
+export function renderKnGate(node: SNodeImpl, k: number, n: number): VNode {
     const rightX = Math.max(node.size.width, 0);
     const midX = rightX / 2.0;
     const botY = Math.max(node.size.height, 0);
@@ -271,7 +293,7 @@ export function renderKnGate(node: SNode, k: number, n: number): VNode {
  * @param node The node that should be represented by an Or-Gate.
  * @returns an Or-Gate for {@code node}.
  */
-function createOrGate(node: SNode): string {
+function createOrGate(node: SNodeImpl): string {
     const leftX = 0;
     const rightX = Math.max(node.size.width, 0);
     const midX = rightX / 2.0;
@@ -290,7 +312,7 @@ function createOrGate(node: SNode): string {
  * @param node The node that should be represented by an Inhibit-Gate.
  * @returns An Inhibit-Gate for {@code node}.
  */
-export function renderInhibitGate(node: SNode): VNode {
+export function renderInhibitGate(node: SNodeImpl): VNode {
     const leftX = 0;
     const midX = Math.max(node.size.width, 0) / 2.0;
     const rightX = Math.max(node.size.width, 0);
@@ -302,6 +324,61 @@ export function renderInhibitGate(node: SNode): VNode {
     const path = `M${leftX},${lowY} L ${leftX} ${highY} L ${midX} ${highestY} L ${rightX} ${highY} L ${rightX} ${lowY} L ${midX} ${lowestY} Z`;
 
     return <path
+        d={path}
+    />;
+}
+
+/**
+ * Creates the icon for collapsing a node.
+ * @returns 
+ */
+export function renderCollapseIcon(): VNode {
+    return <g>
+        {renderCollapseExpandTriangle()}
+        {renderCollapseSign()}
+    </g>;
+}
+
+/**
+ * Creates the triangle for the expand and collapse icon.
+ * @returns 
+ */
+export function renderCollapseExpandTriangle(): VNode {
+    const path = `M 0 0 L 0 15 L 15 0 Z`;
+    return <path class-collapse-expand-triangle={true}
+        d={path}
+    />;
+}
+
+/**
+ * Creates the minus-sign for the collapse icon.
+ * @returns 
+ */
+export function renderCollapseSign(): VNode {
+    const path = `M 3 5 L 7 5`;
+    return <path class-collapse-expand-sign={true}
+        d={path}
+    />;
+}
+
+/**
+ * Creates the icon for expanding a node.
+ * @returns 
+ */
+export function renderExpandIcon(): VNode {
+    return <g>
+        {renderCollapseExpandTriangle()}
+        {renderExpandSign()}
+    </g>;
+}
+
+/**
+ * Creates the plus-sign for the expand icon.
+ * @returns 
+ */
+export function renderExpandSign(): VNode {
+    const path = `M 3 5 L 7 5 M 5 3 L 5 7`;
+    return <path class-collapse-expand-sign={true}
         d={path}
     />;
 }

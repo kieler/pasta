@@ -26,8 +26,8 @@ import {
     isKNGate,
     isOR,
     isTopEvent,
-} from "../../generated/ast";
-import { namedFtaElement } from "../utils";
+} from "../../generated/ast.js";
+import { namedFtaElement } from "../utils.js";
 
 /* element for which the cut sets were determined */
 export let topOfAnalysis: string | undefined;

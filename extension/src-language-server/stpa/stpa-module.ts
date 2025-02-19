@@ -15,27 +15,30 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-import ElkConstructor from "elkjs/lib/elk.bundled";
-import { Module, PartialLangiumServices } from "langium";
+const ElkConstructor = require('elkjs/lib/elk.bundled.js').default;
+import { Module } from "langium";
 import { LangiumSprottyServices, SprottyDiagramServices } from "langium-sprotty";
-import { DefaultElementFilter, ElkFactory, IElementFilter, ILayoutConfigurator } from "sprotty-elk/lib/elk-layout";
-import { LayoutEngine } from "../layout-engine";
-import { StpaDiagramSnippets } from "../snippets/stpa-snippets";
-import { IDEnforcer } from "./ID-enforcer";
-import { ContextTableProvider } from "./contextTable/context-dataProvider";
-import { StpaDiagramGenerator } from "./diagram/diagram-generator";
-import { StpaLayoutConfigurator } from "./diagram/layout-config";
-import { StpaSynthesisOptions } from "./diagram/stpa-synthesis-options";
-import { STPACompletionProvider } from "./stpa-completion-provider";
-import { StpaScopeProvider } from "./stpa-scopeProvider";
-import { StpaValidationRegistry, StpaValidator } from "./stpa-validator";
+import { PartialLangiumServices } from "langium/lsp";
+import { DefaultElementFilter, ElkFactory, IElementFilter, ILayoutConfigurator } from "sprotty-elk/lib/elk-layout.js";
+import { LayoutEngine } from '../layout-engine.js';
+import { StpaDiagramSnippets } from "../snippets/stpa-snippets.js";
+import { ContextTableProvider } from "./contextTable/context-dataProvider.js";
+import { StpaDiagramGenerator } from "./diagram/diagram-generator.js";
+import { StpaLayoutConfigurator } from "./diagram/layout-config.js";
+import { StpaSynthesisOptions } from "./diagram/stpa-synthesis-options.js";
+import { IDEnforcer } from "./services/ID-enforcer.js";
+import { STPACompletionProvider } from './services/stpa-completion-provider.js';
+import { STPAFoldingRangeProvider } from './services/stpa-fold-provider.js';
+import { StpaScopeProvider } from './services/stpa-scopeProvider.js';
+import { StpaValidator } from "./services/stpa-validator.js";
 
 /**
  * Declaration of custom services - add your own service classes here.
  */
 export type StpaAddedServices = {
     lsp: {
-        ScenarioCompletionProvider: STPACompletionProvider;
+        StpaCompletionProvider: STPACompletionProvider;
+        StpaFoldingRangeProvider: STPAFoldingRangeProvider;
     };
     references: {
         StpaScopeProvider: StpaScopeProvider;
@@ -85,14 +88,15 @@ export const STPAModule: Module<StpaServices, PartialLangiumServices & SprottyDi
     },
     lsp: {
         CompletionProvider: services => new STPACompletionProvider(services),
-        ScenarioCompletionProvider: services => new STPACompletionProvider(services),
+        StpaCompletionProvider: services => new STPACompletionProvider(services),
+        FoldingRangeProvider: services => new STPAFoldingRangeProvider(services),
+        StpaFoldingRangeProvider: services => new STPAFoldingRangeProvider(services),
     },
     references: {
         ScopeProvider: services => new StpaScopeProvider(services),
         StpaScopeProvider: services => new StpaScopeProvider(services),
     },
     validation: {
-        ValidationRegistry: services => new StpaValidationRegistry(services),
         StpaValidator: () => new StpaValidator(),
     },
     layout: {

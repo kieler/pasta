@@ -20,6 +20,8 @@ import { LanguageClient } from "vscode-languageclient/node";
 import { StpaLspVscodeExtension } from "./language-extension";
 import { StorageService } from "./storage-service";
 
+// TODO: rename utils files to be more descriptive
+
 /**
  * Creates a quickpick containing the values "true" and "false". The selected value is set for the
  * configuration option determined by {@code id}.

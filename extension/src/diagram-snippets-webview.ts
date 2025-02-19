@@ -15,11 +15,11 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-import * as vscode from 'vscode';
 import { ActionMessage } from 'sprotty-protocol';
-import { StpaLspVscodeExtension } from './language-extension';
 import { acceptMessageType } from 'sprotty-vscode/lib/lsp';
+import * as vscode from 'vscode';
 import { SendDefaultSnippetsAction } from './actions';
+import { StpaLspVscodeExtension } from './language-extension';
 
 /**
  * Initializes the diagram snippets webview and handles messages from and to it.
@@ -31,6 +31,7 @@ export class DiagramSnippetWebview {
     readonly extension: StpaLspVscodeExtension;
     readonly identifier: string;
     readonly scriptUri: vscode.Uri;
+    readonly cssUri: vscode.Uri | undefined;
     webview: vscode.Webview;
 
     protected disposables: vscode.Disposable[] = [];
@@ -38,10 +39,11 @@ export class DiagramSnippetWebview {
     private resolveWebviewReady: () => void;
     private readonly webviewReady = new Promise<void>((resolve) => this.resolveWebviewReady = resolve);
 
-    constructor(identifier: string, extension: StpaLspVscodeExtension, scriptUri: vscode.Uri) {
+    constructor(identifier: string, extension: StpaLspVscodeExtension, scriptUri: vscode.Uri,  cssUri?: vscode.Uri) {
         this.extension = extension;
         this.identifier = identifier;
         this.scriptUri = scriptUri;
+        this.cssUri = cssUri;
     }
 
     ready(): Promise<void> {
@@ -53,24 +55,21 @@ export class DiagramSnippetWebview {
     }
 
     async initializeWebview(webview: vscode.Webview, title?: string): Promise<void> {
-        webview.html = `
-            <!DOCTYPE html>
-            <html lang="en">
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, height=device-height">
-                    <title>${title}</title>
-                    <link
-                        rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css"
-                        integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/"
-                        crossorigin="anonymous">
-                </head>
-                <body>
-                    <div id="${this.identifier}_container" style="height: 100%;"></div>
-                    <script> const vscode = acquireVsCodeApi();</script>
-                    <script src="${webview.asWebviewUri(this.scriptUri).toString()}"></script>
-                </body>
-            </html>`;
+        const transformUri = (uri: vscode.Uri):string => webview.asWebviewUri(uri).toString();
+        webview.html = `<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, height=device-height">
+        ${title ? `<title>${title}</title>` : ''}
+        ${this.cssUri ? `<link rel="stylesheet" type="text/css" href="${transformUri(this.cssUri)}" />` : ''}
+    </head>
+    <body>
+        <div id="${this.identifier}_container" style="height: 100%;"></div>
+        <script> const vscode = acquireVsCodeApi();</script>
+        <script src="${transformUri(this.scriptUri)}"></script>
+    </body>
+</html>`;
     }
 
     /**

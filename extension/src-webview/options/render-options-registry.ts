@@ -53,6 +53,23 @@ export class DifferentFormsOption implements RenderOption {
     currentValue = false;
 }
 
+export const lightGreyFeedback = "light grey";
+export const dottedFeedback = "dotted";
+
+/**
+ * Different options for the color style of feedback edges.
+ */
+export class FeedbackStyleOption implements ChoiceRenderOption {
+    static readonly ID: string = "feedbackStyle";
+    static readonly NAME: string = "Feedback Style";
+    readonly id: string = FeedbackStyleOption.ID;
+    readonly name: string = FeedbackStyleOption.NAME;
+    readonly type: TransformationOptionType = TransformationOptionType.CHOICE;
+    readonly availableValues: string[] = ["normal", dottedFeedback, lightGreyFeedback];
+    readonly initialValue: string = dottedFeedback;
+    currentValue = dottedFeedback;
+}
+
 export interface RenderOptionType {
     readonly ID: string;
     readonly NAME: string;
@@ -75,6 +92,7 @@ export class RenderOptionsRegistry extends Registry {
         // Add available render options to this registry
         this.register(DifferentFormsOption);
         this.register(ColorStyleOption);
+        this.register(FeedbackStyleOption);
     }
 
     @postConstruct()

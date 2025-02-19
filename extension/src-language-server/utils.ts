@@ -15,12 +15,13 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-import { AstNode, LangiumSharedServices } from "langium";
+import { AstNode } from "langium";
 import { IdCache, LangiumSprottySharedServices } from "langium-sprotty";
+import { LangiumSharedServices } from "langium/lsp";
 import { SLabel } from "sprotty-protocol";
 import { URI } from "vscode-uri";
-import { StpaValidator } from "./stpa/stpa-validator";
-import { labelManagementValue } from "./synthesis-options";
+import { StpaValidator } from "./stpa/services/stpa-validator.js";
+import { labelManagementValue } from "./synthesis-options.js";
 
 /**
  * Determines the model for {@code uri}.
@@ -33,7 +34,7 @@ export async function getModel(
     shared: LangiumSprottySharedServices | LangiumSharedServices
 ): Promise<AstNode> {
     const textDocuments = shared.workspace.LangiumDocuments;
-    const currentDoc = textDocuments.getOrCreateDocument(URI.parse(uri));
+    const currentDoc = await textDocuments.getOrCreateDocument(URI.parse(uri));
     return currentDoc.parseResult.value;
 }
 
@@ -126,6 +127,9 @@ export function updateValidationChecks(options: Record<string, any>, validator: 
                 break;
             case "checkSafetyRequirementsForUCAs":
                 validator.checkSafetyRequirementsForUCAs = value;
+                break;
+            case "checkMissingFeedback":
+                validator.checkMissingFeedback = value;
                 break;
         }
     });

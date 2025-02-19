@@ -16,7 +16,7 @@
  */
 
 import { Action } from "sprotty-protocol";
-import { SynthesisOption, ValuedSynthesisOption } from "./option-models";
+import { SynthesisOption, ValuedSynthesisOption } from "./option-models.js";
 
 /** Request message from the server to update the diagram options widget on the client. */
 export interface UpdateOptionsAction extends Action {

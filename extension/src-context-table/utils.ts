@@ -18,64 +18,12 @@
 import { Cell } from "@kieler/table-webview/lib/helper";
 import { VNode } from "snabbdom";
 import { createSelector, createText, patch } from "./html";
-
-/** Type for control actions for the context table. */
-export class ContextTableControlAction {
-    controller: string;
-    action: string;
-}
-
-/** The variables for each system, needed for the context table. */
-export class ContextTableSystemVariables {
-    system: string;
-    variables: ContextTableVariableValues[];
-}
-
-/** The possible values for a variable in the context table. */
-export class ContextTableVariableValues {
-    name: string;
-    values: string[];
-}
-
-/** An instantation of a variable, needed for the contexts in the context table. */
-export class ContextTableVariable {
-    name: string;
-    value: string;
-}
-
-/** A rule for the context table. */
-export class ContextTableRule {
-    id: string;
-    controlAction: ContextTableControlAction;
-    type: string;
-    variables: ContextTableVariable[];
-    hazards: string[];
-}
-
-/** Data the context table expects from the language server. */
-export class ContextTableData {
-    rules: ContextTableRule[];
-    actions: ContextTableControlAction[];
-    systemVariables: ContextTableSystemVariables[];
-}
-
-/** Types of control actions. */
-export enum Type {
-    PROVIDED,
-    NOT_PROVIDED,
-    BOTH
-}
+import { ContextTableControlAction } from './utils-classes';
 
 /** A cell in the context table. Can span mutliple columns. */
 export class ContextCell extends Cell {
     colSpan: number;
     title?: string;
-}
-
-/** A row in the context table. */
-export class Row {
-    variables: ContextTableVariable[];
-    results: { hazards: string[], rules: ContextTableRule[]; }[];
 }
 
 /**

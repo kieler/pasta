@@ -26,15 +26,12 @@ import { html } from "sprotty"; // eslint-disable-line @typescript-eslint/no-unu
  * @param paramProps properties containing the ID of the feather icon.
  * @returns The SVG VNode resulting from this feather icon ID.
  */
-export function FeatherIcon(paramProps: { iconId: string }): VNode {
-  // Something goes wrong with snabbdom functional components as that the props are nested in an
-  // addional props property, which is removed here.
-  const props = (paramProps as any).props as { iconId: string }
+export function FeatherIcon(props: { iconId: string }): VNode {
   // Imitates what feather would usually do, all attributes are put in the styles (if possible) and
   // the classes are written in as well. Missing are the xmlns and viewBox, but they do not seem to
   // be necessary anyways.
-  const classes: Record<string, boolean> = {"feather": true}
-  classes[`feather-${props.iconId}`] = true
+  const classes: Record<string, boolean> = {"feather": true};
+  classes[`feather-${props.iconId}`] = true;
 
   return <svg 
     style={{
@@ -48,5 +45,5 @@ export function FeatherIcon(paramProps: { iconId: string }): VNode {
     }}
     class={classes}
     props={{innerHTML: icons[props.iconId].toString()}}
-  />
+  />;
 }

@@ -16,7 +16,7 @@
  */
 
 import { ActionMessage, JsonMap, SelectAction } from "sprotty-protocol";
-import { createFileUri } from "sprotty-vscode";
+import { createFileUri, createWebviewPanel } from "sprotty-vscode";
 import { SprottyDiagramIdentifier } from "sprotty-vscode-protocol";
 import {
     LspWebviewEndpoint,
@@ -192,8 +192,9 @@ export class StpaLspVscodeExtension extends LspWebviewPanelManager {
         const extensionPath = this.options.extensionUri.fsPath;
         const tablePanel = new ContextTablePanel(
             "Context-Table",
-            [createFileUri(extensionPath, "pack")],
-            createFileUri(extensionPath, "pack", "context-table-panel.js")
+            [createFileUri(extensionPath, "pack", "src-context-table")],
+            createFileUri(extensionPath, "pack", "src-context-table", "main.js"),
+            createFileUri(extensionPath, "pack", "src-context-table", "main.css")
         );
         this.contextTable = tablePanel;
 
@@ -217,6 +218,17 @@ export class StpaLspVscodeExtension extends LspWebviewPanelManager {
                 }
             })
         );
+    }
+
+    // maybe not needed in next sprotty update
+    // overriden to adjust the paths to the webview files
+    protected createWebview(identifier: SprottyDiagramIdentifier): vscode.WebviewPanel {
+        const extensionPath = this.options.extensionUri.fsPath;
+        return createWebviewPanel(identifier, {
+            localResourceRoots: [ createFileUri(extensionPath, 'pack', 'src-webview') ],
+            scriptUri: createFileUri(extensionPath, 'pack', 'src-webview', 'main.js'),
+            cssUri: createFileUri(extensionPath, 'pack', 'src-webview', 'main.css')
+        });
     }
 
     protected override createEndpoint(identifier: SprottyDiagramIdentifier): LspWebviewEndpoint {

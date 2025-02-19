@@ -2,14 +2,14 @@
     "name": "pasta",
     "displayName": "PASTA (STPA-DSL)",
     "description": "A DSL for STPA. Includes an automatic visualization of the defined relationships and control structure.",
-    "version": "0.4.0",
+    "version": "0.6.1",
     "publisher": "kieler",
-    "author": "Kiel University <rt-kieler-devel@informatik.uni-kiel.de>",
+    "author": "KIELER <kieler@rtsys.informatik.uni-kiel.de>",
     "icon": "icon.png",
     "license": "EPL-2.0",
     "repository": {
         "type": "git",
-        "url": "https://github.com/kieler/stpa"
+        "url": "https://github.com/kieler/pasta"
     },
     "engines": {
         "vscode": "^1.80.0"
@@ -143,6 +143,16 @@
                 "category": "STPA Checks"
             },
             {
+                "command": "pasta.stpa.checks.setCheckMissingFeedback",
+                "title": "Set the missing feedback for system components check",
+                "category": "STPA Checks"
+            },
+            {
+                "command": "pasta.stpa.checks.unsetCheckMissingFeedback",
+                "title": "✓ Set the missing feedback for system components check",
+                "category": "STPA Checks"
+            },
+            {
                 "command": "pasta.IDs.undo",
                 "title": "Executes the undo action",
                 "category": "STPA ID Enforcement"
@@ -183,12 +193,12 @@
                 "category": "STPA Snippets"
             },
             {
-                "command": "pasta.stpa.setIDGeneration",
+                "command": "pasta.stpa.setGenerateIDs",
                 "title": "Automatic ID Generation",
                 "category": "STPA ID Enforcement"
             },
             {
-                "command": "pasta.stpa.unsetIDGeneration",
+                "command": "pasta.stpa.unsetGenerateIDs",
                 "title": "✓ Automatic ID Generation",
                 "category": "STPA ID Enforcement"
             }
@@ -259,6 +269,14 @@
                     "when": "editorLangId == 'stpa' && checkSafetyRequirementsForUCAs == true"
                 },
                 {
+                    "command": "pasta.stpa.checks.setCheckMissingFeedback",
+                    "when": "editorLangId == 'stpa' && checkMissingFeedback == false"
+                },
+                {
+                    "command": "pasta.stpa.checks.unsetCheckMissingFeedback",
+                    "when": "editorLangId == 'stpa' && checkMissingFeedback == true"
+                },
+                {
                     "command": "pasta.stpa.SBM.generation",
                     "when": "editorLangId == 'stpa'"
                 },
@@ -275,12 +293,12 @@
                     "when": "editorLangId == 'stpa'"
                 },
                 {
-                    "command": "pasta.stpa.setIDGeneration",
-                    "when": "editorLangId == 'stpa' && pasta.idGeneration == false"
+                    "command": "pasta.stpa.setGenerateIDs",
+                    "when": "editorLangId == 'stpa' && pasta.generateIDs == false"
                 },
                 {
-                    "command": "pasta.stpa.unsetIDGeneration",
-                    "when": "editorLangId == 'stpa' && pasta.idGeneration == true"
+                    "command": "pasta.stpa.unsetGenerateIDs",
+                    "when": "editorLangId == 'stpa' && pasta.generateIDs == true"
                 },
                 {
                     "command": "pasta.fta.cutSets",
@@ -333,13 +351,13 @@
                     "group": "stpa@4"
                 },
                 {
-                    "command": "pasta.stpa.setIDGeneration",
-                    "when": "editorLangId == 'stpa' && pasta.idGeneration == false",
+                    "command": "pasta.stpa.setGenerateIDs",
+                    "when": "editorLangId == 'stpa' && pasta.generateIDs == false",
                     "group": "stpa@1"
                 },
                 {
-                    "command": "pasta.stpa.unsetIDGeneration",
-                    "when": "editorLangId == 'stpa' && pasta.idGeneration == true",
+                    "command": "pasta.stpa.unsetGenerateIDs",
+                    "when": "editorLangId == 'stpa' && pasta.generateIDs == true",
                     "group": "stpa@1"
                 },
                 {
@@ -401,6 +419,18 @@
                     "title": "editorLangId == 'stpa'",
                     "when": "editorLangId == 'stpa' && pasta.checkSafetyRequirementsForUCAs == true",
                     "group": "checks@4"
+                },
+                {
+                    "command": "pasta.stpa.checks.setCheckMissingFeedback",
+                    "title": "editorLangId == 'stpa'",
+                    "when": "editorLangId == 'stpa' && pasta.checkMissingFeedback == false",
+                    "group": "checks@5"
+                },
+                {
+                    "command": "pasta.stpa.checks.unsetCheckMissingFeedback",
+                    "title": "editorLangId == 'stpa'",
+                    "when": "editorLangId == 'stpa' && pasta.checkMissingFeedback == true",
+                    "group": "checks@5"
                 }
             ],
             "editor/title": [
@@ -482,22 +512,22 @@
         ],
         "viewsContainers": {
             "activitybar": [
-              {
-                "id": "pasta",
-                "title": "PASTA",
-                "icon": "./icon.png"
-              }
+                {
+                    "id": "pasta",
+                    "title": "PASTA",
+                    "icon": "./icon.png"
+                }
             ]
-          },
-          "views": {
+        },
+        "views": {
             "pasta": [
-              {
-                "type": "webview",
-                "id": "stpa-snippets",
-                "name": "STPA Snippets"
-              }
+                {
+                    "type": "webview",
+                    "id": "stpa-snippets",
+                    "name": "STPA Snippets"
+                }
             ]
-          }
+        }
     },
     "activationEvents": [
         "onLanguage:stpa",
@@ -505,51 +535,57 @@
         "onCommand:pasta.getLTLFormula"
     ],
     "files": [
-        "lib",
-        "extension",
-        "server",
+        "src",
+        "src-context-table",
+        "src-diagram-snippets",
+        "src-language-server",
         "syntaxes",
-        "webview"
+        "src-webview",
+        "pack",
+        "icon.png",
+        "LICENSE"
     ],
-    "main": "./pack/extension",
+    "main": "./pack/src/extension.cjs",
     "dependencies": {
-        "langium": "^1.2.0",
-        "langium-sprotty": "^1.2.0",
-        "sprotty-elk": "^0.13.0",
-        "vscode-languageserver": "^8.0.2",
-        "vscode-languageclient": "^8.0.2",
-        "reflect-metadata": "^0.1.13",
+        "langium": "^3.0.0",
+        "langium-sprotty": "^3.0.0",
+        "sprotty-elk": "^1.2.0",
+        "vscode-languageserver": "^9.0.1",
+        "vscode-languageclient": "^9.0.1",
+        "reflect-metadata": "^0.2.2",
         "feather-icons": "^4.28.0",
-        "sprotty-vscode-webview": "^0.5.0",
-        "@kieler/table-webview": "^0.0.5",
+        "sprotty-vscode-webview": "^1.0.0",
+        "@kieler/table-webview": "^0.0.8",
         "snabbdom": "^3.5.1",
         "dayjs": "^1.11.8"
     },
     "devDependencies": {
-        "@types/node": "^12.12.6",
-        "@types/vscode": "^1.80.0",
+        "@types/node": "^22.10.6",
+        "@types/vscode": "^1.50.0",
         "@types/feather-icons": "^4.7.0",
         "rimraf": "^3.0.2",
-        "source-map-loader": "^3.0.0",
-        "sprotty-vscode": "^0.5.0",
-        "ts-loader": "^9.4.2",
+        "source-map-loader": "^4.0.1",
+        "sprotty-vscode": "^1.0.0",
+        "ts-loader": "^9.5.1",
         "typescript": "^4.9.3",
-        "webpack": "^5.75.0",
-        "webpack-cli": "^5.0.1",
-        "css-loader": "^6.7.2",
+        "webpack": "^5.89.0",
+        "webpack-cli": "^5.1.4",
+        "css-loader": "^6.8.1",
         "file-loader": "^6.2.0",
-        "langium-cli": "^1.2.1",
-        "style-loader": "^3.3.1",
-        "vsce": "^2.15.0",
-        "ovsx": "^0.6.0"
+        "langium-cli": "^3.0.3",
+        "style-loader": "^3.3.3",
+        "@vscode/vsce": "^3.0.0",
+        "ovsx": "^0.6.0",
+        "esbuild": "^0.21.2"
     },
+    "type": "module",
     "scripts": {
         "prepare": "yarn run clean && yarn run langium:generate && yarn run build",
         "clean": "rimraf pack",
         "langium:generate": "langium generate",
         "langium:watch": "langium generate --watch",
         "lint": "eslint .",
-        "build": "yarn run langium:generate && webpack --mode development",
+        "build": "yarn run langium:generate && tsc -b src src-diagram-snippets src-language-server src-webview src-context-table && node esbuild.mjs",
         "watch": "webpack --watch",
         "package": "vsce package --yarn -o pasta.vsix",
         "predistribute": "yarn run package",

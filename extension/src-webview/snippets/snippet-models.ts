@@ -15,14 +15,14 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-import { SModelElement } from "sprotty";
+import { SModelElementImpl } from "sprotty";
 
 /**
  * Represents a snippet that can be displayed in a webview.
  */
 export interface WebviewSnippet {
     /** the graph to display */
-    graph: Readonly<SModelElement>;
+    graph: Readonly<SModelElementImpl>;
     /** unique id of the snippet */
     id: string;
 }

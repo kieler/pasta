@@ -16,7 +16,7 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-import { ContextTableData } from "./utils";
+import { ContextTableData } from "./utils-classes";
 
 interface Action {
     kind: string;
@@ -28,16 +28,13 @@ export interface SendContextTableDataAction extends Action {
     data: ContextTableData;
 }
 
-
 export namespace SendContextTableDataAction {
     export const KIND = "sendContextTableData";
 
-    export function create(
-        data: ContextTableData
-    ): SendContextTableDataAction {
+    export function create(data: ContextTableData): SendContextTableDataAction {
         return {
             kind: SendContextTableDataAction.KIND,
-            data
+            data,
         };
     }
 

@@ -16,8 +16,8 @@
  */
 
 import { ValidationAcceptor, ValidationChecks, ValidationRegistry } from "langium";
-import { ModelFTA, PastaAstType } from "../generated/ast";
-import type { FtaServices } from "./fta-module";
+import { ModelFTA, PastaAstType } from "../generated/ast.js";
+import type { FtaServices } from "./fta-module.js";
 
 /**
  * Registry for FTA validation checks.

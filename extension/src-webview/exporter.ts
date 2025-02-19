@@ -16,7 +16,7 @@
  */
 
 import { injectable } from "inversify";
-import { SModelRoot, SNode, SvgExporter } from "sprotty";
+import { SModelRootImpl, SNodeImpl, SvgExporter } from "sprotty";
 import { RequestAction } from "sprotty-protocol";
 import { SvgAction } from "./actions";
 
@@ -27,7 +27,7 @@ export class CustomSvgExporter extends SvgExporter {
      * @param root The root of the model.
      * @param request The request action that triggered this method.
      */
-    internalExport(root: SModelRoot, request?: RequestAction<SvgAction>): void {
+    internalExport(root: SModelRootImpl, request?: RequestAction<SvgAction>): void {
         if (typeof document !== "undefined") {
             const div = document.getElementById(this.options.hiddenDiv);
             if (div !== null && div.firstElementChild && div.firstElementChild.tagName === "svg") {
@@ -35,8 +35,8 @@ export class CustomSvgExporter extends SvgExporter {
                 const svg = this.createSvg(svgElement, root);
                 const width =
                     root.children.length > 1
-                        ? Math.max((root.children[0] as SNode).bounds.width, (root.children[1] as SNode).bounds.width)
-                        : (root.children[0] as SNode).bounds.width;
+                        ? Math.max((root.children[0] as SNodeImpl).bounds.width, (root.children[1] as SNodeImpl).bounds.width)
+                        : (root.children[0] as SNodeImpl).bounds.width;
                 this.actionDispatcher.dispatch(SvgAction.create(svg, width, request ? request.requestId : ""));
             }
         }

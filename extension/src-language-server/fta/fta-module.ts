@@ -15,16 +15,17 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-import ElkConstructor from "elkjs/lib/elk.bundled";
-import { Module, PartialLangiumServices } from "langium";
+const ElkConstructor = require('elkjs/lib/elk.bundled.js').default;
+import { Module } from "langium";
 import { LangiumSprottyServices, SprottyDiagramServices } from "langium-sprotty";
-import { DefaultElementFilter, ElkFactory, IElementFilter, ILayoutConfigurator } from "sprotty-elk/lib/elk-layout";
-import { LayoutEngine } from "../layout-engine";
-import { FtaDiagramGenerator } from "./diagram/fta-diagram-generator";
-import { FtaLayoutConfigurator } from "./diagram/fta-layout-config";
-import { FtaSynthesisOptions } from "./diagram/fta-synthesis-options";
-import { FtaScopeProvider } from "./fta-scopeProvider";
-import { FtaValidationRegistry, FtaValidator } from "./fta-validator";
+import { PartialLangiumServices } from 'langium/lsp';
+import { DefaultElementFilter, ElkFactory, IElementFilter, ILayoutConfigurator } from "sprotty-elk/lib/elk-layout.js";
+import { LayoutEngine } from "../layout-engine.js";
+import { FtaDiagramGenerator } from "./diagram/fta-diagram-generator.js";
+import { FtaLayoutConfigurator } from "./diagram/fta-layout-config.js";
+import { FtaSynthesisOptions } from "./diagram/fta-synthesis-options.js";
+import { FtaScopeProvider } from "./fta-scopeProvider.js";
+import { FtaValidationRegistry, FtaValidator } from "./fta-validator.js";
 
 /**
  * Declaration of custom services.

@@ -18,8 +18,8 @@
 import { Reference } from "langium";
 import { LangiumSprottySharedServices } from "langium-sprotty";
 import { URI } from "vscode-uri";
-import { DCARule, Model, Rule, Variable, VariableValue, isRule } from "../../generated/ast";
-import { getModel } from "../../utils";
+import { DCARule, Model, Rule, Variable, VariableValue, isRule } from "../../generated/ast.js";
+import { getModel } from "../../utils.js";
 
 /**
  * Respresents an LTL formula.

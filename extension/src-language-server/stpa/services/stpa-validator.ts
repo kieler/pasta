@@ -15,48 +15,43 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-import { Reference, ValidationAcceptor, ValidationChecks, ValidationRegistry } from "langium";
+import { Reference, ValidationAcceptor, ValidationChecks } from "langium";
 import { Position } from "vscode-languageserver-types";
 import {
     Context,
     ControllerConstraint,
+    DCAContext,
+    DCARule,
+    Graph,
     Hazard,
     HazardList,
     Loss,
     Model,
     Node,
-    Responsibility,
     PastaAstType,
+    Responsibility,
+    Rule,
     SystemConstraint,
     isModel,
-    Graph,
-    Rule,
-    DCARule,
-    DCAContext,
     isRule,
-} from "../generated/ast";
-import { StpaServices } from "./stpa-module";
-import { UCA_TYPE, collectElementsWithSubComps, elementWithName, elementWithRefs } from "./utils";
+} from "../../generated/ast.js";
+import { StpaServices } from "../stpa-module.js";
+import { UCA_TYPE, collectElementsWithSubComps, elementWithName, elementWithRefs } from "../utils.js";
 
-/**
- * Registry for validation checks.
- */
-export class StpaValidationRegistry extends ValidationRegistry {
-    constructor(services: StpaServices) {
-        super(services);
-        const validator = services.validation.StpaValidator;
-        const checks: ValidationChecks<PastaAstType> = {
-            Model: validator.checkModel,
-            Hazard: validator.checkHazard,
-            SystemConstraint: validator.checkSystemConstraint,
-            Responsibility: validator.checkResponsibility,
-            ControllerConstraint: validator.checkControllerConstraints,
-            HazardList: validator.checkHazardList,
-            Node: validator.checkNode,
-            Graph: validator.checkControlStructure,
-        };
-        this.register(checks, validator);
-    }
+export function registerValidationChecks(services: StpaServices): void {
+    const registry = services.validation.ValidationRegistry;
+    const validator = services.validation.StpaValidator;
+    const checks: ValidationChecks<PastaAstType> = {
+        Model: validator.checkModel,
+        Hazard: validator.checkHazard,
+        SystemConstraint: validator.checkSystemConstraint,
+        Responsibility: validator.checkResponsibility,
+        ControllerConstraint: validator.checkControllerConstraints,
+        HazardList: validator.checkHazardList,
+        Node: validator.checkNode,
+        Graph: validator.checkControlStructure,
+    };
+    registry.register(checks, validator);
 }
 
 /**
@@ -75,7 +70,15 @@ export class StpaValidator {
     /** Boolean option to toggle the check whether all UCAs are covered by safety requirements. */
     checkSafetyRequirementsForUCAs = true;
 
+    /** Boolean option to toggle the check whether system components are missing feedback in the control structure. */
+    checkMissingFeedback = true;
+
     checkForConflictingUCAs = true;
+
+    /**
+     * Map from node ID to a list of nodes to which a feedback is missing.
+     */
+    missingFeedback: Map<string, Node[]> = new Map();
 
     /**
      * Executes validation checks for the whole model.
@@ -398,8 +401,14 @@ export class StpaValidator {
         // a top-level hazard should reference loss(es)
         if (isModel(hazard.$container) && hazard.refs.length === 0) {
             const range = hazard.$cstNode?.range;
-            if (range) {
-                range.start.character = range.end.character - 1;
+            const newRange = range
+                ? {
+                      start: { line: range.start.line, character: range.start.character },
+                      end: { line: range.end.line, character: range.end.character },
+                  }
+                : undefined;
+            if (newRange) {
+                newRange.start.character = newRange.end.character - 1;
             }
             accept("warning", "A hazard should reference loss(es)", { node: hazard, range: range });
         }
@@ -434,6 +443,52 @@ export class StpaValidator {
     checkControlStructure(graph: Graph, accept: ValidationAcceptor): void {
         const nodes = [...graph.nodes, ...graph.nodes.map(node => this.getChildren(node)).flat(1)];
         this.checkIDsAreUnique(nodes, accept);
+        this.checkForMissingFeedback(nodes, accept);
+    }
+
+    /**
+     * Checks whether feedback is missing in the control structure and fills the missingFeedback map.
+     * @param nodes The nodes of the control structure.
+     * @param accept
+     */
+    protected checkForMissingFeedback(nodes: Node[], accept: ValidationAcceptor): void {
+        // fill the map with the missing feedback
+        this.missingFeedback.clear();
+        for (const node of nodes) {
+            const nodeID = node.name;
+            // check for each action of the node whether feedback is missing
+            node.actions.forEach(action => {
+                const target = action.target.ref;
+                if (target) {
+                    // check if target sents feedback back
+                    const sentFeedback = target.feedbacks.find(feedback => feedback.target.$refText === nodeID);
+                    if (!sentFeedback) {
+                        // add the missing feedback to the map
+                        const targetID = target.name;
+                        if (!this.missingFeedback.has(targetID)) {
+                            this.missingFeedback.set(targetID, [node]);
+                        } else {
+                            this.missingFeedback.get(targetID)?.push(node);
+                        }
+                    }
+                }
+            });
+        }
+
+        // show warnings for all nodes that have missing feedback
+        if (this.checkMissingFeedback) {
+            nodes.forEach(node => {
+                const missingTargets = this.missingFeedback.get(node.name);
+                if (missingTargets) {
+                    accept(
+                        "warning",
+                        "Feedback is missing to the following components: " +
+                            missingTargets.map(target => target.label ?? target.name).join(),
+                        { node: node, property: "name" }
+                    );
+                }
+            });
+        }
     }
 
     /**
@@ -559,7 +614,7 @@ export class StpaValidator {
     /**
      * Checks whether the model contains any TODOs.
      * @param model The model to check.
-     * @param accept 
+     * @param accept
      */
     protected checkForTODOs(model: Model, accept: ValidationAcceptor): void {
         model.losses.forEach(loss => {

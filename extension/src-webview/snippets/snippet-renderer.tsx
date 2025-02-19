@@ -18,7 +18,7 @@
 /** @jsx html */
 import { inject, injectable } from "inversify";
 import { VNode } from "snabbdom";
-import { IModelFactory, ModelRenderer, SGraph, SNode, TYPES, html } from "sprotty"; // eslint-disable-line @typescript-eslint/no-unused-vars
+import { IModelFactory, ModelRenderer, SGraphImpl, SNodeImpl, TYPES, html } from "sprotty"; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { Bounds } from 'sprotty-protocol';
 import { WebviewSnippet } from "./snippet-models";
 
@@ -50,15 +50,15 @@ export class SnippetRenderer {
 
         // labels and edges are only visible if they are within the canvas bounds
         for (const snippet of snippets) {
-            (snippet.graph as SGraph).canvasBounds = { width: this.bounds.width + 20, height: this.bounds.height, x: this.bounds.x, y: this.bounds.y };
+            (snippet.graph as SGraphImpl).canvasBounds = { width: this.bounds.width + 20, height: this.bounds.height, x: this.bounds.x, y: this.bounds.y };
         }
 
         const res = snippets.map(snippet => {
             // render the snippet graph
             const graph = this.modelRenderer?.renderElement(this.modelFactory.createRoot(snippet.graph));
             // padding of sidebar content is 16px
-            const width = ((snippet.graph as SGraph).children[0] as SNode).size.width + 30;
-            const height = ((snippet.graph as SGraph).children[0] as SNode).size.height + 30;
+            const width = ((snippet.graph as SGraphImpl).children[0] as SNodeImpl).size.width + 30;
+            const height = ((snippet.graph as SGraphImpl).children[0] as SNodeImpl).size.height + 30;
             if (graph?.data?.attrs) {
                 graph.data.attrs["width"] = width * this.scale;
                 graph.data.attrs["height"] = height * this.scale;

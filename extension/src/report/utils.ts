@@ -19,6 +19,8 @@
  * The Headers for the STPA result file.
  */
 export class Headers {
+    static Goal = "Goal";
+    static Assumption = "Assumptions";
     static Loss = "Losses";
     static Hazard = "Hazards";
     static SystemLevelConstraint = "System-level Constraints";
@@ -58,6 +60,8 @@ export const SIZE_MULTIPLIER = 0.85;
 
 export class StpaResult {
     title: string;
+    goals: StpaComponent[] = [];
+    assumptions: StpaComponent[] = [];
     losses: StpaComponent[] = [];
     hazards: StpaComponent[] = [];
     systemLevelConstraints: StpaComponent[] = [];

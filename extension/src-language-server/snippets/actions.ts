@@ -17,7 +17,7 @@
 
 import { VNode } from "snabbdom";
 import { Action, RequestAction, ResponseAction, generateRequestId } from "sprotty-protocol";
-import { WebviewSnippet } from "./snippet-model";
+import { WebviewSnippet } from "./snippet-model.js";
 
 /** Request message from the server to the client to get the svgs of the snippets. */
 export interface RequestWebviewSnippetsAction extends RequestAction<SendWebviewSnippetsAction> {

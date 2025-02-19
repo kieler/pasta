@@ -17,12 +17,12 @@
 
 import { TableWebview } from "@kieler/table-webview/lib/table-webview";
 import * as vscode from "vscode";
-import { SendContextTableDataAction } from "../src-context-table/actions";
-import { ContextTableData } from "../src-context-table/utils";
+import { SendContextTableDataAction } from "./actions";
+import { ContextTableData } from "./utils-classes";
 
 export class ContextTablePanel extends TableWebview {
-    constructor(identifier: string, localResourceRoots: vscode.Uri[], scriptUri: vscode.Uri) {
-        super(identifier, localResourceRoots, scriptUri);
+    constructor(identifier: string, localResourceRoots: vscode.Uri[], scriptUri: vscode.Uri, cssUri?: vscode.Uri) {
+        super(identifier, localResourceRoots, scriptUri, cssUri);
         this.createWebviewPanel([]);
     }
 

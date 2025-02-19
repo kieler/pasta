@@ -20,14 +20,14 @@ import { GeneratorContext, IdCache, IdCacheImpl } from "langium-sprotty";
 import { SModelElement, SModelRoot, SNode } from "sprotty-protocol";
 import { CancellationToken } from "vscode-languageserver";
 import { URI } from "vscode-uri";
-import { Model } from "../../generated/ast";
-import { LanguageSnippet, SnippetGraphGenerator } from "../../snippets/snippet-model";
-import { StpaDocumentBuilder } from "../../stpa-document-builder";
-import { StpaServices } from "../stpa-module";
-import { createControlStructure } from "./diagram-controlStructure";
-import { createRelationshipGraph } from "./diagram-relationshipGraph";
-import { filterModel } from "./filtering";
-import { StpaSynthesisOptions } from "./stpa-synthesis-options";
+import { Model } from "../../generated/ast.js";
+import { LanguageSnippet, SnippetGraphGenerator } from "../../snippets/snippet-model.js";
+import { StpaDocumentBuilder } from "../../stpa-document-builder.js";
+import { StpaServices } from "../stpa-module.js";
+import { createControlStructure } from "./diagram-controlStructure.js";
+import { createRelationshipGraph } from "./diagram-relationshipGraph.js";
+import { filterModel } from "./filtering.js";
+import { StpaSynthesisOptions } from "./stpa-synthesis-options.js";
 
 export class StpaDiagramGenerator extends SnippetGraphGenerator {
     protected readonly options: StpaSynthesisOptions;
@@ -79,7 +79,7 @@ export class StpaDiagramGenerator extends SnippetGraphGenerator {
         );
         await (this.services.shared.workspace.DocumentBuilder as StpaDocumentBuilder).buildDocuments(
             [doc],
-            { validationChecks: "none" },
+            { validation: false },
             CancellationToken.None
         );
 
@@ -134,9 +134,7 @@ export class StpaDiagramGenerator extends SnippetGraphGenerator {
         const { document } = args;
         if (document.parseResult.lexerErrors.length === 0 && document.parseResult.parserErrors.length === 0) {
             const model: Model = document.parseResult.value;
-            if (!this.idCache) {
-                this.idCache = args.idCache;
-            }
+            this.idCache = args.idCache;
             return this.generateGraph(model);
         } else {
             // return empty graph if the model is not valid
@@ -161,7 +159,14 @@ export class StpaDiagramGenerator extends SnippetGraphGenerator {
         if (filteredModel.controlStructure) {
             // add control structure to roots children
             rootChildren.push(
-                createControlStructure(filteredModel.controlStructure, this.idToSNode, this.options, this.idCache)
+                createControlStructure(
+                    filteredModel.controlStructure,
+                    this.idToSNode,
+                    this.options,
+                    this.idCache,
+                    this.options.getShowUnclosedFeedbackLoopsOption(),
+                    this.services.validation.StpaValidator.missingFeedback
+                )
             );
         }
         // add relationship graph to roots children

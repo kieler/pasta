@@ -17,8 +17,8 @@
 
 import type { Reference } from "langium";
 import { LangiumSprottySharedServices } from "langium-sprotty";
-import { Children, Component, Hazard, LossScenario, Model, ModelFTA, OR, TopEvent } from "../../generated/ast";
-import { getModel } from "../../utils";
+import { Children, Component, Hazard, LossScenario, Model, ModelFTA, OR, TopEvent } from "../../generated/ast.js";
+import { getModel } from "../../utils.js";
 
 /**
  * Create the fault trees for an stpa model as ASTs

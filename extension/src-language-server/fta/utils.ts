@@ -16,7 +16,7 @@
  */
 
 import { Range } from "vscode-languageserver";
-import { Component, Condition, Gate, ModelFTA, TopEvent, isAND, isInhibitGate, isKNGate, isOR } from "../generated/ast";
+import { Component, Condition, Gate, ModelFTA, TopEvent, isAND, isInhibitGate, isKNGate, isOR } from "../generated/ast.js";
 
 /** FTA elements that have a name. */
 export type namedFtaElement = Component | Condition | Gate | TopEvent;

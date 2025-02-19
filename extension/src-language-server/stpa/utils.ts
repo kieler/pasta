@@ -15,8 +15,8 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-import { LangiumSharedServices } from "langium";
 import { LangiumSprottySharedServices } from "langium-sprotty";
+import { LangiumSharedServices } from "langium/lsp";
 import { Range } from "vscode-languageserver";
 import {
     Command,
@@ -37,8 +37,8 @@ import {
     SystemConstraint,
     UCA,
     Variable,
-} from "../generated/ast";
-import { getModel } from "../utils";
+} from "../generated/ast.js";
+import { getModel } from "../utils.js";
 
 export type leafElement =
     | Loss
@@ -124,6 +124,8 @@ export function collectElementsWithSubComps(topElements: (Hazard | SystemConstra
 
 export class StpaResult {
     title: string;
+    goals: StpaComponent[] = [];
+    assumptions: StpaComponent[] = [];
     losses: StpaComponent[] = [];
     hazards: StpaComponent[] = [];
     systemLevelConstraints: StpaComponent[] = [];
@@ -171,10 +173,8 @@ export function getRangeOfNodeSTPA(model: Model, label: string): Range | undefin
     let range: Range | undefined = undefined;
     const elements: elementWithName[] = [
         ...model.losses,
-        ...model.hazards,
-        ...model.hazards.flatMap((hazard) => hazard.subComponents),
-        ...model.systemLevelConstraints,
-        ...model.systemLevelConstraints.flatMap((constraint) => constraint.subComponents),
+        ...collectElementsWithSubComps(model.hazards),
+        ...collectElementsWithSubComps(model.systemLevelConstraints),
         ...model.responsibilities.flatMap((resp) => resp.responsiblitiesForOneSystem),
         ...model.allUCAs.flatMap((ucas) =>
             ucas.providingUcas.concat(ucas.notProvidingUcas, ucas.wrongTimingUcas, ucas.continousUcas)
@@ -185,10 +185,19 @@ export function getRangeOfNodeSTPA(model: Model, label: string): Range | undefin
         ...model.safetyCons,
     ];
     if (model.controlStructure) {
-        elements.push(...model.controlStructure.nodes);
+        let nodes = model.controlStructure.nodes;
+        for (let i = 0; i < nodes.length; i++) {
+            const current = nodes[i];
+            if (current.children) {
+                nodes = nodes.concat(current.children);
+            }
+        }
+        elements.push(...nodes);
     }
+    // in the diagram generator dots are replaced by underscores
+    const correctedLabel = label?.replace(/_/g, ".");
     elements.forEach((component) => {
-        if (component.name === label) {
+        if (component.name === correctedLabel) {
             range = component.$cstNode?.range;
             return;
         }

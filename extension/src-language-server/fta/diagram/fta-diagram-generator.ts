@@ -17,13 +17,14 @@
 
 import { AstNode } from "langium";
 import { GeneratorContext, IdCache, LangiumDiagramGenerator } from "langium-sprotty";
-import { SModelElement, SModelRoot, SNode, SLabel } from "sprotty-protocol";
-import { Component, Condition, Gate, ModelFTA, isComponent, isCondition, isKNGate } from "../../generated/ast";
-import { getDescription } from "../../utils";
-import { topOfAnalysis } from "../analysis/fta-cutSet-calculator";
-import { FtaServices } from "../fta-module";
-import { namedFtaElement } from "../utils";
-import { DescriptionNode, FTAEdge, FTAGraph, FTANode, FTAPort } from "./fta-interfaces";
+import { SLabel, SModelElement, SModelRoot, SNode } from "sprotty-protocol";
+import { Component, Condition, Gate, ModelFTA, isComponent, isCondition, isKNGate } from "../../generated/ast.js";
+import { HEADER_LABEL_TYPE } from "../../stpa/diagram/stpa-model.js";
+import { getDescription } from "../../utils.js";
+import { topOfAnalysis } from "../analysis/fta-cutSet-calculator.js";
+import { FtaServices } from "../fta-module.js";
+import { namedFtaElement } from "../utils.js";
+import { DescriptionNode, FTAEdge, FTAGraph, FTANode, FTAPort } from "./fta-interfaces.js";
 import {
     FTA_DESCRIPTION_NODE_TYPE,
     FTA_EDGE_TYPE,
@@ -33,10 +34,9 @@ import {
     FTA_PORT_TYPE,
     FTNodeType,
     PortSide,
-} from "./fta-model";
-import { FtaSynthesisOptions, noCutSet, spofsSet } from "./fta-synthesis-options";
-import { getFTNodeType, getTargets } from "./utils";
-import { HEADER_LABEL_TYPE } from "../../stpa/diagram/stpa-model";
+} from "./fta-model.js";
+import { FtaSynthesisOptions, noCutSet, spofsSet } from "./fta-synthesis-options.js";
+import { getFTNodeType, getTargets } from "./utils.js";
 export class FtaDiagramGenerator extends LangiumDiagramGenerator {
     protected readonly options: FtaSynthesisOptions;
 

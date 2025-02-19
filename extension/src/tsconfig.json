@@ -1,0 +1,13 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../pack/src",
+    "target": "ES2017",
+    "lib": [
+        "es2019"
+    ],
+    "module": "es6",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true
+  }
+}

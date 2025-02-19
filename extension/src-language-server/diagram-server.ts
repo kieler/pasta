@@ -15,16 +15,16 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-import { Action, DiagramServices, JsonMap, RequestAction, RequestModelAction, ResponseAction } from "sprotty-protocol";
+import { Action, CollapseExpandAction, CollapseExpandAllAction, DiagramServices, JsonMap, RequestAction, RequestModelAction, ResponseAction } from "sprotty-protocol";
 import { Connection } from "vscode-languageserver";
-import { FtaServices } from "./fta/fta-module";
-import { SetSynthesisOptionsAction, UpdateOptionsAction } from "./options/actions";
-import { DropDownOption } from "./options/option-models";
-import { SnippetDiagramServer } from "./snippets/snippet-diagram-server";
-import { LanguageSnippet } from "./snippets/snippet-model";
-import { StpaDiagramSnippets } from "./snippets/stpa-snippets";
-import { GenerateSVGsAction, RequestSvgAction, SvgAction, UpdateDiagramAction } from "./stpa/actions";
-import { StpaSynthesisOptions, filteringUCAsID } from "./stpa/diagram/stpa-synthesis-options";
+import { FtaServices } from "./fta/fta-module.js";
+import { SetSynthesisOptionsAction, UpdateOptionsAction } from "./options/actions.js";
+import { DropDownOption } from "./options/option-models.js";
+import { SnippetDiagramServer } from "./snippets/snippet-diagram-server.js";
+import { LanguageSnippet } from "./snippets/snippet-model.js";
+import { StpaDiagramSnippets } from "./snippets/stpa-snippets.js";
+import { GenerateSVGsAction, RequestSvgAction, SvgAction, UpdateDiagramAction } from "./stpa/actions.js";
+import { StpaSynthesisOptions, filteringUCAsID } from "./stpa/diagram/stpa-synthesis-options.js";
 import {
     COMPLETE_GRAPH_PATH,
     CONTROL_STRUCTURE_PATH,
@@ -49,9 +49,12 @@ import {
     setScenarioWithFilteredUCAGraphOptions,
     setScenarioWithNoUCAGraphOptions,
     setSystemConstraintGraphOptions,
-} from "./stpa/result-report/svg-generator";
-import { StpaServices } from "./stpa/stpa-module";
-import { SynthesisOptions } from "./synthesis-options";
+} from "./stpa/result-report/svg-generator.js";
+import { StpaServices } from "./stpa/stpa-module.js";
+import { SynthesisOptions } from "./synthesis-options.js";
+
+// matches id of a node to its expansion state. True means expanded, false and undefined means collapsed
+export let expansionState = new Map<string, boolean>();
 
 export class PastaDiagramServer extends SnippetDiagramServer {
     protected synthesisOptions: SynthesisOptions | undefined;
@@ -103,8 +106,28 @@ export class PastaDiagramServer extends SnippetDiagramServer {
                 return this.handleGenerateSVGDiagrams(action as GenerateSVGsAction);
             case UpdateDiagramAction.KIND:
                 return this.updateView(this.state.options);
+            case CollapseExpandAction.KIND:
+                return this.collapseExpand(action as CollapseExpandAction);
+            case CollapseExpandAllAction.KIND:
+                // TODO: create buttons in sidepanel to send this action and implement the reaction to it
+                console.log("received collapse/expand all action");
         }
         return super.handleAction(action);
+    }
+
+    /**
+     * Collapses and expands the nodes with the given ids and updates the view.
+     * @param action The CollapseExpandAction that triggered this method.
+     * @returns 
+     */
+    protected collapseExpand(action: CollapseExpandAction): Promise<void> {
+        for (const id of action.expandIds) {
+            expansionState.set(id, true);
+        }
+        for (const id of action.collapseIds) {
+            expansionState.set(id, false);
+        }
+        return this.updateView(this.state.options);
     }
 
     /**

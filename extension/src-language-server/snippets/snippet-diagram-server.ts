@@ -32,8 +32,8 @@ import {
     RequestWebviewSnippetsAction,
     SendDefaultSnippetsAction,
     SendWebviewSnippetsAction,
-} from "./actions";
-import { LanguageSnippet, SnippetGraphGenerator, WebviewSnippet } from "./snippet-model";
+} from "./actions.js";
+import { LanguageSnippet, SnippetGraphGenerator, WebviewSnippet } from "./snippet-model.js";
 
 export abstract class SnippetDiagramServer extends DiagramServer {
     protected clientId: string;
