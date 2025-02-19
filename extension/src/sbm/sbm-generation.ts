@@ -29,8 +29,8 @@ export function createSBMs(
     controlActionsMap: Record<string, string[]>,
     formulaMap: Record<string, LTLFormula[]>
 ): void {
-    Object.keys(controlActionsMap).forEach(controller =>
-        createControllerSBM(controller, controlActionsMap[controller], formulaMap[controller])
+    Object.keys(controlActionsMap).forEach(async controller =>
+        await createControllerSBM(controller, controlActionsMap[controller], formulaMap[controller] ?? [])
     );
 }
 
