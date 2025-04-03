@@ -83,7 +83,7 @@ async function createControllerSBM(
     });
 
     // determine the variables for the scchart including a variable for the control action
-    const controlActionVariable = { name: "controlAction", type: `ref ${controllerName}` };
+    const controlActionVariable = { name: "controlAction", type: `ref ${controllerName}`, output: true };
     const contextVariables = collectContextVariables(ltlFormulas);
     const variables = contextVariables.variables.concat([controlActionVariable]);
     // create the scchart

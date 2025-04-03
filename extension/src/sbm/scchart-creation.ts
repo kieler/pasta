@@ -41,9 +41,9 @@ export function createSCChartText(
     // name of the acchart must be different to the enum name
     result += `scchart SBM_${controllerName} {\n\n`;
     // enum for the control action
-    result += createEnum(controllerName, controlActions, false, true);
+    result += createEnum(controllerName, controlActions);
     // other enums
-    enums.forEach((enumDeclaration) => (result += createEnum(enumDeclaration.name, enumDeclaration.values, true, false)));
+    enums.forEach((enumDeclaration) => (result += createEnum(enumDeclaration.name, enumDeclaration.values)));
     // variables and states
     // TODO: AssumeRange annotation for variables?
     result += createVariables(variables);
@@ -65,19 +65,10 @@ function createLTLAnnotation(ltlFormula: LTLFormula): string {
  * Creates an enum with the given {@code enumName} and its {@code values}.
  * @param enumName The name of the enum.
  * @param values The values the enum should contain.
- * @param input Whether the enum should be an input enum.
- * @param output Whether the enum should be an output enum.
  * @returns an enum declaration with the given {@code enumName} and its {@code values}.
  */
-function createEnum(enumName: string, values: string[], input: boolean, output: boolean): string {
-    let enumDeclaration = ``;
-    if (input) {
-        enumDeclaration += "input ";
-    }
-    if (output) {
-        enumDeclaration += "output ";
-    }
-    enumDeclaration += `enum ${enumName} {`;
+function createEnum(enumName: string, values: string[]): string {
+    let enumDeclaration = `enum ${enumName} {`;
     values.forEach((controlAction, index) => {
         enumDeclaration += controlAction;
         if (index < values.length - 1) {
