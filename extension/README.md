@@ -17,6 +17,7 @@ These checks can be turned off in the context menu of the editor.
 ### Diagram
 
 A diagram can be opened for the analysis by clicking on the icon right above the editor or by selecting `Open in Diagram` in the editor context menu. In the diagram different color styles and filtering methods are provided. Clicking on a node fades out non-connected nodes and clicking on a node while pressing the `Ctrl` key fades out nodes that belong to another aspect.
+The diagram can be exported via the command palette (ctrl+shift+P) if the view containing the diagram is focused. The command is `PASTA Diagram: Export diagram to SVG`
 
 ### Diagram Snippets
 
