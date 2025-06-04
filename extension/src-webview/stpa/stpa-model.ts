@@ -37,6 +37,7 @@ export const EDGE_LABEL_TYPE = 'label:xref';
 
 export class ParentNode extends SNodeImpl {
     modelOrder: boolean;
+    showBorder: boolean;
     static readonly DEFAULT_FEATURES = [connectableFeature, selectFeature, layoutContainerFeature, fadeFeature];
 }
 
