@@ -4,25 +4,79 @@ import { flagConnectedElements, flagSameAspect } from "./helper-methods";
 import { CS_NODE_TYPE, STPA_NODE_TYPE, STPAEdge, STPANode } from "./stpa-model";
 
 export class StpaMouseListener extends MouseListener {
-    protected flaggedElements: (STPANode | STPAEdge)[] = [];
+    protected selectedNodes: Map<STPANode, Set<'ctrl' | 'normal'>> = new Map();
+    protected flaggedElementsSet: Set<STPANode | STPAEdge> = new Set();
+    protected connectionCache: Map<STPANode, {
+                                normal?: Set<STPANode | STPAEdge>,
+                                ctrl?: Set<STPANode | STPAEdge>
+                            }> = new Map();                     //TODO: can this map grow to large?
 
+    // TODO: maybe also other click for only deselecting clicked node / complete tree / ...
     mouseDown(target: SModelElementImpl, event: MouseEvent): (Action | Promise<Action>)[] {
         // when a label is selected, we are interested in its parent node
         target = target instanceof SLabelImpl ? target.parent : target;
-        if (target.type === STPA_NODE_TYPE) {
-            if (event.ctrlKey) {
-                // when ctrl is pressed all nodes with the same aspect as the selected one should be highlighted
-                this.flaggedElements.push(...flagSameAspect(target as STPANode));
-            } else {
-                // if no key modifier is used, the "highlight" attribute is set for the nodes and edges connected to the selected node
-                this.flaggedElements.push(...flagConnectedElements(target as STPANode));
+
+        if (target.type !== STPA_NODE_TYPE) {
+            // if no STPANode is selected, unflag the elements and reset the set
+            this.reset();
+            this.selectedNodes.clear();
+            return [];
+        }
+
+        const mode: 'ctrl' | 'normal' = event.ctrlKey ? 'ctrl' : 'normal';
+        let modes = this.selectedNodes.get(target as STPANode);
+
+        if (!modes) {
+            // Node not selected yet — add it with the current mode
+            this.selectedNodes.set(target as STPANode, new Set([mode]));
+        } else if (modes.has(mode)) {
+            // Deselect only this mode
+            modes.delete(mode);
+
+            if (modes.size === 0) {
+                // No modes left — remove node entirely
+                this.selectedNodes.delete(target as STPANode);
             }
         } else {
-            // if no STPANode is selected, unflag the elements and reset the list
-            this.reset();
+            // Add mode to existing selection
+            modes.add(mode);
+            console.log("select");
         }
+
+
+        // Clear previous highlights
+        this.reset(); 
+
+        for (const [node, modes] of this.selectedNodes) {
+            const cache = this.connectionCache.get(node) ?? {};
+
+            for (const mode of modes) {
+                // is a node with this mode already in the cache?
+                if (!cache[mode]) {
+                    // if not, create new Set
+                    cache[mode] = new Set(
+                        mode === 'ctrl' ? flagSameAspect(node) : flagConnectedElements(node)
+                    );
+                    this.connectionCache.set(node, cache);
+                }
+                // get the set for this node and mode
+                const connected = cache[mode]!;
+
+                // add all elem of the sets to be highlighted
+                for (const element of connected) {
+                    this.flaggedElementsSet.add(element);
+                }
+            }
+        }
+
+        // Apply highlights
+        for (const element of this.flaggedElementsSet) {
+            element.highlight = true;  //TODO: warum sind manche edges heller ohne highlight?
+        }
+
         return [];
     }
+
 
     doubleClick(target: SModelElementImpl, event: MouseEvent): (Action | Promise<Action>)[] {
         // when a label is selected, we are interested in its parent node
@@ -43,9 +97,9 @@ export class StpaMouseListener extends MouseListener {
      * Resets the highlight attribute of the highlighted nodes.
      */
     protected reset(): void {
-        for (const element of this.flaggedElements) {
+        for (const element of this.flaggedElementsSet) {
             element.highlight = false;
         }
-        this.flaggedElements = [];
+        this.flaggedElementsSet.clear();
     }
 }
