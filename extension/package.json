@@ -586,7 +586,7 @@
         "langium:watch": "langium generate --watch",
         "lint": "eslint .",
         "build": "yarn run langium:generate && tsc -b src src-diagram-snippets src-language-server src-webview src-context-table && node esbuild.mjs",
-        "watch": "webpack --watch",
+        "watch": "node esbuild.mjs --watch",
         "package": "vsce package --yarn -o pasta.vsix",
         "predistribute": "yarn run package",
         "distribute": "yarn run distribute:vsce && yarn run distribute:ovsx",
