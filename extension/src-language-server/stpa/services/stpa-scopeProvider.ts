@@ -72,6 +72,7 @@ export class StpaScopeProvider extends DefaultScopeProvider {
     private VARIABLE_TYPE = Variable;
     private NODE_TYPE = Node;
     private VARIABLE_VALUE_TYPE = VariableValue;
+    private LOSS_SCENARIO_TYPE = LossScenario;
 
     constructor(services: StpaServices) {
         super(services);
@@ -90,7 +91,7 @@ export class StpaScopeProvider extends DefaultScopeProvider {
         if (precomputed && model) {
             // determine the scope for the different aspects & reference types
             if (
-                (isControllerConstraint(node) || isLossScenario(node) || isSafetyConstraint(node)) &&
+                (isControllerConstraint(node) || isLossScenario(node)) &&
                 (referenceType === this.UCA_TYPE || referenceType === this.CONTEXT_TYPE)
             ) {
                 return this.getUCAs(model, precomputed);
@@ -120,6 +121,11 @@ export class StpaScopeProvider extends DefaultScopeProvider {
                 referenceType === this.NODE_TYPE
             ) {
                 return this.getNodes(node, precomputed);
+            } else if (isSafetyConstraint(node)) {
+                const UCADescriptions = this.getUCAs(model, precomputed).getAllElements();
+                const hazardDescriptions = this.getHazards(model, precomputed).getAllElements();
+                const lossScenarioDescriptions = this.getStandardScope(node, this.LOSS_SCENARIO_TYPE, precomputed).getAllElements();
+                return this.descriptionsToScope([...UCADescriptions, ...hazardDescriptions, ...lossScenarioDescriptions]);
             } else {
                 return this.getStandardScope(node, referenceType, precomputed);
             }

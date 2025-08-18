@@ -133,9 +133,9 @@ export class StpaValidator {
         const scenarioRefs: (string | undefined)[] = this.checkScenariosForUCAs
             ? model.scenarios.map(scenario => scenario.uca?.ref?.name)
             : [];
-        const safetyRequirementsRefs = this.checkSafetyRequirementsForUCAs
-            ? this.collectReferences(model.safetyCons)
-            : new Set<string>();
+        // const safetyRequirementsRefs = this.checkSafetyRequirementsForUCAs
+        //     ? this.collectReferences(model.safetyCons)
+        //     : new Set<string>();
         // check if ucas are referenced by the other aspects
         const nodesToCheck = [...ucas, ...contexts];
         for (const node of nodesToCheck) {
@@ -145,12 +145,12 @@ export class StpaValidator {
             if (!scenarioRefs.includes(node.name)) {
                 accept("warning", "This element is not referenced by any scenario", { node: node, property: "name" });
             }
-            if (!safetyRequirementsRefs.has(node.name)) {
-                accept("warning", "This element is not referenced by any safety requirement", {
-                    node: node,
-                    property: "name",
-                });
-            }
+            // if (!safetyRequirementsRefs.has(node.name)) {
+            //     accept("warning", "This element is not referenced by any safety requirement", {
+            //         node: node,
+            //         property: "name",
+            //     });
+            // }
         }
 
         // collect elements that have an identifier and should be referenced

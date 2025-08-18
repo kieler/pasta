@@ -152,7 +152,7 @@ HazardList:
     '[' refs+=[Hazard:SubID] (',' refs+=[Hazard:SubID])*']';
 
 SafetyConstraint:
-    name=ID description=STRING '['refs+=[LossScenario] (',' refs+=[LossScenario])*']';
+    name=ID description=STRING '[' (refs+=[LossScenario] | refs+=[Hazard] | refs+=[UCA]) (',' (refs+=[LossScenario] | refs+=[Hazard] | refs+=[UCA]) )* ']';
 
 NotProvided returns string:
     'not-provided';
