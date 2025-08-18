@@ -134,7 +134,10 @@ export class STPACompletionProvider extends DefaultCompletionProvider {
      * @param acceptor The completion acceptor to add the completion items.
      */
     protected completionForSystemComponent(
-        context: CompletionContext, next: NextFeature, acceptor: CompletionAcceptor): void {
+        context: CompletionContext,
+        next: NextFeature,
+        acceptor: CompletionAcceptor
+    ): void {
         if (next.type === Node && next.property === "name") {
             const generatedText = `Comp {
     hierarchyLevel 0
@@ -302,7 +305,7 @@ export class STPACompletionProvider extends DefaultCompletionProvider {
             const generatedItems = this.generateTextForUCAWithPlainText(
                 context.node as UCA,
                 lastChar,
-                context.node.$containerProperty,
+                context.node.$containerProperty
             );
 
             if (generatedItems.length > 0) {
@@ -361,7 +364,14 @@ export class STPACompletionProvider extends DefaultCompletionProvider {
                     detail: "Inserts the starting text for this UCA.",
                     sortText: "1",
                 };
-                return [tooEarlyItem, tooLateItem];
+                const wrongOrderItem = {
+                    label: "Generate wrong-order UCA Text",
+                    kind: CompletionItemKind.Text,
+                    insertText: `${whitespace}\"${system} provided ${controlAction} in the wrong order TODO\"`,
+                    detail: "Inserts the starting text for this UCA.",
+                    sortText: "1",
+                };
+                return [tooEarlyItem, tooLateItem, wrongOrderItem];
             case "continousUcas":
                 const stoppedTooSoonItem = {
                     label: "Generate stopped-too-soon UCA Text",
