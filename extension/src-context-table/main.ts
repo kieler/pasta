@@ -374,13 +374,28 @@ export class ContextTable extends Table {
     protected addRow(table: HTMLTableElement, row: Row, id: string): void {
         // create row placeholder
         const placeholderRow = document.createElement("tr");
+        placeholderRow.addEventListener("input", event => {
+            if ((event as InputEvent).inputType === "insertParagraph") {
+                // if the user edits a cell, the value must be sent to the backend
+                const target = event.target as HTMLElement;
+                const cellValue = target.textContent || "";
+                const colSpan = parseInt(target.getAttribute("colspan") || "1", 10);
+                const previousSibling = target.previousSibling as HTMLElement; 
+                vscode.postMessage({
+                    action: "updateCell",
+                    data: { id: row.variables.map(v => v.name).join("_"), value: cellValue, colSpan }
+                });
+            } else if ((event as InputEvent).inputType === "insertText" && (event as InputEvent).data === ",") {
+
+            }
+        });
         table.appendChild(placeholderRow);
 
         let cells: ContextCell[] = [];
         if (row.variables.length > 0) {
             // values of the context variables
             cells = row.variables.map(variable => {
-                return { cssClass: "context-variable", value: variable.value, colSpan: 1 };
+                return { cssClass: "context-variable", value: variable.value, colSpan: 1, editable: false };
             });
             // append the result cells
             cells = cells.concat(createResults(row.results));
@@ -398,7 +413,7 @@ export class ContextTable extends Table {
                     colSpan = 4;
                     break;
             }
-            cells.push({ cssClass: "result", value: "No", colSpan: colSpan });
+            cells.push({ cssClass: "result", value: "No", colSpan: colSpan, editable: true });
         }
 
         // create the row

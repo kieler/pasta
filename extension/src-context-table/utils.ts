@@ -23,6 +23,7 @@ import { ContextTableControlAction } from './utils-classes';
 /** A cell in the context table. Can span mutliple columns. */
 export class ContextCell extends Cell {
     colSpan: number;
+    editable: boolean;
     title?: string;
 }
 

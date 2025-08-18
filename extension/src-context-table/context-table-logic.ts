@@ -99,13 +99,13 @@ export function createResults(results: { hazards: string[]; rules: ContextTableR
             noAppliedRuleCounter++;
             if (hazardColumn + 1 === results.length) {
                 // its the last column so we can fill the missing columns with a cell containing the value "No"
-                cells.push({ cssClass: "result", value: "No", colSpan: noAppliedRuleCounter });
+                cells.push({ cssClass: "result", value: "No", colSpan: noAppliedRuleCounter, editable: true });
             }
         } else {
             // it may be that previous columns had no rule
             // in this case a cell with value "No" must be created that covers these columns
             if (noAppliedRuleCounter !== 0) {
-                cells.push({ cssClass: "result", value: "No", colSpan: noAppliedRuleCounter });
+                cells.push({ cssClass: "result", value: "No", colSpan: noAppliedRuleCounter, editable: true });
                 noAppliedRuleCounter = 0;
             }
             const ucas = results[hazardColumn].rules.map(rule => rule.id);
@@ -115,6 +115,7 @@ export function createResults(results: { hazards: string[]; rules: ContextTableR
                 value: ucas.toString(),
                 colSpan: 1,
                 title: results[hazardColumn].hazards.toString(),
+                editable: true
             });
         }
     }

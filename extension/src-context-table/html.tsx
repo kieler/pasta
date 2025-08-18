@@ -140,9 +140,9 @@ export function createRow(id: string, values: ContextCell[]): VNode {
         const classes: Classes = {};
         classes[val.cssClass] = true;
         if (val.title) {
-            children.push(<td class={classes} attrs={{ colspan: val.colSpan, title: val.title }}>{val.value}</td>);
+            children.push(<td class={classes} attrs={{ colspan: val.colSpan, title: val.title, contenteditable: val.editable }}>{val.value}</td>);
         } else {
-            children.push(<td class={classes} attrs={{ colspan: val.colSpan }}>{val.value}</td>);
+            children.push(<td class={classes} attrs={{ colspan: val.colSpan, contenteditable: val.editable }}>{val.value}</td>);
         }
     }
     const row = <tr attrs={{ id: id }}>{children}</tr>;

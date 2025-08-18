@@ -42,3 +42,7 @@ pre {
 .contextTable tr .selected {
     background-color: var(--vscode-inputOption-hoverBackground);
 }
+
+.result {
+    cursor: text;
+}
