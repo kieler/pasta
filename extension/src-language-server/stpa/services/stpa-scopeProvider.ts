@@ -210,7 +210,11 @@ export class StpaScopeProvider extends DefaultScopeProvider {
             }
             return graph as Graph;
         } else if (isSystemResponsibilities(node) || isActionUCAs(node) || isRule(node) || isDCARule(node)) {
-            return node.$container.controlStructure;
+            let parent: VerticalEdge | SystemResponsibilities | ActionUCAs | Rule | DCARule | Model = node;
+            while (parent && !isModel(parent)) {
+                parent = parent.$container;
+            }
+            return parent?.controlStructure;
         }
     }
 
