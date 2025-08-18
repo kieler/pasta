@@ -173,8 +173,10 @@ export class IDEnforcer {
             };
             newRange.end.character = newRange.start.character + modifiedElement.name.length;
             newRange.end.line = newRange.start.line;
+            // add leading zero to the counter if it is less than 10
+            const counter = index < 10 ? "0" + index : index;
             // create the edit
-            const modifiedElementEdit = TextEdit.replace(newRange, prefix + index);
+            const modifiedElementEdit = TextEdit.replace(newRange, prefix + counter);
             edits.push(modifiedElementEdit);
         }
         return edits;
@@ -232,7 +234,9 @@ export class IDEnforcer {
                             const range = elementToRename.$cstNode.range;
                             range.end.character = range.start.character + elementToRename.name.length;
                             range.end.line = range.start.line;
-                            const modifiedElementEdit = TextEdit.replace(range, prefix + (i + 1));
+                            // add leading zero to the counter if it is less than 10
+                            const counter = i + 1 < 10 ? "0" + (i + 1) : i + 1;
+                            const modifiedElementEdit = TextEdit.replace(range, prefix + counter);
                             edits.push(modifiedElementEdit);
                         }
                         // rename references by calling the rename function with the modified element
@@ -322,12 +326,14 @@ export class IDEnforcer {
      */
     protected async renameID(element: elementWithName, prefix: string, counter: number): Promise<TextEdit[]> {
         let edits: TextEdit[] = [];
+        // add leading zero to the counter if it is less than 10
+        const updatedCounter = counter < 10 ? "0" + counter : counter;
         if (element && element.$cstNode) {
             // parameters needed for renaming
             const params: RenameParams = {
                 textDocument: this.currentDocument.textDocument,
                 position: element.$cstNode.range.start,
-                newName: prefix + counter,
+                newName: prefix + updatedCounter,
             };
             // compute the textedits for renaming
             const edit = await this.stpaServices.lsp.RenameProvider!.rename(this.currentDocument, params);
@@ -338,7 +344,7 @@ export class IDEnforcer {
             if ((isHazard(element) || isSystemConstraint(element)) && element.subComponents.length !== 0) {
                 let index = 1;
                 for (const child of element.subComponents) {
-                    edits = edits.concat(await this.renameID(child, prefix + counter + ".", index));
+                    edits = edits.concat(await this.renameID(child, prefix + updatedCounter + ".", index));
                     index++;
                 }
             }
