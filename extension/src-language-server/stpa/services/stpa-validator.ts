@@ -99,55 +99,54 @@ export class StpaValidator {
             .flat(1);
         const contexts = model.rules?.map(rule => rule.contexts).flat(1);
 
-        // collect all elements that have a reference list
-        let elementsWithRefs: elementWithRefs[] = [
-            ...hazards,
-            ...sysCons,
-            ...ucas.map(uca => uca.list),
-            ...contexts.map(context => context.list),
-        ];
+        // check that all losses are referenced by at least one hazard
+        this.checkThatElementsAreReferenced(model.losses, hazards, "This loss is not referenced by any hazard", accept);
+        // check that all hazards are referenced by at least one system-level constraint
+        this.checkThatElementsAreReferenced(
+            hazards,
+            sysCons,
+            "This hazard is not referenced by any system-level constraint",
+            accept
+        );
+        // check that all system-level constraints are referenced by at least one responsibility
 
-        // collect nodes that should be checked whether they are referenced
-        let nodesToCheck: elementWithName[] = [...model.losses, ...hazards];
         if (this.checkResponsibilitiesForConstraints) {
-            nodesToCheck.push(...sysCons);
-            elementsWithRefs.push(...responsibilities);
+            this.checkThatElementsAreReferenced(
+                sysCons,
+                responsibilities,
+                "This system-level constraint is not referenced by any responsibility",
+                accept
+            );
         }
-        // get all reference names
-        const references = this.collectReferences(elementsWithRefs);
-        // check if all elements are referenced at least once
-        for (const node of nodesToCheck) {
-            if (!references.has(node.name)) {
-                accept("warning", "This element is not referenced", { node: node, property: "name" });
-            }
-        }
+        // check that all hazards are referenced by at least one UCA
+        this.checkThatElementsAreReferenced(
+            hazards,
+            [...ucas.map(uca => uca.list), ...contexts.map(context => context.list)],
+            "This hazard is not referenced by any UCA",
+            accept
+        );
 
-        //check referenced UCAs
-        elementsWithRefs = [];
         // get referenced ucas from the different aspects
-        let constraintsRefs = new Set<string>();
-        let scenarioRefs: (string | undefined)[] = [];
-        let safetyRequirementsRefs = new Set<string>();
-        if (this.checkConstraintsForUCAs) {
-            constraintsRefs = this.collectReferences(model.controllerConstraints);
-        }
-        if (this.checkScenariosForUCAs) {
-            scenarioRefs = model.scenarios.map(scenario => scenario.uca?.ref?.name);
-        }
-        if (this.checkSafetyRequirementsForUCAs) {
-            safetyRequirementsRefs = this.collectReferences(model.safetyCons);
-        }
+        const constraintsRefs = this.checkConstraintsForUCAs
+            ? this.collectReferences(model.controllerConstraints)
+            : new Set<string>();
+        const scenarioRefs: (string | undefined)[] = this.checkScenariosForUCAs
+            ? model.scenarios.map(scenario => scenario.uca?.ref?.name)
+            : [];
+        const safetyRequirementsRefs = this.checkSafetyRequirementsForUCAs
+            ? this.collectReferences(model.safetyCons)
+            : new Set<string>();
         // check if ucas are referenced by the other aspects
-        nodesToCheck = [...ucas, ...contexts];
+        const nodesToCheck = [...ucas, ...contexts];
         for (const node of nodesToCheck) {
-            if (this.checkConstraintsForUCAs && !constraintsRefs.has(node.name)) {
-                accept("warning", "This element is not referenced by a constraint", { node: node, property: "name" });
+            if (!constraintsRefs.has(node.name)) {
+                accept("warning", "This element is not referenced by any controller constraint", { node: node, property: "name" });
             }
-            if (this.checkScenariosForUCAs && !scenarioRefs.includes(node.name)) {
-                accept("warning", "This element is not referenced by a scenario", { node: node, property: "name" });
+            if (!scenarioRefs.includes(node.name)) {
+                accept("warning", "This element is not referenced by any scenario", { node: node, property: "name" });
             }
-            if (this.checkSafetyRequirementsForUCAs && !safetyRequirementsRefs.has(node.name)) {
-                accept("warning", "This element is not referenced by a safety requirement", {
+            if (!safetyRequirementsRefs.has(node.name)) {
+                accept("warning", "This element is not referenced by any safety requirement", {
                     node: node,
                     property: "name",
                 });
@@ -177,6 +176,28 @@ export class StpaValidator {
         this.checkControlActionsReferencedByUCA(model.controlStructure?.nodes ?? [], ucaActions, accept);
         // check UCAs and DCAs
         this.checkUCAsAndDCAs(model, accept);
+    }
+
+    /**
+     * Checks whether the elements that should be referenced are actually referenced by the given elements.
+     * If not, a warning is issued.
+     * @param elementsThatShouldBeReferenced The elements that should be referenced.
+     * @param elementsThatReference The elements that should reference the elements of the first list.
+     * @param warning The warning message to issue if an element is not referenced.
+     * @param accept 
+     */
+    checkThatElementsAreReferenced(
+        elementsThatShouldBeReferenced: elementWithName[],
+        elementsThatReference: elementWithRefs[],
+        warning: string,
+        accept: ValidationAcceptor
+    ): void {
+        const referencedElements = this.collectReferences(elementsThatReference);
+        for (const element of elementsThatShouldBeReferenced) {
+            if (!referencedElements.has(element.name)) {
+                accept("warning", warning, { node: element, property: "name" });
+            }
+        }
     }
 
     /**
