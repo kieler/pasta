@@ -113,8 +113,8 @@ ActionUCAs:
     action=[Command] '{'
         'notProviding' '{'notProvidingUcas+=UCA*'}'
         'providing' '{'providingUcas+=UCA*'}'
-        'tooEarly/Late' '{'wrongTimingUcas+=UCA*'}'
-        'stoppedTooSoon' '{'continousUcas+=UCA*'}'
+        'tooEarlyOrLateOrWrongOrder' '{'wrongTimingUcas+=UCA*'}'
+        'stoppedTooSoonOrLate' '{'continousUcas+=UCA*'}'
     '}';
 
 UCA:
