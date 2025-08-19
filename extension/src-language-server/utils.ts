@@ -125,8 +125,8 @@ export function updateValidationChecks(options: Record<string, any>, validator: 
             case "checkScenariosForUCAs":
                 validator.checkScenariosForUCAs = value;
                 break;
-            case "checkSafetyRequirementsForUCAs":
-                validator.checkSafetyRequirementsForUCAs = value;
+            case "checkSafetyRequirementsForScenarios":
+                validator.checkSafetyRequirementsForScenarios = value;
                 break;
             case "checkMissingFeedback":
                 validator.checkMissingFeedback = value;
