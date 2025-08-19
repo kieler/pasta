@@ -68,7 +68,7 @@ export class StpaValidator {
     checkScenariosForUCAs = true;
 
     /** Boolean option to toggle the check whether all UCAs are covered by safety requirements. */
-    checkSafetyRequirementsForUCAs = true;
+    checkSafetyRequirementsForScenarios = true;
 
     /** Boolean option to toggle the check whether system components are missing feedback in the control structure. */
     checkMissingFeedback = true;
@@ -133,10 +133,6 @@ export class StpaValidator {
         const scenarioRefs: (string | undefined)[] = this.checkScenariosForUCAs
             ? model.scenarios.map(scenario => scenario.uca?.ref?.name)
             : [];
-        // const safetyRequirementsRefs = this.checkSafetyRequirementsForUCAs
-        //     ? this.collectReferences(model.safetyCons)
-        //     : new Set<string>();
-        // check if ucas are referenced by the other aspects
         const nodesToCheck = [...ucas, ...contexts];
         for (const node of nodesToCheck) {
             if (!constraintsRefs.has(node.name)) {
@@ -145,12 +141,16 @@ export class StpaValidator {
             if (!scenarioRefs.includes(node.name)) {
                 accept("warning", "This element is not referenced by any scenario", { node: node, property: "name" });
             }
-            // if (!safetyRequirementsRefs.has(node.name)) {
-            //     accept("warning", "This element is not referenced by any safety requirement", {
-            //         node: node,
-            //         property: "name",
-            //     });
-            // }
+        }
+
+        // check that all scenarios are referenced by at least one safety requirement
+        if (this.checkSafetyRequirementsForScenarios) {
+            this.checkThatElementsAreReferenced(
+                model.scenarios,
+                model.safetyCons,
+                "This scenario is not referenced by any safety requirement",
+                accept
+            );
         }
 
         // collect elements that have an identifier and should be referenced

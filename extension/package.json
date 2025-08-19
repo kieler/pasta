@@ -133,13 +133,13 @@
                 "category": "STPA Checks"
             },
             {
-                "command": "pasta.stpa.checks.setCheckSafetyRequirementsForUCAs",
-                "title": "Set the safety requirements for UCA check",
+                "command": "pasta.stpa.checks.setCheckSafetyRequirementsForScenarios",
+                "title": "Set the safety requirements for scenarios check",
                 "category": "STPA Checks"
             },
             {
-                "command": "pasta.stpa.checks.unsetCheckSafetyRequirementsForUCAs",
-                "title": "✓ Set the safety requirements for UCA check",
+                "command": "pasta.stpa.checks.unsetCheckSafetyRequirementsForScenarios",
+                "title": "✓ Set the safety requirements for scenarios check",
                 "category": "STPA Checks"
             },
             {
@@ -261,12 +261,12 @@
                     "when": "editorLangId == 'stpa' && checkScenariosForUCAs == true"
                 },
                 {
-                    "command": "pasta.stpa.checks.setCheckSafetyRequirementsForUCAs",
-                    "when": "editorLangId == 'stpa' && checkSafetyRequirementsForUCAs == false"
+                    "command": "pasta.stpa.checks.setCheckSafetyRequirementsForScenarios",
+                    "when": "editorLangId == 'stpa' && checkSafetyRequirementsForScenarios == false"
                 },
                 {
-                    "command": "pasta.stpa.checks.unsetCheckSafetyRequirementsForUCAs",
-                    "when": "editorLangId == 'stpa' && checkSafetyRequirementsForUCAs == true"
+                    "command": "pasta.stpa.checks.unsetCheckSafetyRequirementsForScenarios",
+                    "when": "editorLangId == 'stpa' && checkSafetyRequirementsForScenarios == true"
                 },
                 {
                     "command": "pasta.stpa.checks.setCheckMissingFeedback",
@@ -409,15 +409,15 @@
                     "group": "checks@3"
                 },
                 {
-                    "command": "pasta.stpa.checks.setCheckSafetyRequirementsForUCAs",
+                    "command": "pasta.stpa.checks.setCheckSafetyRequirementsForScenarios",
                     "title": "editorLangId == 'stpa'",
-                    "when": "editorLangId == 'stpa' && pasta.checkSafetyRequirementsForUCAs == false",
+                    "when": "editorLangId == 'stpa' && pasta.checkSafetyRequirementsForScenarios == false",
                     "group": "checks@4"
                 },
                 {
-                    "command": "pasta.stpa.checks.unsetCheckSafetyRequirementsForUCAs",
+                    "command": "pasta.stpa.checks.unsetCheckSafetyRequirementsForScenarios",
                     "title": "editorLangId == 'stpa'",
-                    "when": "editorLangId == 'stpa' && pasta.checkSafetyRequirementsForUCAs == true",
+                    "when": "editorLangId == 'stpa' && pasta.checkSafetyRequirementsForScenarios == true",
                     "group": "checks@4"
                 },
                 {
