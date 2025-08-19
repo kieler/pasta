@@ -44,6 +44,7 @@ const showControlStructureID = "showControlStructure";
 const showProcessModelsID = "showProcessModels";
 const showUnclosedFeedbackLoopsID = "showUnclosedFeedbackLoops";
 const showRelationshipGraphID = "showRelationshipGraph";
+const showEdgesID = "showEdges";
 
 /**
  * Category for filtering options.
@@ -286,6 +287,22 @@ const showScenariosWithHazardsOption: ValuedSynthesisOption = {
 };
 
 /**
+ * Boolean option to toggle the visualization of the relationship graph.
+ */
+const showEdgesOption: ValuedSynthesisOption = {
+    synthesisOption: {
+        id: showEdgesID,
+        name: "Relationship Edges",
+        type: TransformationOptionType.CHECK,
+        initialValue: true,
+        currentValue: true,
+        values: [true, false],
+        category: filterCategory,
+    },
+    currentValue: true,
+};
+
+/**
  * Option to filter the node labels based on the aspect of the node.
  */
 const showLabelsOption: ValuedSynthesisOption = {
@@ -384,6 +401,7 @@ export class StpaSynthesisOptions extends SynthesisOptions {
                 showScenariosOption,
                 showScenariosWithHazardsOption,
                 showSafetyConstraintsOption,
+                showEdgesOption
             ]
         );
     }
@@ -421,6 +439,14 @@ export class StpaSynthesisOptions extends SynthesisOptions {
 
     getShowRelationshipGraph(): boolean {
         return this.getOption(showRelationshipGraphID)?.currentValue;
+    }
+
+    setShowEdges(value: boolean): void {
+        this.setOption(showEdgesID, value);
+    }
+
+    getShowEdges(): boolean {
+        return this.getOption(showEdgesID)?.currentValue;
     }
 
     setShowControlStructure(value: boolean): void {

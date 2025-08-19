@@ -25,7 +25,7 @@ import { ColorStyleOption, DifferentFormsOption, FeedbackStyleOption, RenderOpti
 import { SendModelRendererAction } from '../snippets/actions';
 import { renderCollapseIcon, renderDiamond, renderEllipse, renderExpandIcon, renderHexagon, renderMirroredTriangle, renderOval, renderPentagon, renderRectangle, renderRectangleForNode, renderRoundedRectangle, renderTrapez, renderTriangle } from '../views-rendering';
 import { collectAllChildren } from './helper-methods';
-import { CSEdge, CSNode, CS_EDGE_TYPE, CS_INTERMEDIATE_EDGE_TYPE, CS_NODE_TYPE, EdgeType, ParentNode, STPAAspect, STPAEdge, STPANode, STPA_EDGE_TYPE, STPA_INTERMEDIATE_EDGE_TYPE } from './stpa-model';
+import { CSEdge, CSNode, CS_EDGE_TYPE, CS_INTERMEDIATE_EDGE_TYPE, CS_NODE_TYPE, EdgeType, PARENT_TYPE, ParentNode, STPAAspect, STPAEdge, STPANode, STPA_EDGE_TYPE, STPA_INTERMEDIATE_EDGE_TYPE } from './stpa-model';
 
 /** Determines if path/aspect highlighting is currently on. */
 let highlighting: boolean;
@@ -73,8 +73,18 @@ export class PolylineArrowEdgeView extends PolylineEdgeView {
         }
 
         // if an STPANode is selected, the components not connected to it should fade out
-        const hidden = (edge.type === STPA_EDGE_TYPE || edge.type === STPA_INTERMEDIATE_EDGE_TYPE) && highlighting && !(edge as STPAEdge).highlight;
-        // feedback edges in the control structure are possibly styled differently
+        // const hidden = (edge.type === STPA_EDGE_TYPE || edge.type === STPA_INTERMEDIATE_EDGE_TYPE) && highlighting && !(edge as STPAEdge).highlight;
+        // TODO check corresponding option
+        let hidden = false;
+        if (edge.parent.type === PARENT_TYPE && !(edge.parent as ParentNode).showEdges) {
+            hidden = (edge.type === STPA_EDGE_TYPE || edge.type === STPA_INTERMEDIATE_EDGE_TYPE) && !(edge as STPAEdge).highlight;
+            if (hidden) {
+                return <g/>;
+            }
+        } else {
+            hidden = (edge.type === STPA_EDGE_TYPE || edge.type === STPA_INTERMEDIATE_EDGE_TYPE) && highlighting && !(edge as STPAEdge).highlight;
+        }
+        // feedback edges in the control structure should be dashed
         const feedbackEdge = (edge.type === CS_EDGE_TYPE || edge.type === CS_INTERMEDIATE_EDGE_TYPE) && (edge as CSEdge).edgeType === EdgeType.FEEDBACK;
         // edges that represent missing edges should be highlighted
         const missing = (edge.type === CS_EDGE_TYPE || edge.type === CS_INTERMEDIATE_EDGE_TYPE) && (edge as CSEdge).edgeType === EdgeType.MISSING_FEEDBACK;
@@ -105,7 +115,16 @@ export class PolylineArrowEdgeView extends PolylineEdgeView {
 
     protected renderAdditionals(edge: SEdgeImpl, segments: Point[], context: RenderingContext): VNode[] {
         // if an STPANode is selected, the components not connected to it should fade out
-        const hidden = edge.type === STPA_EDGE_TYPE && highlighting && !(edge as STPAEdge).highlight;
+        // TODO check corresponding option
+        let hidden = false;
+        if (edge.parent.type === PARENT_TYPE && !(edge.parent as ParentNode).showEdges) {
+            hidden = edge.type === STPA_EDGE_TYPE && !(edge as STPAEdge).highlight;
+            if (hidden) {
+                return <g/>;
+            }
+        } else {
+            hidden = edge.type === STPA_EDGE_TYPE && highlighting && !(edge as STPAEdge).highlight;
+        }
 
         const forelastSegment = segments[segments.length - 2];
         const lastSegment = segments[segments.length - 1];

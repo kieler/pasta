@@ -75,7 +75,8 @@ export function createRelationshipGraph(
         id: "relationships",
         children: children,
         modelOrder: options.getModelOrder(),
-        showBorder: options.getShowControlStructure()
+        showBorder: options.getShowControlStructure(),
+        showEdges: options.getShowEdges(),
     };
 }
 

@@ -47,11 +47,12 @@ export class StpaLayoutConfigurator extends DefaultLayoutConfigurator {
         // priority is used to determine the order of the nodes
         let priority = "";
         const csParent = snode.children?.find(child => child.type === CS_NODE_TYPE);
+        const relationshipNode = snode.children?.find(child => child.type === STPA_NODE_TYPE);
         if (csParent) {
             // options for the control structure
             direction = "DOWN";
             priority = "1";
-        } else if (snode.children?.find(child => child.type === STPA_NODE_TYPE)) {
+        } else if (relationshipNode) {
             // options for the STPA graph
             direction = "UP";
             priority = "0";
@@ -69,6 +70,13 @@ export class StpaLayoutConfigurator extends DefaultLayoutConfigurator {
             "org.eclipse.elk.spacing.portsSurrounding": "[top=10.0,left=10.0,bottom=10.0,right=10.0]",
             "org.eclipse.elk.priority": priority,
         };
+        // TODO: only do this when corresponding option is set
+        if (!snode.showEdges) {
+            options["org.eclipse.elk.layered.spacing.edgeEdgeBetweenLayers"] = "0";
+            options["org.eclipse.elk.layered.nodePlacement.networkSimplex.nodeFlexibility.default"] = "NONE";
+        } else if (relationshipNode) {
+            options["org.eclipse.elk.layered.spacing.edgeEdgeBetweenLayers"] = "6";
+        }
 
         // model order is used to determine the order of the children
         if (snode.modelOrder) {
