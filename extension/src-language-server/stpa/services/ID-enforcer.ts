@@ -17,7 +17,7 @@
 
 import { CstNode, isCompositeCstNode, LangiumDocument } from "langium";
 import { TextDocumentContentChangeEvent } from "vscode";
-import { Range, RenameParams, TextEdit } from "vscode-languageserver";
+import { RenameParams, TextEdit } from "vscode-languageserver";
 import {
     ActionUCAs,
     ControllerConstraint,
