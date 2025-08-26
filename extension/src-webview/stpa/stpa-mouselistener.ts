@@ -1,17 +1,41 @@
 import { isExpandable, MouseListener, SLabelImpl, SModelElementImpl } from "sprotty";
 import { Action, CollapseExpandAction } from "sprotty-protocol";
+import { injectable, inject, postConstruct } from 'inversify';
+import { DISymbol } from "../di.symbols";
+import { OptionsRegistry } from "../options/options-registry";
 import { flagConnectedElements, flagSameAspect } from "./helper-methods";
 import { CS_NODE_TYPE, STPA_NODE_TYPE, STPAEdge, STPANode } from "./stpa-model";
+import { HighlightUpdateAction } from "../actions";
+import { IdSet, IdMap } from "./stpa-helpers";
 
+@injectable()
 export class StpaMouseListener extends MouseListener {
-    protected selectedNodes: Map<STPANode, Set<'ctrl' | 'normal'>> = new Map();
-    protected flaggedElementsSet: Set<STPANode | STPAEdge> = new Set();
-    protected connectionCache: Map<STPANode, {
-                                normal?: Set<STPANode | STPAEdge>,
-                                ctrl?: Set<STPANode | STPAEdge>
-                            }> = new Map();                     //TODO: can this map grow to large?
+    protected selectedNodes: IdMap<STPANode, Set<'ctrl' | 'normal'>> = new IdMap();
+    protected flaggedElementsSet: IdSet<STPANode | STPAEdge> = new IdSet();
+    protected connectionCache: IdMap<STPANode, { 
+                                  normal?: IdSet<STPANode | STPAEdge>,
+                                  ctrl?: IdSet<STPANode | STPAEdge>
+                               }> = new IdMap();                     
+    private lastHighlightValue: boolean = false;   
 
-    // TODO: maybe also other click for only deselecting clicked node / complete tree / ...
+
+    @inject(DISymbol.OptionsRegistry) private OptionsRegistry: OptionsRegistry;
+    @postConstruct()
+    init(): void {
+        const targetOptionId = "highlights";
+        // Subscribe to different registry changes and reset on showHighlightOption toggle
+        this.OptionsRegistry.onChange(() => {
+
+            const targetOption = this.OptionsRegistry.valuedSynthesisOptions
+            .find(option => option.id === targetOptionId);
+        
+        if (targetOption && targetOption.currentValue !== this.lastHighlightValue) {
+            this.handleHighlightToggled();
+            this.lastHighlightValue = targetOption.currentValue;
+        }
+    });
+    }
+
     mouseDown(target: SModelElementImpl, event: MouseEvent): (Action | Promise<Action>)[] {
         // when a label is selected, we are interested in its parent node
         target = target instanceof SLabelImpl ? target.parent : target;
@@ -20,7 +44,7 @@ export class StpaMouseListener extends MouseListener {
             // if no STPANode is selected, unflag the elements and reset the set
             this.reset();
             this.selectedNodes.clear();
-            return [];
+            return [HighlightUpdateAction.create([])];
         }
 
         const mode: 'ctrl' | 'normal' = event.ctrlKey ? 'ctrl' : 'normal';
@@ -40,7 +64,6 @@ export class StpaMouseListener extends MouseListener {
         } else {
             // Add mode to existing selection
             modes.add(mode);
-            console.log("select");
         }
 
 
@@ -54,7 +77,7 @@ export class StpaMouseListener extends MouseListener {
                 // is a node with this mode already in the cache?
                 if (!cache[mode]) {
                     // if not, create new Set
-                    cache[mode] = new Set(
+                    cache[mode] = new IdSet(
                         mode === 'ctrl' ? flagSameAspect(node) : flagConnectedElements(node)
                     );
                     this.connectionCache.set(node, cache);
@@ -71,11 +94,13 @@ export class StpaMouseListener extends MouseListener {
 
         // Apply highlights
         for (const element of this.flaggedElementsSet) {
-            element.highlight = true;  //TODO: warum sind manche edges heller ohne highlight?
+            element.highlight = true;  
         }
 
-        return [];
+        const highlightIds = [...this.flaggedElementsSet].map(el => el.id);
+        return [HighlightUpdateAction.create(highlightIds)];
     }
+
 
 
     doubleClick(target: SModelElementImpl, event: MouseEvent): (Action | Promise<Action>)[] {
@@ -94,12 +119,31 @@ export class StpaMouseListener extends MouseListener {
     }
 
     /**
-     * Resets the highlight attribute of the highlighted nodes.
+     * Resets the highlight attribute of the highlighted nodes and clears the set of flagged elements.
      */
     protected reset(): void {
         for (const element of this.flaggedElementsSet) {
             element.highlight = false;
         }
         this.flaggedElementsSet.clear();
+    }
+
+    /**
+     * Resets the highlight attribute of the highlighted nodes and clears all sets and maps.
+     */
+    private completeReset(): void {
+        for (const element of this.flaggedElementsSet) {
+            element.highlight = false;
+        }
+        this.flaggedElementsSet.clear();
+        this.selectedNodes.clear();
+        this.connectionCache.clear();
+    }
+
+    /**
+     * Function for resetting highlights, when highlight options gets toggled.
+     */
+    private handleHighlightToggled(): void {
+        this.completeReset();
     }
 }

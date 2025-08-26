@@ -40,7 +40,6 @@ export function collectAllChildren(nodes: SNodeImpl[], children: SNodeImpl[]): v
  */
 export function flagConnectedElements(node: SNodeImpl): (STPANode | STPAEdge)[] {
     const elements: (STPANode | STPAEdge)[] = [];
-    (node as STPANode).highlight = true;
     elements.push(node as STPANode);
     // flagging four sub components
     flaggingOutgoingForSubcomponents(node as STPANode, elements);
@@ -74,7 +73,6 @@ export function flagConnectedElements(node: SNodeImpl): (STPANode | STPAEdge)[] 
  */
 function flagPredNodes(edge: SEdgeImpl, elements: SModelElementImpl[]): void {
     const node = edge.source?.type.startsWith('port') ? edge.source.parent as SNodeImpl : edge.source as SNodeImpl;
-    (node as STPANode).highlight = true;
     elements.push(node as STPANode);
     if (isSubConstraint(node)) {
         flagSubConsParent(node as STPANode, elements);
@@ -83,7 +81,6 @@ function flagPredNodes(edge: SEdgeImpl, elements: SModelElementImpl[]): void {
     if (node.type === STPA_NODE_TYPE && (node as STPANode).aspect === STPAAspect.HAZARD) {
         const subHazards = node.children.filter(child => child.type === STPA_NODE_TYPE) as STPANode[];
         for (const subH of subHazards) {
-            subH.highlight = true;
             elements.push(subH);
             for (const port of subH.children.filter(child => child.type === PORT_TYPE && (child as PastaPort).side === PortSide.SOUTH)) {
                 for (const child of subH.parent.children) {
@@ -110,7 +107,6 @@ function flagPredNodes(edge: SEdgeImpl, elements: SModelElementImpl[]): void {
  */
 function flagSuccNodes(edge: SEdgeImpl, elements: SModelElementImpl[]): void {
     const node = edge.target?.type.startsWith('port') ? edge.target.parent as STPANode : edge.target as STPANode;
-    node.highlight = true;
     elements.push(node);
     flaggingOutgoingForSubcomponents(node, elements);
     // flag outgoing edges from node by going over the ports
@@ -135,7 +131,6 @@ function flaggingOutgoingForSubcomponents(node: STPANode, elements: SModelElemen
     }
     // for sub-hazards the parent node(s) and its outgoing edges should be highlighted as well
     if (isSubHazard(node)) {
-        (node.parent as STPANode).highlight = true;
         elements.push(node.parent as STPANode);
         for (const port of (node.parent as STPANode).children.filter(child => child.type === PORT_TYPE && (child as PastaPort).side === PortSide.NORTH)) {
             for (const child of (node.parent as STPANode).parent.children) {
@@ -159,7 +154,6 @@ function flagIncomingEdges(edge: STPAEdge, port: PastaPort, elements: SModelElem
         let furtherEdge: STPAEdge | undefined = edge;
         while (furtherEdge) {
             edge = furtherEdge;
-            edge.highlight = true;
             elements.push(edge);
             furtherEdge = (edge.parent as STPANode).parent.children.find(child => child.type.startsWith('edge:stpa') && (child as STPAEdge).targetId === edge.sourceId) as STPAEdge;
         }
@@ -180,7 +174,6 @@ function flagOutgoingEdges(edge: STPAEdge, port: PastaPort, elements: SModelElem
         let furtherEdge: STPAEdge | undefined = edge;
         while (furtherEdge) {
             edge = furtherEdge;
-            edge.highlight = true;
             elements.push(edge);
             if ((edge.parent as STPANode).aspect === STPAAspect.SYSTEMCONSTRAINT) {
                 furtherEdge = (edge.parent as STPANode).parent.children.find(child => child.type.startsWith('edge:stpa') && (child as STPAEdge).sourceId === edge.targetId) as STPAEdge;
@@ -221,7 +214,6 @@ function flagSubConsParent(node: STPANode, elements: SModelElementImpl[]): void 
     let parent = node;
     while (parent.parent.type === STPA_NODE_TYPE && (parent.parent as STPANode).aspect === STPAAspect.SYSTEMCONSTRAINT) {
         parent = parent.parent as STPANode;
-        parent.highlight = true;
         elements.push(parent);
     }
 }
@@ -238,13 +230,11 @@ export function flagSameAspect(selected: STPANode): STPANode[] {
     allNodes.forEach(node => {
         if (node.aspect === selected.aspect) {
             elements.push(node);
-            node.highlight = true;
         }
     });
     // if the selected node is a sub-hazard or -sysconstraint, the parent should be highlighted too
     if (selected.parent.type === STPA_NODE_TYPE && ((selected.parent as STPANode).aspect === STPAAspect.HAZARD || (selected.parent as STPANode).aspect === STPAAspect.SYSTEMCONSTRAINT)) {
         elements.push(selected.parent as STPANode);
-        (selected.parent as STPANode).highlight = true;
     }
     return elements;
 }
