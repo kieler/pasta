@@ -113,8 +113,8 @@ ActionUCAs:
     action=[Command] '{'
         'notProviding' '{'notProvidingUcas+=UCA*'}'
         'providing' '{'providingUcas+=UCA*'}'
-        'tooEarly/Late' '{'wrongTimingUcas+=UCA*'}'
-        'stoppedTooSoon' '{'continousUcas+=UCA*'}'
+        'tooEarlyOrLateOrWrongOrder' '{'wrongTimingUcas+=UCA*'}'
+        'stoppedTooSoonOrLate' '{'continousUcas+=UCA*'}'
     '}';
 
 UCA:
@@ -152,7 +152,7 @@ HazardList:
     '[' refs+=[Hazard:SubID] (',' refs+=[Hazard:SubID])*']';
 
 SafetyConstraint:
-    name=ID description=STRING '['refs+=[LossScenario] (',' refs+=[LossScenario])*']';
+    name=ID description=STRING '[' (refs+=[LossScenario] | refs+=[Hazard] | refs+=[UCA]) (',' (refs+=[LossScenario] | refs+=[Hazard] | refs+=[UCA]) )* ']';
 
 NotProvided returns string:
     'not-provided';

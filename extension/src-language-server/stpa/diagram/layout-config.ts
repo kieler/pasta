@@ -128,6 +128,7 @@ export class StpaLayoutConfigurator extends DefaultLayoutConfigurator {
             // nodes with many edges are streched
             "org.eclipse.elk.layered.nodePlacement.strategy": "NETWORK_SIMPLEX",
             "org.eclipse.elk.layered.nodePlacement.networkSimplex.nodeFlexibility.default": "NODE_SIZE",
+            "org.eclipse.elk.spacing.portsSurrounding": "[top=10.0,left=10.0,bottom=10.0,right=10.0]",
         };
     }
 

@@ -134,7 +134,10 @@ export class STPACompletionProvider extends DefaultCompletionProvider {
      * @param acceptor The completion acceptor to add the completion items.
      */
     protected completionForSystemComponent(
-        context: CompletionContext, next: NextFeature, acceptor: CompletionAcceptor): void {
+        context: CompletionContext,
+        next: NextFeature,
+        acceptor: CompletionAcceptor
+    ): void {
         if (next.type === Node && next.property === "name") {
             const generatedText = `Comp {
     hierarchyLevel 0
@@ -298,8 +301,10 @@ export class STPACompletionProvider extends DefaultCompletionProvider {
      */
     protected completionForUCA(context: CompletionContext, next: NextFeature, acceptor: CompletionAcceptor): void {
         if (context.node?.$type === UCA && next.property === "description") {
+            const lastChar = context.document.textDocument.getText().charAt(context.offset - 1);
             const generatedItems = this.generateTextForUCAWithPlainText(
                 context.node as UCA,
+                lastChar,
                 context.node.$containerProperty
             );
 
@@ -315,7 +320,7 @@ export class STPACompletionProvider extends DefaultCompletionProvider {
      * @param property The property in which the UCA is contained. Should be one of "notProvidingUcas", "providingUcas", "wrongTimingUcas", or "continousUcas".
      * @returns completion items for the given UCA.
      */
-    protected generateTextForUCAWithPlainText(uca: UCA, property?: string): CompletionValueItem[] {
+    protected generateTextForUCAWithPlainText(uca: UCA, lastChar: string, property?: string): CompletionValueItem[] {
         const actionUca = uca.$container;
         const system = actionUca.system.ref?.label ?? actionUca.system.$refText;
         let controlAction = `the control action '${actionUca.action.ref?.label}'`;
@@ -323,12 +328,14 @@ export class STPACompletionProvider extends DefaultCompletionProvider {
         if (isVerticalEdge(parent)) {
             controlAction += ` to ${parent.target.ref?.label ?? parent.target.$refText}`;
         }
+        // if the last character is not a whitespace, add one to create space after UCA ID
+        const whitespace = lastChar === " " ? "" : " ";
         switch (property) {
             case "notProvidingUcas":
                 const notProvidedItem = {
                     label: "Generate not provided UCA Text",
                     kind: CompletionItemKind.Text,
-                    insertText: `${system} did not provide ${controlAction}, TODO`,
+                    insertText: `${whitespace}\"${system} did not provide ${controlAction}, TODO\"`,
                     detail: "Inserts the starting text for this UCA.",
                     sortText: "0",
                 };
@@ -337,7 +344,7 @@ export class STPACompletionProvider extends DefaultCompletionProvider {
                 const providedItem = {
                     label: "Generate provided UCA Text",
                     kind: CompletionItemKind.Text,
-                    insertText: `${system} provided ${controlAction}, TODO`,
+                    insertText: `${whitespace}\"${system} provided ${controlAction}, TODO\"`,
                     detail: "Inserts the starting text for this UCA.",
                     sortText: "0",
                 };
@@ -346,30 +353,37 @@ export class STPACompletionProvider extends DefaultCompletionProvider {
                 const tooEarlyItem = {
                     label: "Generate too-early UCA Text",
                     kind: CompletionItemKind.Text,
-                    insertText: `${system} provided ${controlAction} before TODO`,
+                    insertText: `${whitespace}\"${system} provided ${controlAction} before TODO\"`,
                     detail: "Inserts the starting text for this UCA.",
                     sortText: "0",
                 };
                 const tooLateItem = {
                     label: "Generate too-late UCA Text",
                     kind: CompletionItemKind.Text,
-                    insertText: `${system} provided ${controlAction} after TODO`,
+                    insertText: `${whitespace}\"${system} provided ${controlAction} after TODO\"`,
                     detail: "Inserts the starting text for this UCA.",
                     sortText: "1",
                 };
-                return [tooEarlyItem, tooLateItem];
+                const wrongOrderItem = {
+                    label: "Generate wrong-order UCA Text",
+                    kind: CompletionItemKind.Text,
+                    insertText: `${whitespace}\"${system} provided ${controlAction} in the wrong order TODO\"`,
+                    detail: "Inserts the starting text for this UCA.",
+                    sortText: "1",
+                };
+                return [tooEarlyItem, tooLateItem, wrongOrderItem];
             case "continousUcas":
                 const stoppedTooSoonItem = {
                     label: "Generate stopped-too-soon UCA Text",
                     kind: CompletionItemKind.Text,
-                    insertText: `${system} stopped ${controlAction} before TODO`,
+                    insertText: `${whitespace}\"${system} stopped ${controlAction} before TODO\"`,
                     detail: "Inserts the starting text for this UCA.",
                     sortText: "0",
                 };
                 const appliedTooLongItem = {
                     label: "Generate applied-too-long UCA Text",
                     kind: CompletionItemKind.Text,
-                    insertText: `${system} still applied ${controlAction} after TODO`,
+                    insertText: `${whitespace}\"${system} still applied ${controlAction} after TODO\"`,
                     detail: "Inserts the starting text for this UCA.",
                     sortText: "1",
                 };

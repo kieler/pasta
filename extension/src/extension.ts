@@ -44,7 +44,7 @@ const validationContexts = [
     "checkResponsibilitiesForConstraints",
     "checkConstraintsForUCAs",
     "checkScenariosForUCAs",
-    "checkSafetyRequirementsForUCAs",
+    "checkSafetyRequirementsForScenarios",
     "checkMissingFeedback",
 ];
 
@@ -196,7 +196,7 @@ function resetContextForStorageOptions(): void {
     vscode.commands.executeCommand("setContext", "pasta.checkResponsibilitiesForConstraints", true);
     vscode.commands.executeCommand("setContext", "pasta.checkConstraintsForUCAs", true);
     vscode.commands.executeCommand("setContext", "pasta.checkScenariosForUCAs", true);
-    vscode.commands.executeCommand("setContext", "pasta.checkSafetyRequirementsForUCAs", true);
+    vscode.commands.executeCommand("setContext", "pasta.checkSafetyRequirementsForScenarios", true);
     vscode.commands.executeCommand("setContext", "pasta.checkMissingFeedback", true);
     vscode.commands.executeCommand("setContext", "pasta.generateIDs", true);
 }
