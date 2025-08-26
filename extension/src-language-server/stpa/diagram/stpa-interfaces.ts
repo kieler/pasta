@@ -20,6 +20,7 @@ import { EdgeType, PortSide, STPAAspect } from "./stpa-model.js";
 
 export interface ParentNode extends SNode {
     modelOrder: boolean;
+    showBorder: boolean;
 }
 
 /**

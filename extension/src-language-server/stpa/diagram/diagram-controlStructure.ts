@@ -73,6 +73,7 @@ export function createControlStructure(
         id: "controlStructure",
         children: CSChildren,
         modelOrder: options.getModelOrder(),
+        showBorder: options.getShowRelationshipGraph(),
     };
 }
 

@@ -25,7 +25,7 @@ import { ColorStyleOption, DifferentFormsOption, FeedbackStyleOption, RenderOpti
 import { SendModelRendererAction } from '../snippets/actions';
 import { renderCollapseIcon, renderDiamond, renderEllipse, renderExpandIcon, renderHexagon, renderMirroredTriangle, renderOval, renderPentagon, renderRectangle, renderRectangleForNode, renderRoundedRectangle, renderTrapez, renderTriangle } from '../views-rendering';
 import { collectAllChildren } from './helper-methods';
-import { CSEdge, CSNode, CS_EDGE_TYPE, CS_INTERMEDIATE_EDGE_TYPE, CS_NODE_TYPE, EdgeType, STPAAspect, STPAEdge, STPANode, STPA_EDGE_TYPE, STPA_INTERMEDIATE_EDGE_TYPE } from './stpa-model';
+import { CSEdge, CSNode, CS_EDGE_TYPE, CS_INTERMEDIATE_EDGE_TYPE, CS_NODE_TYPE, EdgeType, ParentNode, STPAAspect, STPAEdge, STPANode, STPA_EDGE_TYPE, STPA_INTERMEDIATE_EDGE_TYPE } from './stpa-model';
 
 /** Determines if path/aspect highlighting is currently on. */
 let highlighting: boolean;
@@ -274,6 +274,23 @@ export class CSNodeView extends RectangularNodeView {
         }
     }
 }
+
+@injectable()
+export class ParentNodeView extends CSNodeView {
+
+    @inject(DISymbol.RenderOptionsRegistry) renderOptionsRegistry: RenderOptionsRegistry;
+
+    render(node: ParentNode, context: RenderingContext): VNode {
+        if (node.showBorder) {
+            return super.render(node, context);
+        } else {
+            return <g>
+                {context.renderChildren(node)}
+            </g>;
+        }
+    }
+}
+
 
 @injectable()
 export class InvisibleNodeView extends RectangularNodeView {
