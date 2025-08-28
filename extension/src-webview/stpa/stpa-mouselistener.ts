@@ -10,11 +10,11 @@ import { IdSet, IdMap } from "./stpa-helpers";
 
 @injectable()
 export class StpaMouseListener extends MouseListener {
-    protected selectedNodes: IdMap<STPANode, Set<'ctrl' | 'normal'>> = new IdMap();
+    protected selectedNodes: IdMap<STPANode, Set<'shift' | 'normal'>> = new IdMap();
     protected flaggedElementsSet: IdSet<STPANode | STPAEdge> = new IdSet();
     protected connectionCache: IdMap<STPANode, { 
                                   normal?: IdSet<STPANode | STPAEdge>,
-                                  ctrl?: IdSet<STPANode | STPAEdge>
+                                  shift?: IdSet<STPANode | STPAEdge>
                                }> = new IdMap();                     
     private lastHighlightValue: boolean = false;   
 
@@ -45,9 +45,14 @@ export class StpaMouseListener extends MouseListener {
             this.reset();
             this.selectedNodes.clear();
             return [HighlightUpdateAction.create([])];
+        } else if (!event.ctrlKey) {
+            this.reset();
+            this.selectedNodes.clear();
         }
 
-        const mode: 'ctrl' | 'normal' = event.ctrlKey ? 'ctrl' : 'normal';
+
+
+        const mode: 'shift' | 'normal' = event.shiftKey ? 'shift' : 'normal';
         let modes = this.selectedNodes.get(target as STPANode);
 
         if (!modes) {
@@ -78,7 +83,7 @@ export class StpaMouseListener extends MouseListener {
                 if (!cache[mode]) {
                     // if not, create new Set
                     cache[mode] = new IdSet(
-                        mode === 'ctrl' ? flagSameAspect(node) : flagConnectedElements(node)
+                        mode === 'shift' ? flagSameAspect(node) : flagConnectedElements(node)
                     );
                     this.connectionCache.set(node, cache);
                 }
