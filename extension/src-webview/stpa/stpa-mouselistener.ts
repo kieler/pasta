@@ -22,17 +22,9 @@ export class StpaMouseListener extends MouseListener {
     @inject(DISymbol.OptionsRegistry) private OptionsRegistry: OptionsRegistry;
     @postConstruct()
     init(): void {
-        const targetOptionId = "highlights";
         // Subscribe to different registry changes and reset on showHighlightOption toggle
         this.OptionsRegistry.onChange(() => {
-
-            const targetOption = this.OptionsRegistry.valuedSynthesisOptions
-            .find(option => option.id === targetOptionId);
-        
-        if (targetOption && targetOption.currentValue !== this.lastHighlightValue) {
             this.handleHighlightToggled();
-            this.lastHighlightValue = targetOption.currentValue;
-        }
     });
     }
 
