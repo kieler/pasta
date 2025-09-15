@@ -33,7 +33,7 @@ import {
     STPA_INTERMEDIATE_EDGE_TYPE,
     STPA_NODE_TYPE,
 } from "./stpa-model.js";
-import { StpaSynthesisOptions, showLabelsValue } from "./stpa-synthesis-options.js";
+import { StpaSynthesisOptions, showDescriptionsValue } from "./stpa-synthesis-options.js";
 import {
     createUCAContextDescription,
     getAspect,
@@ -99,27 +99,27 @@ export function createRelationshipGraphChildren(
     idCache: IdCache<AstNode>,
     highlightedIDs?: string[]
 ): SModelElement[] {
-    const showLabels = options.getShowLabels();
+    const showDescriptions = options.getshowDescriptions();
     const labelManagement = options.getLabelManagement();
     // aspects that should have a description when showLabel option is set to automatic
     const aspectsToShowDescriptions = getAspectsThatShouldHaveDesriptions(model);
     // determine the children for the STPA graph
     // for each component a node is generated with edges representing the references of the component
     // in order to be able to set the target IDs of the edges, the nodes must be created in the correct order
-    const showLossLabel = showDescriptionOfAspect(STPAAspect.LOSS, aspectsToShowDescriptions, showLabels, labelManagement);
+    const showLossLabel = showDescriptionOfAspect(STPAAspect.LOSS, aspectsToShowDescriptions, showDescriptions, labelManagement);
     let stpaChildren: SModelElement[] = filteredModel.losses?.map(l =>
         generateSTPANode(l, showLossLabel, idToSNode, options, idCache, highlightedIDs)
     );
     const showHazardDescription = showDescriptionOfAspect(
         STPAAspect.HAZARD,
         aspectsToShowDescriptions,
-        showLabels,
+        showDescriptions,
         labelManagement
     );
     const showSystemConstraintDescription = showDescriptionOfAspect(
         STPAAspect.SYSTEMCONSTRAINT,
         aspectsToShowDescriptions,
-        showLabels,
+        showDescriptions,
         labelManagement
     );
     // the hierarchy option determines whether subcomponents are contained in ther parent or not
@@ -174,31 +174,31 @@ export function createRelationshipGraphChildren(
     const showResponsibilitiesDescription = showDescriptionOfAspect(
         STPAAspect.RESPONSIBILITY,
         aspectsToShowDescriptions,
-        showLabels,
+        showDescriptions,
         labelManagement
     );
     const showUCAsDescription = showDescriptionOfAspect(
         STPAAspect.UCA,
         aspectsToShowDescriptions,
-        showLabels,
+        showDescriptions,
         labelManagement
     );
     const showControllerConstraintDescription = showDescriptionOfAspect(
         STPAAspect.CONTROLLERCONSTRAINT,
         aspectsToShowDescriptions,
-        showLabels,
+        showDescriptions,
         labelManagement
     );
     const showScenarioDescription = showDescriptionOfAspect(
         STPAAspect.SCENARIO,
         aspectsToShowDescriptions,
-        showLabels,
+        showDescriptions,
         labelManagement
     );
     const showSafetyConsDescription = showDescriptionOfAspect(
         STPAAspect.SAFETYREQUIREMENT,
         aspectsToShowDescriptions,
-        showLabels,
+        showDescriptions,
         labelManagement
     );
     stpaChildren = stpaChildren?.concat([
@@ -237,68 +237,68 @@ export function createRelationshipGraphChildren(
 }
 
 /**
- * Determines whether the label of the given {@code aspect} should be shown based on the given {@code showLabels} and {@code labelManagement}.
+ * Determines whether the label of the given {@code aspect} should be shown based on the given {@code showDescriptions} and {@code labelManagement}.
  * @param aspect The aspect for which the label should be shown.
  * @param aspectsToShowDescriptions The aspects that should have a description when the showLabel option is set to automatic.
- * @param showLabels The showLabel option of the STPA model.
+ * @param showDescriptions The showLabel option of the STPA model.
  * @param labelManagement The labelManagement option of the STPA model.
  * @returns whether the label of the given {@code aspect} should be shown.
  */
 function showDescriptionOfAspect(
     aspect: STPAAspect,
     aspectsToShowDescriptions: STPAAspect[],
-    showLabels: showLabelsValue[],
+    showDescriptions: showDescriptionsValue[],
     labelManagement: labelManagementValue
 ): boolean {
     if (labelManagement === labelManagementValue.NO_LABELS) {
         return false;
     }
-    if (showLabels.includes(showLabelsValue.ALL)) {
+    if (showDescriptions.includes(showDescriptionsValue.ALL)) {
         return true;
     }
     switch (aspect) {
         case STPAAspect.LOSS:
             return (
-                showLabels.includes(showLabelsValue.LOSSES) ||
-                (showLabels.includes(showLabelsValue.AUTOMATIC) && aspectsToShowDescriptions.includes(STPAAspect.LOSS))
+                showDescriptions.includes(showDescriptionsValue.LOSSES) ||
+                (showDescriptions.includes(showDescriptionsValue.AUTOMATIC) && aspectsToShowDescriptions.includes(STPAAspect.LOSS))
             );
         case STPAAspect.HAZARD:
             return (
-                showLabels.includes(showLabelsValue.HAZARDS) ||
-                (showLabels.includes(showLabelsValue.AUTOMATIC) && aspectsToShowDescriptions.includes(STPAAspect.HAZARD))
+                showDescriptions.includes(showDescriptionsValue.HAZARDS) ||
+                (showDescriptions.includes(showDescriptionsValue.AUTOMATIC) && aspectsToShowDescriptions.includes(STPAAspect.HAZARD))
             );
         case STPAAspect.SYSTEMCONSTRAINT:
             return (
-                showLabels.includes(showLabelsValue.SYSTEM_CONSTRAINTS) ||
-                (showLabels.includes(showLabelsValue.AUTOMATIC) &&
+                showDescriptions.includes(showDescriptionsValue.SYSTEM_CONSTRAINTS) ||
+                (showDescriptions.includes(showDescriptionsValue.AUTOMATIC) &&
                     aspectsToShowDescriptions.includes(STPAAspect.SYSTEMCONSTRAINT))
             );
         case STPAAspect.RESPONSIBILITY:
             return (
-                showLabels.includes(showLabelsValue.RESPONSIBILITIES) ||
-                (showLabels.includes(showLabelsValue.AUTOMATIC) &&
+                showDescriptions.includes(showDescriptionsValue.RESPONSIBILITIES) ||
+                (showDescriptions.includes(showDescriptionsValue.AUTOMATIC) &&
                     aspectsToShowDescriptions.includes(STPAAspect.RESPONSIBILITY))
             );
         case STPAAspect.UCA:
             return (
-                showLabels.includes(showLabelsValue.UCAS) ||
-                (showLabels.includes(showLabelsValue.AUTOMATIC) && aspectsToShowDescriptions.includes(STPAAspect.UCA))
+                showDescriptions.includes(showDescriptionsValue.UCAS) ||
+                (showDescriptions.includes(showDescriptionsValue.AUTOMATIC) && aspectsToShowDescriptions.includes(STPAAspect.UCA))
             );
         case STPAAspect.CONTROLLERCONSTRAINT:
             return (
-                showLabels.includes(showLabelsValue.CONTROLLER_CONSTRAINTS) ||
-                (showLabels.includes(showLabelsValue.AUTOMATIC) &&
+                showDescriptions.includes(showDescriptionsValue.CONTROLLER_CONSTRAINTS) ||
+                (showDescriptions.includes(showDescriptionsValue.AUTOMATIC) &&
                     aspectsToShowDescriptions.includes(STPAAspect.CONTROLLERCONSTRAINT))
             );
         case STPAAspect.SCENARIO:
             return (
-                showLabels.includes(showLabelsValue.SCENARIOS) ||
-                (showLabels.includes(showLabelsValue.AUTOMATIC) && aspectsToShowDescriptions.includes(STPAAspect.SCENARIO))
+                showDescriptions.includes(showDescriptionsValue.SCENARIOS) ||
+                (showDescriptions.includes(showDescriptionsValue.AUTOMATIC) && aspectsToShowDescriptions.includes(STPAAspect.SCENARIO))
             );
         case STPAAspect.SAFETYREQUIREMENT:
             return (
-                showLabels.includes(showLabelsValue.SAFETY_CONSTRAINTS) ||
-                (showLabels.includes(showLabelsValue.AUTOMATIC) &&
+                showDescriptions.includes(showDescriptionsValue.SAFETY_CONSTRAINTS) ||
+                (showDescriptions.includes(showDescriptionsValue.AUTOMATIC) &&
                     aspectsToShowDescriptions.includes(STPAAspect.SAFETYREQUIREMENT))
             );
     }
@@ -355,7 +355,7 @@ export function generateSTPANode(
     highlightedIDs?: string[]
 ): STPANode {
     const nodeId = idCache.uniqueId(node.name.replace(/[.]/g, "_"), node);
-    const showHighlights = options.getShowLabelHighlights(); 
+    const showHighlights = options.getShowDescriptionsHighlights(); 
     // determines the hierarchy level for subcomponents. For other components the value is 0.
     let lvl = 0;
     let container = node.$container;

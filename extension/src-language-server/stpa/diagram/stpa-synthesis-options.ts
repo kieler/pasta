@@ -38,11 +38,42 @@ const showSafetyConstraintsID = "showSafetyConstraints";
 
 const filterCategoryID = "filterCategory";
 const labelCategoryID = "labelCategory";
+const highlightsID = "highlights"
 
 const showControlStructureID = "showControlStructure";
 const showProcessModelsID = "showProcessModels";
 const showUnclosedFeedbackLoopsID = "showUnclosedFeedbackLoops";
 const showRelationshipGraphID = "showRelationshipGraph";
+
+/**
+ * Values for filtering the node labels.
+ */
+export enum showDescriptionsValue {
+    ALL,
+    AUTOMATIC,
+    LOSSES,
+    HAZARDS,
+    SYSTEM_CONSTRAINTS,
+    UCAS,
+    RESPONSIBILITIES,
+    CONTROLLER_CONSTRAINTS,
+    SCENARIOS,
+    SAFETY_CONSTRAINTS,
+}
+
+const optionToLabelMap: Record<string, showDescriptionsValue> = {
+    all: showDescriptionsValue.ALL,
+    losses: showDescriptionsValue.LOSSES,
+    hazards: showDescriptionsValue.HAZARDS,
+    systemConstraints: showDescriptionsValue.SYSTEM_CONSTRAINTS,
+    responsibilities: showDescriptionsValue.RESPONSIBILITIES,
+    ucas: showDescriptionsValue.UCAS,
+    controllerConstraints: showDescriptionsValue.CONTROLLER_CONSTRAINTS,
+    scenarios: showDescriptionsValue.SCENARIOS,
+    safetyConstraints: showDescriptionsValue.SAFETY_CONSTRAINTS,
+    automatic: showDescriptionsValue.AUTOMATIC,
+};
+
 
 /**
  * Category for filtering options.
@@ -289,7 +320,7 @@ const showScenariosWithHazardsOption: ValuedSynthesisOption = {
  */
 const labelCategory: SynthesisOption = {
     id: labelCategoryID,
-    name: "Show Labels of",
+    name: "Show Descriptions of",
     type: TransformationOptionType.CATEGORY,
     initialValue: 0,
     currentValue: 0,
@@ -308,23 +339,23 @@ const labelCategoryOption: ValuedSynthesisOption = {
 /** 
  * Boolean option to toggle the visibility of the lable of all nodes.
  */
-const showLabelsAllOption: ValuedSynthesisOption = {
+const showDescriptionsAllOption: ValuedSynthesisOption = {
     synthesisOption: {
         id: "all",
         name: "All",
         type: TransformationOptionType.CHECK,
-        initialValue: true,
-        currentValue: true,
+        initialValue: false,
+        currentValue: false,
         values: [true, false],
         category: labelCategory,
     },
-    currentValue: true,
+    currentValue: false,
 };
 
 /** 
  * Boolean option to toggle the visibility of the lable of nodes depending on what part one is currently working on.
  */
-const showLabelsAutomaticOption: ValuedSynthesisOption = {
+const showDescriptionsAutomaticOption: ValuedSynthesisOption = {
     synthesisOption: {
         id: "automatic",
         name: "Automatic",
@@ -340,137 +371,137 @@ const showLabelsAutomaticOption: ValuedSynthesisOption = {
 /**
  * Boolean option to toggle the visibility of the lable of losses.
  */
-const showLabelsLossesOption: ValuedSynthesisOption = {
+const showDescriptionsLossesOption: ValuedSynthesisOption = {
     synthesisOption: {
         id: "losses",
         name: "Losses",
         type: TransformationOptionType.CHECK,
         initialValue: false,
-        currentValue: true,
+        currentValue: false,
         values: [true, false],
         category: labelCategory,
     },
-    currentValue: true,
+    currentValue: false,
 };
 
 /** 
  * Boolean option to toggle the visibility of the lable of hazards.
  */
-const showLabelsHazardsOption: ValuedSynthesisOption = {
+const showDescriptionsHazardsOption: ValuedSynthesisOption = {
     synthesisOption: {
         id: "hazards",
         name: "Hazards",
         type: TransformationOptionType.CHECK,
         initialValue: false,
-        currentValue: true,
+        currentValue: false,
         values: [true, false],
         category: labelCategory,
     },
-    currentValue: true,
+    currentValue: false,
 };
 
 /** 
  * Boolean option to toggle the visibility of the lable of system constrains.
  */
-const showLabelsSystemConstrainsOption: ValuedSynthesisOption = {
+const showDescriptionsSystemConstrainsOption: ValuedSynthesisOption = {
     synthesisOption: {
         id: "systemConstraints",
         name: "System Constraints",
         type: TransformationOptionType.CHECK,
         initialValue: false,
-        currentValue: true,
+        currentValue: false,
         values: [true, false],
         category: labelCategory,
     },
-    currentValue: true,
+    currentValue: false,
 };
 
 /** 
  * Boolean option to toggle the visibility of the lable of responsibilities.
  */
-const showLabelsResponsibilitiesOption: ValuedSynthesisOption = {
+const showDescriptionsResponsibilitiesOption: ValuedSynthesisOption = {
     synthesisOption: {
         id: "responsibilities",
         name: "Responsibilities",
         type: TransformationOptionType.CHECK,
         initialValue: false,
-        currentValue: true,
+        currentValue: false,
         values: [true, false],
         category: labelCategory,
     },
-    currentValue: true,
+    currentValue: false,
 };
 
 /** 
  * Boolean option to toggle the visibility of the lable of UCAs.
  */
-const showLabelsUcasOption: ValuedSynthesisOption = {
+const showDescriptionsUcasOption: ValuedSynthesisOption = {
     synthesisOption: {
         id: "ucas",
         name: "UCAs",
         type: TransformationOptionType.CHECK,
         initialValue: false,
-        currentValue: true,
+        currentValue: false,
         values: [true, false],
         category: labelCategory,
     },
-    currentValue: true,
+    currentValue: false,
 };
 
 /** 
  * Boolean option to toggle the visibility of the lable of controller constrains.
  */
-const showLabelsControllerConstraintsOption: ValuedSynthesisOption = {
+const showDescriptionsControllerConstraintsOption: ValuedSynthesisOption = {
     synthesisOption: {
         id: "controllerConstraints",
         name: "Controller Constraints",
         type: TransformationOptionType.CHECK,
         initialValue: false,
-        currentValue: true,
+        currentValue: false,
         values: [true, false],
         category: labelCategory,
     },
-    currentValue: true,
+    currentValue: false,
 };
 
 /** 
  * Boolean option to toggle the visibility of the lable of scenarios.
  */
-const showLabelsScenariosOption: ValuedSynthesisOption = {
+const showDescriptionsScenariosOption: ValuedSynthesisOption = {
     synthesisOption: {
         id: "scenarios",
         name: "Scenarios",
         type: TransformationOptionType.CHECK,
         initialValue: false,
-        currentValue: true,
+        currentValue: false,
         values: [true, false],
         category: labelCategory,
     },
-    currentValue: true,
+    currentValue: false,
 };
 
 /** 
  * Boolean option to toggle the visibility of the lable of safety constrains.
  */
-const showLabelsSafetyConstraintsOption: ValuedSynthesisOption = {
+const showDescriptionsSafetyConstraintsOption: ValuedSynthesisOption = {
     synthesisOption: {
         id: "safetyConstraints",
         name: "Safety Constraints",
         type: TransformationOptionType.CHECK,
         initialValue: false,
-        currentValue: true,
+        currentValue: false,
         values: [true, false],
         category: labelCategory,
     },
-    currentValue: true,
+    currentValue: false,
 };
 
 /** 
  * Boolean option to toggle the visibility of the lable of all highlighted nodes.
  */
-const showLabelsHighlightsOption: ValuedSynthesisOption = {
+const showDescriptionsHighlightsOption: ValuedSynthesisOption = {
     synthesisOption: {
-        id: "highlights",
+        id: highlightsID,
         name: "Highlights",
         type: TransformationOptionType.CHECK,
         initialValue: false,
@@ -478,7 +509,7 @@ const showLabelsHighlightsOption: ValuedSynthesisOption = {
         values: [true, false],
         category: labelCategory,
     },
-    currentValue: true,
+    currentValue: false,
 };
 
 
@@ -514,23 +545,6 @@ const useHyperedgesOption: ValuedSynthesisOption = {
     currentValue: true,
 };
 
-/**
- * Values for filtering the node labels.
- */
-export enum showLabelsValue {
-    ALL,
-    AUTOMATIC,
-    LOSSES,
-    HAZARDS,
-    SYSTEM_CONSTRAINTS,
-    UCAS,
-    RESPONSIBILITIES,
-    CONTROLLER_CONSTRAINTS,
-    SCENARIOS,
-    SAFETY_CONSTRAINTS,
-    HIGHLIGHTS
-}
-
 export class StpaSynthesisOptions extends SynthesisOptions {
     constructor() {
         super();
@@ -538,17 +552,17 @@ export class StpaSynthesisOptions extends SynthesisOptions {
             ...[
                 filterCategoryOption,
                 labelCategoryOption,
-                showLabelsAllOption,
-                showLabelsAutomaticOption,
-                showLabelsLossesOption,
-                showLabelsHazardsOption,
-                showLabelsSystemConstrainsOption,
-                showLabelsResponsibilitiesOption,
-                showLabelsUcasOption,
-                showLabelsControllerConstraintsOption,
-                showLabelsScenariosOption,
-                showLabelsSafetyConstraintsOption,
-                showLabelsHighlightsOption,
+                showDescriptionsAllOption,
+                showDescriptionsAutomaticOption,
+                showDescriptionsLossesOption,
+                showDescriptionsHazardsOption,
+                showDescriptionsSystemConstrainsOption,
+                showDescriptionsResponsibilitiesOption,
+                showDescriptionsUcasOption,
+                showDescriptionsControllerConstraintsOption,
+                showDescriptionsScenariosOption,
+                showDescriptionsSafetyConstraintsOption,
+                showDescriptionsHighlightsOption,
                 groupingOfUCAs,
                 useHyperedgesOption,
                 hierarchicalGraphOption,
@@ -568,40 +582,23 @@ export class StpaSynthesisOptions extends SynthesisOptions {
         );
     }
     
-    getShowLabels(): (showLabelsValue)[] {
-        const optionToLabelMap: Record<string, showLabelsValue> = {
-            all: showLabelsValue.ALL,
-            losses: showLabelsValue.LOSSES,
-            hazards: showLabelsValue.HAZARDS,
-            systemConstraints: showLabelsValue.SYSTEM_CONSTRAINTS,
-            responsibilities: showLabelsValue.RESPONSIBILITIES,
-            ucas: showLabelsValue.UCAS,
-            controllerConstraints: showLabelsValue.CONTROLLER_CONSTRAINTS,
-            scenarios: showLabelsValue.SCENARIOS,
-            safetyConstraints: showLabelsValue.SAFETY_CONSTRAINTS,
-            automatic: showLabelsValue.AUTOMATIC,
-        };
-
-        const enabledLabels: showLabelsValue[] = [];
-
-        let fallbackValue: showLabelsValue | undefined = undefined;
+    getshowDescriptions(): (showDescriptionsValue)[] {
+        const enabledLabels: showDescriptionsValue[] = [];
 
         for (const id in optionToLabelMap) {
             const option = this.getOption(id);
             if (option?.currentValue === true) {
                 enabledLabels.push(optionToLabelMap[id]);
-            } else if (fallbackValue === undefined) {
-                fallbackValue = option?.currentValue;
-            }
+            } 
         }
 
-        return enabledLabels.length > 0 ? enabledLabels : [fallbackValue!];
+        return enabledLabels.length > 0 ? enabledLabels : [];
     }
 
 
-    getShowLabelHighlights(): boolean {
-        const option = this.getOption("highlights");
-        return option?.currentValue;
+    getShowDescriptionsHighlights(): boolean {
+        const option = this.getOption(highlightsID);
+        return option?.currentValue ?? false;
     }
 
     setShowRelationshipGraph(value: boolean): void {

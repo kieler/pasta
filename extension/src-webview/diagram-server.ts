@@ -40,8 +40,6 @@ export class PastaDiagramServer extends VscodeLspEditDiagramServer {
             case SvgAction.KIND:
             case CollapseExpandAction.KIND:
                 this.handleSvgAction(action as SvgAction);
-                return true;
-            case HighlightUpdateAction.KIND:
             return true;
         }
         return super.handleLocally(action);

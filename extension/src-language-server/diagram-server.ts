@@ -110,8 +110,8 @@ export class PastaDiagramServer extends SnippetDiagramServer {
                 return this.updateView(this.state.options);
             case HighlightUpdateAction.KIND:
                 const stpaOptions = (this.language as StpaServices).options.SynthesisOptions;
-                if (stpaOptions.getShowLabelHighlights()) {
-                    this.handleHighlightUpdate(this.state.options, action as HighlightUpdateAction);
+                if (stpaOptions.getShowDescriptionsHighlights()) {
+                    return this.handleHighlightUpdate(this.state.options, action as HighlightUpdateAction);
                 }
             case CollapseExpandAction.KIND:
                 return this.collapseExpand(action as CollapseExpandAction);
@@ -129,7 +129,6 @@ export class PastaDiagramServer extends SnippetDiagramServer {
      * @returns 
      */
     protected async handleHighlightUpdate(options: JsonMap | undefined, action: HighlightUpdateAction): Promise<void> {
-        console.log("Language server received highlight update:", action.highlightedIds);
         
         this.state.options = options ?? {};
         this.state.options["highlightedIDs"] = action.highlightedIds;
@@ -154,6 +153,7 @@ export class PastaDiagramServer extends SnippetDiagramServer {
                     kind: UpdateOptionsAction.KIND,
                     valuedSynthesisOptions: this.synthesisOptions?.getSynthesisOptions() ?? [],
                     clientId: this.clientId,
+                    _source: 'highlight',
                 });
             }
         } catch (err) {
