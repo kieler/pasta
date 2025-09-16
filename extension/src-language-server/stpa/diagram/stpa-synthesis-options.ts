@@ -38,7 +38,7 @@ const showSafetyConstraintsID = "showSafetyConstraints";
 
 const filterCategoryID = "filterCategory";
 const labelCategoryID = "labelCategory";
-const highlightsID = "highlights"
+const highlightsID = "highlights";
 
 const showControlStructureID = "showControlStructure";
 const showProcessModelsID = "showProcessModels";
