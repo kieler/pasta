@@ -124,3 +124,24 @@ export namespace MinimalCutSetAnalysisAction {
         };
     }
 }
+
+/** Triggers a diagram/view update on highlight. */
+export interface HighlightUpdateAction extends Action {
+    kind: typeof HighlightUpdateAction.KIND;
+    highlightedIds: string[];
+}
+
+export namespace HighlightUpdateAction {
+    export const KIND = "highlightUpdate";
+
+    export function create(highlightedIds: string[]): HighlightUpdateAction {
+        return {
+            kind: KIND,
+            highlightedIds,
+        };
+    }
+
+    export function isThisAction(action: Action): action is HighlightUpdateAction {
+        return action.kind === HighlightUpdateAction.KIND;
+    }
+}

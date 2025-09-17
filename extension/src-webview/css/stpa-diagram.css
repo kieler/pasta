@@ -19,7 +19,7 @@
 
 .stpa-node {
     stroke: black;
-    fill: none;
+    fill: transparent;
     stroke-width: 2;
 }
 

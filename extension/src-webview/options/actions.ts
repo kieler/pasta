@@ -65,6 +65,7 @@ export interface UpdateOptionsAction extends Action {
     kind: typeof UpdateOptionsAction.KIND;
     valuedSynthesisOptions: ValuedSynthesisOption[];
     clientId: string;
+    _source?: string;
 }
 
 export namespace UpdateOptionsAction {
