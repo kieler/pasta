@@ -39,6 +39,15 @@ export class OptionsRegistry extends Registry implements IActionHandlerInitializ
     private _clientId = "";
     private _synthesisOptions: SynthesisOption[] = [];
 
+    // override function to pass action if needed
+    protected notifyListeners(action?: UpdateOptionsAction): void {
+        // Call listeners with action if possible
+        for (const listener of this._listeners) {
+            // If listener expects action, pass it; otherwise, call without
+            (listener as any)(action);
+        }
+    }
+
     get clientId(): string {
         return this._clientId;
     }
@@ -73,7 +82,7 @@ export class OptionsRegistry extends Registry implements IActionHandlerInitializ
             ...valuedOption.synthesisOption,
             currentValue: valuedOption.currentValue ?? valuedOption.synthesisOption.initialValue,
         }));
-        this.notifyListeners();
+        this.notifyListeners(action);
     }
 
     private handleSetSynthesisOptions(action: SetSynthesisOptionsAction): void {

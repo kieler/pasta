@@ -131,11 +131,18 @@ export class StpaDiagramGenerator extends SnippetGraphGenerator {
      * @returns the root of the generated SGraph.
      */
     protected generateRoot(args: GeneratorContext<Model>): SModelRoot {
+        // Extract and remove highlightedIDs from args.state.options
+        const highlightedIds = args.state.options?.highlightedIDs as string[] | undefined;
+
+        if (args.state.options && 'highlightedIDs' in args.state.options) {
+            delete args.state.options.highlightedIDs;
+        }
+
         const { document } = args;
         if (document.parseResult.lexerErrors.length === 0 && document.parseResult.parserErrors.length === 0) {
             const model: Model = document.parseResult.value;
             this.idCache = args.idCache;
-            return this.generateGraph(model);
+            return this.generateGraph(model, highlightedIds);
         } else {
             // return empty graph if the model is not valid
             return {
@@ -149,9 +156,10 @@ export class StpaDiagramGenerator extends SnippetGraphGenerator {
     /**
      * Generates an SGraph for the given {@code model}.
      * @param model The Model for which a graph should be generated.
+     * @param highlightedIDs [optional] List of node and edge IDs that are currently highlighted
      * @returns an SGraph.
      */
-    private generateGraph(model: Model): SModelRoot {
+    private generateGraph(model: Model, highlightedIDs?: string[] | undefined): SModelRoot {
         // filter model based on the options set by the user
         const filteredModel = filterModel(model, this.options);
 
@@ -170,7 +178,7 @@ export class StpaDiagramGenerator extends SnippetGraphGenerator {
             );
         }
         // add relationship graph to roots children
-        rootChildren.push(createRelationshipGraph(filteredModel, model, this.idToSNode, this.options, this.idCache));
+        rootChildren.push(createRelationshipGraph(filteredModel, model, this.idToSNode, this.options, this.idCache, highlightedIDs ?? []));
         // return root
         return {
             type: "graph",
