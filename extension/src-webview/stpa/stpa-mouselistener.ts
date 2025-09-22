@@ -20,7 +20,7 @@ export class StpaMouseListener extends MouseListener {
                                   normal?: IdSet<STPANode | STPAEdge>,
                                   shift?: IdSet<STPANode | STPAEdge>
                                }> = new IdMap();   
-    // all STPANodes of the current relatationship graph                  
+    // all STPANodes of the current relationship graph                  
     private allSTPANodesCache: STPANode[] | undefined;
 
 
@@ -38,11 +38,11 @@ export class StpaMouseListener extends MouseListener {
     }
 
     mouseDown(target: SModelElementImpl, event: MouseEvent): (Action | Promise<Action>)[] {
-        let targetChild = undefined;
+        let targetChild: EdgeLabel | undefined;
         // when a label is selected, we are interested in its parent node or also in its children, when its a CSEdge
         if (target instanceof SLabelImpl) {
             if (target.parent.type === CS_EDGE_TYPE) {
-                targetChild = target;
+                targetChild = target as EdgeLabel;
             }
             target = target.parent;
         }
@@ -60,7 +60,7 @@ export class StpaMouseListener extends MouseListener {
             matchingNodes = this.allSTPANodesCache.filter(node => {
                 return node.controller === target.id; 
             });
-        } else if (target.type === CS_EDGE_TYPE && (target as CSEdge).edgeType == EdgeType.CONTROL_ACTION) {
+        } else if (target.type === CS_EDGE_TYPE && (target as CSEdge).edgeType === EdgeType.CONTROL_ACTION) {
             // if a control action is clicked, select the associated UCAs
             this.allSTPANodesCache ??= getAllRelationshipGraphNodes(target);
             matchingNodes = this.allSTPANodesCache.filter(node => {
@@ -79,7 +79,7 @@ export class StpaMouseListener extends MouseListener {
         // Each STPANode can be selected in multiple modes (e.g. 'normal' or 'shift')
         // Manage selection state for a node depending on the current input mode.
         for (const node of targets) {
-            let modes = this.selectedNodes.get(node);
+            const modes = this.selectedNodes.get(node);
 
             if (!modes) {
                 // Node not selected yet — add it with the current mode

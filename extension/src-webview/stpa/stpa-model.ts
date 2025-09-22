@@ -54,7 +54,7 @@ export class STPANode extends SNodeImpl {
     level?: number;
     controlAction?: string;
     modelOrder?: boolean;
-    controller?: string
+    controller?: string;
 }
 
 /**

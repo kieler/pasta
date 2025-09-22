@@ -261,8 +261,7 @@ export function translateCommandsToEdges(
             edge
         );
         // get all control actions of one control structure edge
-        const controlActions = edge.comms.map(comm => idCache.uniqueId(`${idCache.getId(source)}.${comm.name}`, edge)
-);
+        const controlActions = edge.comms.map(comm => idCache.uniqueId(`${idCache.getId(source)}.${comm.name}`, edge));
 
         if (target) {
             // multiple commands to same target is represented by one edge -> combine labels to one
