@@ -54,6 +54,7 @@ export class STPANode extends SNodeImpl {
     level?: number;
     controlAction?: string;
     modelOrder?: boolean;
+    controller?: string;
 }
 
 /**
@@ -100,6 +101,7 @@ export class EdgeLabel extends SLabelImpl {
         rotate: false,
         side: "on",
     };
+    controlAction?: string;
 }
 
 /**
