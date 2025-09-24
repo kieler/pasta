@@ -15,7 +15,7 @@
     "test": "mocha --require ts-node/register test/**/*.ts"
   },
   "devDependencies": {
-    "lerna": "^3.20.2",
+    "lerna": "^9.0.0",
     "typescript": "^4.9.3",
     "rewire": "^6.0.0",
     "mocha": "^10.2.0",
