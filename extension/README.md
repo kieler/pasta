@@ -223,6 +223,7 @@ The extension provides several diagram options to adjust the diagram.
     * The "highlight" option determines whether to display the description of a node when it is clicked on (and the descriptions of connected nodes) 
 * Filter UCA by Control Action: The UCAs can be filtered such that only UCAs for a certain control action are shown making the diagram smaller and clearer.
 * Show x: When selected the specified graph/aspect is shown, otherwise it is hidden.
+* Relationship Edges: Removes the spacing between edges, so that the diagram is arranged more closely together and initially grays the edges out.
 
 
 ### FTA 

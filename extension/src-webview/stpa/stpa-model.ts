@@ -39,6 +39,7 @@ export class ParentNode extends SNodeImpl {
     modelOrder: boolean;
     showBorder: boolean;
     static readonly DEFAULT_FEATURES = [connectableFeature, selectFeature, layoutContainerFeature, fadeFeature];
+    showEdges: boolean;
 }
 
 /**
