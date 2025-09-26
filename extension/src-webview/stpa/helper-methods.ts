@@ -18,6 +18,20 @@
 import { SEdgeImpl, SModelElementImpl, SNodeImpl } from "sprotty";
 import { PORT_TYPE, PastaPort, PortSide, STPAAspect, STPAEdge, STPANode, STPA_EDGE_TYPE, STPA_INTERMEDIATE_EDGE_TYPE, STPA_NODE_TYPE } from "./stpa-model";
 
+
+/**
+ * Function for getting all STPANodes in a relationship graph.
+ * @param target The target node, which is part of the STPA model.
+ * @returns All STPANodes of a present relationship graph.
+ */
+export function getAllRelationshipGraphNodes(target: SModelElementImpl): STPANode[] {
+    const allNodes: STPANode[] = [];
+
+    collectAllChildren(target.root.children as SNodeImpl[], allNodes as SNodeImpl[]);
+    // Filter for STPA nodes only
+    return allNodes.filter(node => node.type === STPA_NODE_TYPE) as STPANode[];
+}
+
 /**
  * Collects all children of the nodes in {@code nodes}.
  * @param nodes The nodes, which children should be selected.

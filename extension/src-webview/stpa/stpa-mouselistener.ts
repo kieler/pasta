@@ -3,8 +3,8 @@ import { Action, CollapseExpandAction } from "sprotty-protocol";
 import { injectable, inject, postConstruct } from 'inversify';
 import { DISymbol } from "../di.symbols";
 import { OptionsRegistry } from "../options/options-registry";
-import { getConnectedElements, getSameAspect } from "./helper-methods";
-import { CS_NODE_TYPE, STPA_NODE_TYPE, STPAEdge, STPANode } from "./stpa-model";
+import { getConnectedElements, getSameAspect, getAllRelationshipGraphNodes } from "./helper-methods";
+import { CS_NODE_TYPE, CS_EDGE_TYPE, STPA_NODE_TYPE, STPAEdge, STPANode, EdgeType, CSEdge, EdgeLabel } from "./stpa-model";
 import { HighlightUpdateAction } from "../actions";
 import { UpdateOptionsAction } from "../options/actions";
 import { IdSet, IdMap } from "./stpa-helpers";
@@ -19,7 +19,10 @@ export class StpaMouseListener extends MouseListener {
     protected connectionCache: IdMap<STPANode, { 
                                   normal?: IdSet<STPANode | STPAEdge>,
                                   shift?: IdSet<STPANode | STPAEdge>
-                               }> = new IdMap();                     
+                               }> = new IdMap();   
+    // all STPANodes of the current relationship graph                  
+    private allSTPANodesCache: STPANode[] | undefined;
+
 
     @inject(DISymbol.OptionsRegistry) private OptionsRegistry: OptionsRegistry;
     @postConstruct()
@@ -35,39 +38,64 @@ export class StpaMouseListener extends MouseListener {
     }
 
     mouseDown(target: SModelElementImpl, event: MouseEvent): (Action | Promise<Action>)[] {
-        // when a label is selected, we are interested in its parent node
-        target = target instanceof SLabelImpl ? target.parent : target;
+        let targetChild: EdgeLabel | undefined;
+        // when a label is selected, we are interested in its parent node or also in its children, when its a CSEdge
+        if (target instanceof SLabelImpl) {
+            if (target.parent.type === CS_EDGE_TYPE) {
+                targetChild = target as EdgeLabel;
+            }
+            target = target.parent;
+        }
+       
+        let matchingNodes: STPANode[] | undefined;
 
-        if (target.type !== STPA_NODE_TYPE) {
+        if (target.type !== STPA_NODE_TYPE && target.type !== CS_NODE_TYPE && target.type !== CS_EDGE_TYPE) {
             // if no STPANode is selected, unflag the elements and reset the set
             this.reset();
             this.selectedNodes.clear();
             return [HighlightUpdateAction.create([])];
-        } else if (!event.ctrlKey) {
-            // if the ctrl key is not pressed, only select one node at a time
+        } else if (target.type === CS_NODE_TYPE) {
+            // if a controller is pressed, select the associated responsibilities
+            this.allSTPANodesCache ??= getAllRelationshipGraphNodes(target);
+            matchingNodes = this.allSTPANodesCache.filter(node => {
+                return node.controller === target.id; 
+            });
+        } else if (target.type === CS_EDGE_TYPE && (target as CSEdge).edgeType === EdgeType.CONTROL_ACTION) {
+            // if a control action is clicked, select the associated UCAs
+            this.allSTPANodesCache ??= getAllRelationshipGraphNodes(target);
+            matchingNodes = this.allSTPANodesCache.filter(node => {
+                return node.controlAction === (targetChild as EdgeLabel).controlAction; 
+            });
+        } 
+        if (!event.ctrlKey) {
+            // if the ctrl key is not pressed, only select one node
             this.reset();
             this.selectedNodes.clear();
         }
 
         const mode: 'shift' | 'normal' = event.shiftKey ? 'shift' : 'normal';
-        let modes = this.selectedNodes.get(target as STPANode);
+        const targets = matchingNodes ? matchingNodes : [target as STPANode];
 
         // Each STPANode can be selected in multiple modes (e.g. 'normal' or 'shift')
         // Manage selection state for a node depending on the current input mode.
-        if (!modes) {
-            // Node not selected yet — add it with the current mode
-            this.selectedNodes.set(target as STPANode, new Set([mode]));
-        } else if (modes.has(mode)) {
-            // Node selected in this mode - deselect only this mode
-            modes.delete(mode);
+        for (const node of targets) {
+            const modes = this.selectedNodes.get(node);
 
-            if (modes.size === 0) {
-                // No modes left — remove node entirely
-                this.selectedNodes.delete(target as STPANode);
+            if (!modes) {
+                // Node not selected yet — add it with the current mode
+                this.selectedNodes.set(node, new Set([mode]));
+            } else if (modes.has(mode)) {
+                // Node selected in this mode - deselect only this mode
+                modes.delete(mode);
+
+                if (modes.size === 0) {
+                    // No modes left — remove node entirely
+                    this.selectedNodes.delete(node);
+                }
+            } else {
+                // Add mode to existing selection
+                modes.add(mode);
             }
-        } else {
-            // Add mode to existing selection
-            modes.add(mode);
         }
 
         // Clear previous highlights
@@ -101,7 +129,7 @@ export class StpaMouseListener extends MouseListener {
         }
 
         const highlightIds = [...this.flaggedElementsSet].map(el => el.id);
-        return [HighlightUpdateAction.create(highlightIds)]; // TODO: now working for strg for some reason
+        return [HighlightUpdateAction.create(highlightIds)];
     }
 
     doubleClick(target: SModelElementImpl, event: MouseEvent): (Action | Promise<Action>)[] {
@@ -136,6 +164,7 @@ export class StpaMouseListener extends MouseListener {
         this.reset();
         this.selectedNodes.clear();
         this.connectionCache.clear();
+        this.allSTPANodesCache = undefined;
     }
 
     /**

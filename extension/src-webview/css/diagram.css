@@ -49,7 +49,7 @@
 /* sprotty and black/white colors */
 .vscode-high-contrast .print-node {
     stroke: white;
-    fill: none;
+    fill: transparent;
 }
 
 .vscode-high-contrast .sprotty-node {
@@ -59,7 +59,7 @@
 
 .vscode-dark .print-node {
     stroke: var(--vscode-editor-foreground);
-    fill: none;
+    fill: transparent;
 }
 
 .vscode-dark .sprotty-node {
@@ -69,7 +69,7 @@
 
 .vscode-light .print-node {
     stroke: black;
-    fill: none;
+    fill: transparent;
 }
 
 .vscode-light .sprotty-node {

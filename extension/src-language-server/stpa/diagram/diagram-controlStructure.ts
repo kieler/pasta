@@ -261,6 +261,8 @@ export function translateCommandsToEdges(
             `${idCache.getId(source)}_${edge.comms[0].name}_${idCache.getId(target)}`,
             edge
         );
+        // get all control actions of one control structure edge
+        const controlActions = edge.comms.map(comm => idCache.uniqueId(`${idCache.getId(source)}.${comm.name}`, edge));
 
         if (target) {
             // multiple commands to same target is represented by one edge -> combine labels to one
@@ -269,7 +271,7 @@ export function translateCommandsToEdges(
                 const com = edge.comms[i];
                 label.push(com.label);
             }
-            createEdgeForCommand(source, target, edgeId, edgeType, label, idToSNode, idCache, edges);
+            createEdgeForCommand(source, target, edgeId, edgeType, label, idToSNode, idCache, edges, controlActions);
         }
     }
 
@@ -314,6 +316,7 @@ export function translateCommandsToEdges(
  * @param idToSNode The map of IDs to SNodes.
  * @param idCache The ID cache of the STPA model.
  * @param edges The list of edges to add the created edges to.
+ * @param controlActions [optional] List of all the control actions with source from one CSEdge.
  */
 export function createEdgeForCommand(
     source: Node,
@@ -323,7 +326,8 @@ export function createEdgeForCommand(
     label: string[],
     idToSNode: Map<string, SNode>,
     idCache: IdCache<AstNode>,
-    edges: CSEdge[]
+    edges: CSEdge[],
+    controlActions?: string[],
 ): void {
     // edges can be hierachy crossing so we must determine the common ancestor of source and target
     const commonAncestor = getCommonAncestor(source, target);
@@ -338,7 +342,9 @@ export function createEdgeForCommand(
         edgeType,
         // if the common ancestor is the parent of the target we want an edge with an arrow otherwise an intermediate edge
         target.$container === commonAncestor ? CS_EDGE_TYPE : CS_INTERMEDIATE_EDGE_TYPE,
-        idCache
+        idCache, 
+        true,
+        controlActions
     );
     if (commonAncestor?.$type === "Graph") {
         // if the common ancestor is the graph, the edge must be added at the top level and hence have to be returned

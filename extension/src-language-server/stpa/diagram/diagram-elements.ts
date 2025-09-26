@@ -119,6 +119,7 @@ export function createSTPAEdge(
  * @param label The labels of the edge.
  * @param edgeType The type of the edge (control action or feedback edge).
  * @param idCache The ID cache of the STPA model.
+ * @param controlActions [optional] List of all the control actions with source from one CSEdge.
  * @returns A control structure edge.
  */
 export function createControlStructureEdge(
@@ -129,7 +130,8 @@ export function createControlStructureEdge(
     edgeType: EdgeType,
     sedgeType: string,
     idCache: IdCache<AstNode>,
-    dummyLabel: boolean = true
+    dummyLabel: boolean = true,
+    controlActions?: string[]
 ): CSEdge {
     return {
         type: sedgeType,
@@ -137,7 +139,7 @@ export function createControlStructureEdge(
         sourceId: sourceId!,
         targetId: targetId!,
         edgeType: edgeType,
-        children: createLabel(label, edgeId, idCache, EDGE_LABEL_TYPE, dummyLabel),
+        children: createLabel(label, edgeId, idCache, EDGE_LABEL_TYPE, dummyLabel, controlActions), 
     };
 }
 
@@ -148,6 +150,7 @@ export function createControlStructureEdge(
  * @param idCache The ID cache of the STPA model.
  * @param type The type of the label.
  * @param dummyLabel Determines whether a dummy label should be created to get a correct layout.
+ * @param controlActions [optional] List of all the control actions with source from one CSEdge.
  * @returns SLabel elements representing {@code label}.
  */
 export function createLabel(
@@ -155,15 +158,17 @@ export function createLabel(
     id: string,
     idCache: IdCache<AstNode>,
     type: string,
-    dummyLabel: boolean = true
+    dummyLabel: boolean = true,
+    controlActions?: string[]
 ): SLabel[] {
     const children: SLabel[] = [];
     if (label.find(l => l !== "")) {
-        label.forEach(l => {
+        label.forEach((l, index) => {
             children.push({
                 type: type,
                 id: idCache.uniqueId(id + "_label"),
                 text: l,
+                controlAction: controlActions?.[index] ?? ""
             } as SLabel);
         });
     } else if (dummyLabel) {

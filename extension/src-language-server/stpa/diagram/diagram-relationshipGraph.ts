@@ -18,7 +18,7 @@
 import { AstNode } from "langium";
 import { IdCache } from "langium-sprotty";
 import { SModelElement, SNode } from "sprotty-protocol";
-import { Hazard, Model, SystemConstraint, isContext, isHazard, isSystemConstraint, isUCA } from "../../generated/ast.js";
+import { Hazard, Model, SystemConstraint, isContext, isHazard, isResponsibility, isSystemConstraint, isUCA } from "../../generated/ast.js";
 import { labelManagementValue } from "../../synthesis-options.js";
 import { collectElementsWithSubComps, leafElement } from "../utils.js";
 import { createLabel, createPort, createSTPAEdge, createSTPANode, generateDescriptionLabels } from "./diagram-elements.js";
@@ -326,6 +326,10 @@ export function generateAspectWithEdges(
     // uca nodes need to save their control action in order to be able to group them by the actions
     if ((isUCA(node) || isContext(node)) && node.$container.system.ref) {
         stpaNode.controlAction = node.$container.system.ref.name + "." + node.$container.action.ref?.name;
+    } 
+    // responsibility nodes need to save their controller in order to highlight them by controller
+    else if ((isResponsibility(node) || isContext(node)) && node.$container.system.ref) {
+        stpaNode.controller = node.$container.system.ref.name;
     }
 
     let nodePort: SModelElement | undefined;
