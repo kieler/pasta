@@ -56,6 +56,10 @@ export class PolylineArrowEdgeView extends PolylineEdgeView {
         }
     }
 
+    private getParentNode(edge: SEdgeImpl): ParentNode {
+        return edge.parent.type === PARENT_TYPE ? edge.parent as ParentNode : this.getParentNode(edge.parent as SEdgeImpl);
+    }
+
     protected renderLine(edge: SEdgeImpl, segments: Point[], context: RenderingContext): VNode {
         const firstPoint = segments[0];
         // adjust first point to not have a gap between node and edge
@@ -72,17 +76,17 @@ export class PolylineArrowEdgeView extends PolylineEdgeView {
             }
         }
 
-        // if an STPANode is selected, the components not connected to it should fade out
-        // const hidden = (edge.type === STPA_EDGE_TYPE || edge.type === STPA_INTERMEDIATE_EDGE_TYPE) && highlighting && !(edge as STPAEdge).highlight;
-        // TODO check corresponding option
-        let hidden = false;
-        if (edge.parent.type === PARENT_TYPE && !(edge.parent as ParentNode).showEdges) {
-            hidden = (edge.type === STPA_EDGE_TYPE || edge.type === STPA_INTERMEDIATE_EDGE_TYPE) && !(edge as STPAEdge).highlight;
-            if (hidden) {
-                return <g/>;
-            }
+        // if all edges are shown and an STPANode is selected, the components not connected to it should fade out
+        // otherwise all edges are either greyed out or hidden, when some are selected
+        // TODO: check corresponding option
+        let hidden: boolean = false;
+        let greyed: boolean = false;
+        const parentNode: ParentNode = this.getParentNode(edge);
+
+        if (!parentNode.showEdges) {
+            greyed = (edge.type === STPA_EDGE_TYPE || edge.type === STPA_INTERMEDIATE_EDGE_TYPE) && !(edge as STPAEdge).highlight
         } else {
-            hidden = (edge.type === STPA_EDGE_TYPE || edge.type === STPA_INTERMEDIATE_EDGE_TYPE) && highlighting && !(edge as STPAEdge).highlight;
+            greyed = (edge.type === STPA_EDGE_TYPE || edge.type === STPA_INTERMEDIATE_EDGE_TYPE) && highlighting && !(edge as STPAEdge).highlight;
         }
         // feedback edges in the control structure should be dashed
         const feedbackEdge = (edge.type === CS_EDGE_TYPE || edge.type === CS_INTERMEDIATE_EDGE_TYPE) && (edge as CSEdge).edgeType === EdgeType.FEEDBACK;
@@ -107,23 +111,24 @@ export class PolylineArrowEdgeView extends PolylineEdgeView {
         const dotted = feedbackStyle === dottedFeedback;
         const greyFeedback = feedbackStyle === lightGreyFeedback;
         return <g class-print-edge={printEdge} class-stpa-edge={coloredEdge || lessColoredEdge}
-        class-feedback-dotted={feedbackEdge && dotted} class-feedback-grey={feedbackEdge && greyFeedback} class-missing-edge={missing} class-greyed-out={hidden} aspect={aspect}>
+        class-feedback-dotted={feedbackEdge && dotted} class-feedback-grey={feedbackEdge && greyFeedback} class-missing-edge={missing} class-greyed-out={greyed} aspect={aspect}>
         <path d={path} />
             {...(junctionPointRenderings ?? [])}
             </g>;
     }
 
     protected renderAdditionals(edge: SEdgeImpl, segments: Point[], context: RenderingContext): VNode[] {
-        // if an STPANode is selected, the components not connected to it should fade out
-        // TODO check corresponding option
-        let hidden = false;
-        if (edge.parent.type === PARENT_TYPE && !(edge.parent as ParentNode).showEdges) {
-            hidden = edge.type === STPA_EDGE_TYPE && !(edge as STPAEdge).highlight;
-            if (hidden) {
-                return <g/>;
-            }
+        // if all edges are shown and an STPANode is selected, the components not connected to it should fade out
+        // otherwise all edges are either greyed out or hidden, when some are selected
+        // TODO: check corresponding option
+        let hidden: boolean = false;
+        let greyed: boolean = false;
+        const parentNode: ParentNode = this.getParentNode(edge);
+
+        if (!parentNode.showEdges) {
+            greyed = (edge.type === STPA_EDGE_TYPE || edge.type === STPA_INTERMEDIATE_EDGE_TYPE) && !(edge as STPAEdge).highlight
         } else {
-            hidden = edge.type === STPA_EDGE_TYPE && highlighting && !(edge as STPAEdge).highlight;
+            greyed = (edge.type === STPA_EDGE_TYPE || edge.type === STPA_INTERMEDIATE_EDGE_TYPE) && highlighting && !(edge as STPAEdge).highlight;
         }
 
         const forelastSegment = segments[segments.length - 2];
@@ -150,7 +155,7 @@ export class PolylineArrowEdgeView extends PolylineEdgeView {
         const feedbackStyle = this.renderOptionsRegistry.getValue(FeedbackStyleOption);
         const greyFeedback = feedbackStyle === lightGreyFeedback;
         return [
-            <path  class-missing-edge-arrow={missing} class-print-edge-arrow={printEdge} class-stpa-edge-arrow={coloredEdge || lessColoredEdge} class-greyed-out={hidden} aspect={aspect}
+            <path  class-missing-edge-arrow={missing} class-print-edge-arrow={printEdge} class-stpa-edge-arrow={coloredEdge || lessColoredEdge} class-greyed-out={greyed} aspect={aspect}
                 class-feedback-grey-arrow={feedbackEdge && greyFeedback}    
                 class-sprotty-edge-arrow={sprottyEdge} d="M 6,-3 L 0,0 L 6,3 Z"
                 transform={`rotate(${this.angle(lastPoint, forelastSegment)} ${endpoint}) translate(${endpoint})`} />
@@ -246,7 +251,7 @@ export class STPANodeView extends RectangularNodeView {
         }
 
         // if an STPANode is selected, the components not connected to it should fade out
-        const hidden = highlighting && !node.highlight;
+        const greyed = highlighting && !node.highlight;
 
         return <g
             class-print-node={printNode}
@@ -254,7 +259,7 @@ export class STPANodeView extends RectangularNodeView {
             class-sprotty-node={sprottyNode}
             class-sprotty-port={node instanceof SPortImpl}
             class-mouseover={node.hoverFeedback}
-            class-greyed-out={hidden}>
+            class-greyed-out={greyed}>
             <g class-node-selected={node.selected}>{element}</g>
             {context.renderChildren(node)}
         </g>;

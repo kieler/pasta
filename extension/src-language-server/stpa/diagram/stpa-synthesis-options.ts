@@ -317,7 +317,7 @@ const showScenariosWithHazardsOption: ValuedSynthesisOption = {
 };
 
 /**
- * Boolean option to toggle the visualization of the relationship graph.
+ * Boolean option to toggle the visualization of the edges in the relationship graph.
  */
 const showEdgesOption: ValuedSynthesisOption = {
     synthesisOption: {
