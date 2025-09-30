@@ -29,7 +29,7 @@ import {
     SystemResponsibilities,
 } from "../../generated/ast.js";
 import { StpaSynthesisOptions } from "./stpa-synthesis-options.js";
-import { getCurrentElement } from "./utils.js"
+import { getCurrentElement } from "./utils.js";
 
 /**
  * Needed to work on a filtered model without changing the original model.
@@ -70,7 +70,7 @@ export function filterModel(model: Model, options: StpaSynthesisOptions): Custom
             !options.getShowSysCons() || !options.getShowRespsCons() ? [] : model.responsibilities;
 
         // filter UCAs by the filteringUCA option
-        const currentControlAction = getCurrentElement(model)
+        const currentControlAction = getCurrentElement(model);
         newModel.allUCAs = !options.getShowUCAs()
             ? []
             : model.allUCAs?.filter(

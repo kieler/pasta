@@ -34,11 +34,13 @@ import {
     isSystemConstraint,
     isSystemResponsibilities,
     isUCA,
+    ControllerConstraint, 
+    Rule,
+    LossScenario
 } from "../../generated/ast.js";
 import { CSNode, PastaPort, STPANode } from "./stpa-interfaces.js";
 import { STPAAspect } from "./stpa-model.js";
 import { groupValue } from "./stpa-synthesis-options.js";
-import { ControllerConstraint, Rule, LossScenario } from "../../generated/ast.js";
 
 /**
  * Getter for the references contained in {@code node}.
