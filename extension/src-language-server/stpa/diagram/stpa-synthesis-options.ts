@@ -226,7 +226,7 @@ const filteringOfUCAs: ValuedSynthesisOption = {
         name: "Filter UCAs by Control Action",
         type: TransformationOptionType.DROPDOWN,
         currentId: "all UCAs",
-        availableValues: [{ displayName: "all UCAs", id: "all UCAs" }],
+        availableValues: [{ displayName: "all UCAs", id: "all UCAs" }, { displayName: "automatic", id: "automatic"}],
         initialValue: "all UCAs",
         currentValue: "all UCAs",
         values: [],

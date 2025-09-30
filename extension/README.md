@@ -219,7 +219,7 @@ The extension provides several diagram options to adjust the diagram.
 * Hierarchy: If this option is selected, subcomponents are drawn inside their parents. Otherwise this connection is shown by an edge from the subcomponent to its parent.
 * Group UCAs: UCAs can be grouped by their control action or their system component. Each group of UCAs has their own layer in the diagram.
 * Show Labels of: This option determines of which aspects the descriptions are shown in the diagram. If "Automatic" is selected, the shown labels are determined by the cursor position. In most cases the labels of the aspect which must be referenced by the currently modified aspect are shown. When writing Hazards also the Hazard descriptions are shown.
-* Filter UCA by Control Action: The UCAs can be filtered such that only UCAs for a certain control action are shown making the diagram smaller and clearer.
+* Filter UCA by Control Action: The UCAs can be filtered such that only UCAs for a certain control action are shown making the diagram smaller and clearer. If "automatic" is selected, the UCAs shown depend on the cursor position. In this mode, all UCAs linked to the control action of the element currently being worked on are displayed.
 * Show x: When selected the specified graph/aspect is shown, otherwise it is hidden.
 
 

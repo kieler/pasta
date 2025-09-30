@@ -38,6 +38,7 @@ import {
 import { CSNode, PastaPort, STPANode } from "./stpa-interfaces.js";
 import { STPAAspect } from "./stpa-model.js";
 import { groupValue } from "./stpa-synthesis-options.js";
+import { ControllerConstraint, Rule, LossScenario } from "../../generated/ast.js";
 
 /**
  * Getter for the references contained in {@code node}.
@@ -325,6 +326,44 @@ export function getCurrentAspect(model: Model): STPAAspect {
         return STPAAspect.LOSS;
     }
     return getAspect(elements[index]);
+}
+
+/**
+ * Determines the associated control action of the element at the current cursor position.
+ * @param model The current STPA model.
+ * @returns the associated control action of the element at the current cursor position or null if the element is not associated with a control action.
+ */
+export function getCurrentElement(model: Model): string | null {
+    let elements: AstNode[] = [];
+    // add elements in the order they appear in the document
+    elements = [
+        ...model.losses,
+        ...model.hazards,
+        ...model.systemLevelConstraints,
+        ...model.responsibilities,
+        ...model.allUCAs,
+        ...model.rules,
+        ...model.controllerConstraints,
+        ...model.scenarios,
+        ...model.safetyCons,
+    ];
+
+    // find first element that is after the cursor position
+    const index = elements.findIndex(element => element.$cstNode && element.$cstNode.offset >= currentCursorOffset) - 1;
+    if (index < 0) { 
+        return null; 
+    }
+
+    const currentElement = elements[index];
+    if (isUCA(currentElement) || isContext(currentElement) || isRule(currentElement) || isActionUCAs(currentElement)) {
+        return (currentElement as Rule).system.ref?.name + "." + (currentElement as Rule).action.ref?.name;
+    } else if (isControllerConstraint(currentElement)) {
+        return (currentElement as ControllerConstraint).refs[0].ref?.$container.system.ref?.name + "." + (currentElement as ControllerConstraint).refs[0].ref?.$container.action.ref?.name;
+    } else if (isLossScenario(currentElement)) {
+        return (currentElement as LossScenario).uca?.ref?.$container.system.ref?.name + "." + (currentElement as LossScenario).uca?.ref?.$container.action.ref?.name;
+    } else {
+        return null;
+    }
 }
 
 /**
