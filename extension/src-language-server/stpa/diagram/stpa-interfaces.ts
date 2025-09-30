@@ -34,6 +34,7 @@ export interface STPANode extends SNode {
     level?: number;
     controlAction?: string;
     modelOrder?: boolean;
+    controller?: string;
 }
 
 /**

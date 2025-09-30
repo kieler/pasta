@@ -16,7 +16,8 @@ These checks can be turned off in the context menu of the editor.
 
 ### Diagram
 
-A diagram can be opened for the analysis by clicking on the icon right above the editor or by selecting `Open in Diagram` in the editor context menu. In the diagram different color styles and filtering methods are provided. Clicking on a node fades out non-connected nodes and clicking on a node while pressing the `Ctrl` key fades out nodes that belong to another aspect.
+A diagram can be opened for the analysis by clicking on the icon right above the editor or by selecting `Open in Diagram` in the editor context menu. In the diagram different color styles and filtering methods are provided. Clicking on a node fades out non-connected nodes. By holding 'ctrl' multiple nodes can be selected for this path highlighting. Clicking on a node while pressing the `shift` key fades out nodes that belong to another aspect.
+Clicking on a control structure node highlights its related responsibilities and their dependencies in the relationship graph. Clicking on a control action in the control structure highlights its related UCAs and their dependencies in the relationship graph.
 The diagram can be exported via the command palette (ctrl+shift+P) if the view containing the diagram is focused. The command is `PASTA Diagram: Export diagram to SVG`
 
 ### Diagram Snippets
@@ -150,8 +151,8 @@ ControlCentre.manual {
         UCA1 "ControlCentre does not provide Manual setting when VC is malfunctioning and vessel too close to a No Go Area" [H1]
     }
     providing {}
-    tooEarly/Late {}
-    stoppedTooSoon {}
+    tooEarlyOrLateOrWrongOrder {}
+    stoppedTooSoonOrLate {}
 }
 
 ControllerConstraints
@@ -218,7 +219,8 @@ The extension provides several diagram options to adjust the diagram.
 * Color Style: The STPA aspect are colored differently to better distinguish them. With this option this can be adjusted to just use black or fewer/more colors. 
 * Hierarchy: If this option is selected, subcomponents are drawn inside their parents. Otherwise this connection is shown by an edge from the subcomponent to its parent.
 * Group UCAs: UCAs can be grouped by their control action or their system component. Each group of UCAs has their own layer in the diagram.
-* Show Labels of: This option determines of which aspects the descriptions are shown in the diagram. If "Automatic" is selected, the shown labels are determined by the cursor position. In most cases the labels of the aspect which must be referenced by the currently modified aspect are shown. When writing Hazards also the Hazard descriptions are shown.
+* Show Descriptions of: This option determines of which aspects the descriptions are shown in the diagram. If "Automatic" is selected, the shown labels are determined by the cursor position. In most cases the labels of the aspect which must be referenced by the currently modified aspect are shown. When writing Hazards also the Hazard descriptions are shown.
+    * The "highlight" option determines whether to display the description of a node when it is clicked on (and the descriptions of connected nodes) 
 * Filter UCA by Control Action: The UCAs can be filtered such that only UCAs for a certain control action are shown making the diagram smaller and clearer. If "automatic" is selected, the UCAs shown depend on the cursor position. In this mode, all UCAs linked to the control action of the element currently being worked on are displayed.
 * Show x: When selected the specified graph/aspect is shown, otherwise it is hidden.
 

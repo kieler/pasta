@@ -95,7 +95,7 @@ export class STPACompletionProvider extends DefaultCompletionProvider {
                                 generatedText += ` must provide ${controlAction}, while ${contextText}.`;
                                 break;
                             case "provided":
-                                generatedText += ` must not provided ${controlAction}, while ${contextText}.`;
+                                generatedText += ` must not provide ${controlAction}, while ${contextText}.`;
                                 break;
                             case "too-late":
                                 generatedText += ` must provide ${controlAction} in time, while ${contextText}.`;
