@@ -29,7 +29,7 @@ import {
     SystemResponsibilities,
 } from "../../generated/ast.js";
 import { StpaSynthesisOptions } from "./stpa-synthesis-options.js";
-import { getCurrentElement } from "./utils.js";
+import { getCurrentControlAction } from "./utils.js";
 
 /**
  * Needed to work on a filtered model without changing the original model.
@@ -70,48 +70,62 @@ export function filterModel(model: Model, options: StpaSynthesisOptions): Custom
             !options.getShowSysCons() || !options.getShowRespsCons() ? [] : model.responsibilities;
 
         // filter UCAs by the filteringUCA option
-        const currentControlAction = getCurrentElement(model);
+        const currentControlAction = getCurrentControlAction(model);
         newModel.allUCAs = !options.getShowUCAs()
             ? []
             : model.allUCAs?.filter(
-                  (allUCA) =>
-                      allUCA.system.ref?.name + "." + allUCA.action.ref?.name === options.getFilteringUCAs() ||
+                  (allUCA) => {
+                    const UCAControlAction = allUCA.system.ref?.name + "." + allUCA.action.ref?.name;
+
+                    return (
+                      UCAControlAction === options.getFilteringUCAs() ||
                       options.getFilteringUCAs() === "all UCAs" || 
                       (options.getFilteringUCAs() === "automatic" &&
-                      allUCA.system.ref?.name + "." + allUCA.action.ref?.name === currentControlAction)
-              );
+                      UCAControlAction === currentControlAction)
+                    );
+                });
         newModel.rules = !options.getShowUCAs()
             ? []
             : model.rules?.filter(
-                  (rule) =>
-                      rule.system.ref?.name + "." + rule.action.ref?.name === options.getFilteringUCAs() ||
+                  (rule) => {
+                    const ruleControlAction = rule.system.ref?.name + "." + rule.action.ref?.name;
+
+                    return (
+                      ruleControlAction === options.getFilteringUCAs() ||
                       options.getFilteringUCAs() === "all UCAs" ||
                       (options.getFilteringUCAs() === "automatic" &&
-                      rule.system.ref?.name + "." + rule.action.ref?.name === currentControlAction)
-              );
+                      ruleControlAction === currentControlAction)
+                    );
+                });
         newModel.controllerConstraints =
             !options.getShowUCAs() || !options.getShowContCons()
                 ? []
                 : model.controllerConstraints?.filter(
-                      (cons) =>
-                          cons.refs[0].ref?.$container.system.ref?.name + "." + cons.refs[0].ref?.$container.action.ref?.name === options.getFilteringUCAs() || 
-                          options.getFilteringUCAs() === "all UCAs" || 
-                          (options.getFilteringUCAs() === "automatic" &&
-                          cons.refs[0].ref?.$container.system.ref?.name + "." + cons.refs[0].ref?.$container.action.ref?.name === currentControlAction) 
-                  );
+                      (cons) => {
+                          const controllerControlAction = cons.refs[0].ref?.$container.system.ref?.name + "." + cons.refs[0].ref?.$container.action.ref?.name;
+
+                          return (
+                            controllerControlAction === options.getFilteringUCAs() || 
+                            options.getFilteringUCAs() === "all UCAs" || 
+                            (options.getFilteringUCAs() === "automatic" &&
+                            controllerControlAction === currentControlAction)
+                        );
+                    });
 
         // remaining scenarios must be saved to filter safety constraints
         const remainingScenarios = new Set<string>();
         newModel.scenarios = !options.getShowScenarios()
             ? []
             : model.scenarios?.filter((scenario) => {
+                const scenarioControlAction = scenario.uca?.ref?.$container.system.ref?.name + "." + scenario.uca?.ref?.$container.action.ref?.name;
+
                   if (
                       (!scenario.uca && options.getShowScenariosWithHazard()) ||
                       (scenario.uca && options.getShowUCAs() &&
-                          (scenario.uca?.ref?.$container.system.ref?.name + "." + scenario.uca?.ref?.$container.action.ref?.name === options.getFilteringUCAs() ||
+                          (scenarioControlAction === options.getFilteringUCAs() ||
                           options.getFilteringUCAs() === "all UCAs" ||
-                          options.getFilteringUCAs() === "automatic" &&
-                          scenario.uca?.ref?.$container.system.ref?.name + "." + scenario.uca?.ref?.$container.action.ref?.name === currentControlAction))
+                          (options.getFilteringUCAs() === "automatic" &&
+                          scenarioControlAction === currentControlAction)))
                   ) {
                       remainingScenarios.add(scenario.name);
                       return true;

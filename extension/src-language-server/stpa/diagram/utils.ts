@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-import { AstNode } from "langium";
+import { AstNode, Reference } from "langium";
 import { SModelElement } from "sprotty-protocol";
 import {
     Context,
@@ -36,11 +36,17 @@ import {
     isUCA,
     ControllerConstraint, 
     Rule,
-    LossScenario
+    LossScenario,
+    Command
 } from "../../generated/ast.js";
 import { CSNode, PastaPort, STPANode } from "./stpa-interfaces.js";
 import { STPAAspect } from "./stpa-model.js";
 import { groupValue } from "./stpa-synthesis-options.js";
+
+interface HasSystemAndAction {
+    system: Reference<Node>;
+    action: Reference<Command>;
+}
 
 /**
  * Getter for the references contained in {@code node}.
@@ -335,7 +341,7 @@ export function getCurrentAspect(model: Model): STPAAspect {
  * @param model The current STPA model.
  * @returns the associated control action of the element at the current cursor position or null if the element is not associated with a control action.
  */
-export function getCurrentElement(model: Model): string | null {
+export function getCurrentControlAction(model: Model): string | null {
     let elements: AstNode[] = [];
     // add elements in the order they appear in the document
     elements = [
@@ -357,8 +363,8 @@ export function getCurrentElement(model: Model): string | null {
     }
 
     const currentElement = elements[index];
-    if (isUCA(currentElement) || isContext(currentElement) || isRule(currentElement) || isActionUCAs(currentElement)) {
-        return (currentElement as Rule).system.ref?.name + "." + (currentElement as Rule).action.ref?.name;
+    if (isRule(currentElement) || isActionUCAs(currentElement)) {
+        return (currentElement as HasSystemAndAction).system.ref?.name + "." + (currentElement as Rule).action.ref?.name;
     } else if (isControllerConstraint(currentElement)) {
         return (currentElement as ControllerConstraint).refs[0].ref?.$container.system.ref?.name + "." + (currentElement as ControllerConstraint).refs[0].ref?.$container.action.ref?.name;
     } else if (isLossScenario(currentElement)) {
