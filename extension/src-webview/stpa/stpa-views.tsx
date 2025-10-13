@@ -56,8 +56,27 @@ export class PolylineArrowEdgeView extends PolylineEdgeView {
         }
     }
 
+    private isParentNode(node: SNodeImpl): node is ParentNode {
+        return node.type === PARENT_TYPE;
+    }
+
+    // Find nearest ParentNode ancestor for an edge
     private getParentNode(edge: SEdgeImpl): ParentNode {
-        return edge.parent.type === PARENT_TYPE ? edge.parent as ParentNode : this.getParentNode(edge.parent as SEdgeImpl);
+        let currentParent = edge.parent;
+        while (currentParent) {
+            if (currentParent instanceof SNodeImpl && this.isParentNode(currentParent)) {
+                return currentParent;
+            }
+        
+            if (currentParent instanceof SNodeImpl) {
+                currentParent = currentParent.parent;
+            } else {
+                // If parent is not a node (shouldn't happen for valid diagrams), stop
+                break;
+            }
+        }
+        // Will throw TypeError if undefined
+        return undefined!;
     }
 
     protected renderLine(edge: SEdgeImpl, segments: Point[], context: RenderingContext): VNode {
@@ -78,13 +97,11 @@ export class PolylineArrowEdgeView extends PolylineEdgeView {
 
         // if all edges are shown and an STPANode is selected, the components not connected to it should fade out
         // otherwise all edges are either greyed out or hidden, when some are selected
-        // TODO: check corresponding option
-        let hidden: boolean = false;
         let greyed: boolean = false;
-        const parentNode: ParentNode = this.getParentNode(edge);
+        const parentNode: ParentNode = this.getParentNode(edge); // should always return 
 
         if (!parentNode.showEdges) {
-            greyed = (edge.type === STPA_EDGE_TYPE || edge.type === STPA_INTERMEDIATE_EDGE_TYPE) && !(edge as STPAEdge).highlight
+            greyed = (edge.type === STPA_EDGE_TYPE || edge.type === STPA_INTERMEDIATE_EDGE_TYPE) && !(edge as STPAEdge).highlight;
         } else {
             greyed = (edge.type === STPA_EDGE_TYPE || edge.type === STPA_INTERMEDIATE_EDGE_TYPE) && highlighting && !(edge as STPAEdge).highlight;
         }
@@ -120,13 +137,11 @@ export class PolylineArrowEdgeView extends PolylineEdgeView {
     protected renderAdditionals(edge: SEdgeImpl, segments: Point[], context: RenderingContext): VNode[] {
         // if all edges are shown and an STPANode is selected, the components not connected to it should fade out
         // otherwise all edges are either greyed out or hidden, when some are selected
-        // TODO: check corresponding option
-        let hidden: boolean = false;
         let greyed: boolean = false;
         const parentNode: ParentNode = this.getParentNode(edge);
 
         if (!parentNode.showEdges) {
-            greyed = (edge.type === STPA_EDGE_TYPE || edge.type === STPA_INTERMEDIATE_EDGE_TYPE) && !(edge as STPAEdge).highlight
+            greyed = (edge.type === STPA_EDGE_TYPE || edge.type === STPA_INTERMEDIATE_EDGE_TYPE) && !(edge as STPAEdge).highlight;
         } else {
             greyed = (edge.type === STPA_EDGE_TYPE || edge.type === STPA_INTERMEDIATE_EDGE_TYPE) && highlighting && !(edge as STPAEdge).highlight;
         }

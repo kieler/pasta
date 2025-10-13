@@ -141,7 +141,7 @@ function getSuccNodes(edge: SEdgeImpl, elements: SModelElementImpl[]): void {
 function gettingOutgoingForSubcomponents(node: STPANode, elements: SModelElementImpl[]): void {
     // for sub-systemconstraints the parent node(s) should be highlighted as well
     if (isSubConstraint(node)) {
-        getSubConsParent(node, elements); // TODO: maybe change in the future, so that it works for all hierachy levels
+        getSubConsParent(node, elements); // TODO: maybe change in the future, so that it works for all hierarchy levels
     }
     // for sub-hazards the parent node(s) and its outgoing edges should be highlighted as well
     if (isSubHazard(node)) {

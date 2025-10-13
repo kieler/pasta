@@ -70,7 +70,6 @@ export class StpaLayoutConfigurator extends DefaultLayoutConfigurator {
             "org.eclipse.elk.spacing.portsSurrounding": "[top=10.0,left=10.0,bottom=10.0,right=10.0]",
             "org.eclipse.elk.priority": priority,
         };
-        // TODO: only do this when corresponding option is set
         if (!snode.showEdges) {
             options["org.eclipse.elk.layered.spacing.edgeEdgeBetweenLayers"] = "0";
             options["org.eclipse.elk.layered.nodePlacement.networkSimplex.nodeFlexibility.default"] = "NONE";
