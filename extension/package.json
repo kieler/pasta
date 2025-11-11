@@ -2,7 +2,7 @@
     "name": "pasta",
     "displayName": "PASTA (STPA-DSL)",
     "description": "A DSL for STPA. Includes an automatic visualization of the defined relationships and control structure.",
-    "version": "0.6.2",
+    "version": "0.6.3",
     "publisher": "kieler",
     "author": "KIELER <kieler@rtsys.informatik.uni-kiel.de>",
     "icon": "icon.png",

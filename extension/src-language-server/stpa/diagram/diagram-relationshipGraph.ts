@@ -18,7 +18,7 @@
 import { AstNode } from "langium";
 import { IdCache } from "langium-sprotty";
 import { SModelElement, SNode } from "sprotty-protocol";
-import { Hazard, Model, SystemConstraint, isContext, isHazard, isSystemConstraint, isUCA } from "../../generated/ast.js";
+import { Hazard, Model, SystemConstraint, isContext, isHazard, isResponsibility, isSystemConstraint, isUCA } from "../../generated/ast.js";
 import { labelManagementValue } from "../../synthesis-options.js";
 import { collectElementsWithSubComps, leafElement } from "../utils.js";
 import { createLabel, createPort, createSTPAEdge, createSTPANode, generateDescriptionLabels } from "./diagram-elements.js";
@@ -33,7 +33,7 @@ import {
     STPA_INTERMEDIATE_EDGE_TYPE,
     STPA_NODE_TYPE,
 } from "./stpa-model.js";
-import { StpaSynthesisOptions, showLabelsValue } from "./stpa-synthesis-options.js";
+import { StpaSynthesisOptions, showDescriptionsValue } from "./stpa-synthesis-options.js";
 import {
     createUCAContextDescription,
     getAspect,
@@ -49,6 +49,7 @@ import {
  * @param idToSNode The map of the generated IDs to their generated SNodes.
  * @param options The synthesis options of the STPA model.
  * @param idCache The ID cache of the STPA model.
+ * @param highlightedIDs [optional] List of node and edge IDs that are currently highlighted
  * @returns the relationship graph for the STPA model.
  */
 export function createRelationshipGraph(
@@ -56,9 +57,10 @@ export function createRelationshipGraph(
     model: Model,
     idToSNode: Map<string, SNode>,
     options: StpaSynthesisOptions,
-    idCache: IdCache<AstNode>
+    idCache: IdCache<AstNode>,
+    highlightedIDs?: string[]
 ): ParentNode {
-    const children = createRelationshipGraphChildren(filteredModel, model, idToSNode, options, idCache);
+    const children = createRelationshipGraphChildren(filteredModel, model, idToSNode, options, idCache, highlightedIDs);
 
     // filtering the nodes of the STPA graph
     const stpaNodes: STPANode[] = [];
@@ -86,6 +88,7 @@ export function createRelationshipGraph(
  * @param idToSNode The map of the generated IDs to their generated SNodes.
  * @param options The synthesis options of the STPA model.
  * @param idCache The ID cache of the STPA model.
+ * @param highlightedIDs [optional] List of node and edge IDs that are currently highlighted
  * @returns the children of the relationship graph.
  */
 export function createRelationshipGraphChildren(
@@ -93,29 +96,30 @@ export function createRelationshipGraphChildren(
     model: Model,
     idToSNode: Map<string, SNode>,
     options: StpaSynthesisOptions,
-    idCache: IdCache<AstNode>
+    idCache: IdCache<AstNode>,
+    highlightedIDs?: string[]
 ): SModelElement[] {
-    const showLabels = options.getShowLabels();
+    const showDescriptions = options.getshowDescriptions();
     const labelManagement = options.getLabelManagement();
     // aspects that should have a description when showLabel option is set to automatic
     const aspectsToShowDescriptions = getAspectsThatShouldHaveDesriptions(model);
     // determine the children for the STPA graph
     // for each component a node is generated with edges representing the references of the component
     // in order to be able to set the target IDs of the edges, the nodes must be created in the correct order
-    const showLossLabel = showDescriptionOfAspect(STPAAspect.LOSS, aspectsToShowDescriptions, showLabels, labelManagement);
+    const showLossLabel = showDescriptionOfAspect(STPAAspect.LOSS, aspectsToShowDescriptions, showDescriptions, labelManagement);
     let stpaChildren: SModelElement[] = filteredModel.losses?.map(l =>
-        generateSTPANode(l, showLossLabel, idToSNode, options, idCache)
+        generateSTPANode(l, showLossLabel, idToSNode, options, idCache, highlightedIDs)
     );
     const showHazardDescription = showDescriptionOfAspect(
         STPAAspect.HAZARD,
         aspectsToShowDescriptions,
-        showLabels,
+        showDescriptions,
         labelManagement
     );
     const showSystemConstraintDescription = showDescriptionOfAspect(
         STPAAspect.SYSTEMCONSTRAINT,
         aspectsToShowDescriptions,
-        showLabels,
+        showDescriptions,
         labelManagement
     );
     // the hierarchy option determines whether subcomponents are contained in ther parent or not
@@ -125,7 +129,7 @@ export function createRelationshipGraphChildren(
         const sysCons = collectElementsWithSubComps(filteredModel.systemLevelConstraints);
         stpaChildren = stpaChildren?.concat([
             ...hazards
-                .map(hazard => generateAspectWithEdges(hazard, showHazardDescription, idToSNode, options, idCache))
+                .map(hazard => generateAspectWithEdges(hazard, showHazardDescription, idToSNode, options, idCache, highlightedIDs))
                 .flat(1),
             ...sysCons
                 .map(systemConstraint =>
@@ -134,7 +138,8 @@ export function createRelationshipGraphChildren(
                         showSystemConstraintDescription,
                         idToSNode,
                         options,
-                        idCache
+                        idCache,
+                        highlightedIDs
                     )
                 )
                 .flat(1),
@@ -143,7 +148,7 @@ export function createRelationshipGraphChildren(
         // subcomponents are contained in the parent
         stpaChildren = stpaChildren?.concat([
             ...filteredModel.hazards
-                ?.map(hazard => generateAspectWithEdges(hazard, showHazardDescription, idToSNode, options, idCache))
+                ?.map(hazard => generateAspectWithEdges(hazard, showHazardDescription, idToSNode, options, idCache, highlightedIDs))
                 .flat(1),
             ...filteredModel.systemLevelConstraints
                 ?.map(systemConstraint =>
@@ -152,7 +157,8 @@ export function createRelationshipGraphChildren(
                         showSystemConstraintDescription,
                         idToSNode,
                         options,
-                        idCache
+                        idCache,
+                        highlightedIDs
                     )
                 )
                 .flat(1),
@@ -168,38 +174,38 @@ export function createRelationshipGraphChildren(
     const showResponsibilitiesDescription = showDescriptionOfAspect(
         STPAAspect.RESPONSIBILITY,
         aspectsToShowDescriptions,
-        showLabels,
+        showDescriptions,
         labelManagement
     );
     const showUCAsDescription = showDescriptionOfAspect(
         STPAAspect.UCA,
         aspectsToShowDescriptions,
-        showLabels,
+        showDescriptions,
         labelManagement
     );
     const showControllerConstraintDescription = showDescriptionOfAspect(
         STPAAspect.CONTROLLERCONSTRAINT,
         aspectsToShowDescriptions,
-        showLabels,
+        showDescriptions,
         labelManagement
     );
     const showScenarioDescription = showDescriptionOfAspect(
         STPAAspect.SCENARIO,
         aspectsToShowDescriptions,
-        showLabels,
+        showDescriptions,
         labelManagement
     );
     const showSafetyConsDescription = showDescriptionOfAspect(
         STPAAspect.SAFETYREQUIREMENT,
         aspectsToShowDescriptions,
-        showLabels,
+        showDescriptions,
         labelManagement
     );
     stpaChildren = stpaChildren?.concat([
         ...filteredModel.responsibilities
             ?.map(r =>
                 r.responsiblitiesForOneSystem.map(resp =>
-                    generateAspectWithEdges(resp, showResponsibilitiesDescription, idToSNode, options, idCache)
+                    generateAspectWithEdges(resp, showResponsibilitiesDescription, idToSNode, options, idCache, highlightedIDs)
                 )
             )
             .flat(2),
@@ -207,92 +213,92 @@ export function createRelationshipGraphChildren(
             ?.map(sysUCA =>
                 sysUCA.providingUcas
                     .concat(sysUCA.notProvidingUcas, sysUCA.wrongTimingUcas, sysUCA.continousUcas)
-                    .map(uca => generateAspectWithEdges(uca, showUCAsDescription, idToSNode, options, idCache))
+                    .map(uca => generateAspectWithEdges(uca, showUCAsDescription, idToSNode, options, idCache, highlightedIDs))
             )
             .flat(2),
         ...filteredModel.rules
             ?.map(rule =>
                 rule.contexts.map(context =>
-                    generateAspectWithEdges(context, showUCAsDescription, idToSNode, options, idCache)
+                    generateAspectWithEdges(context, showUCAsDescription, idToSNode, options, idCache, highlightedIDs)
                 )
             )
             .flat(2),
         ...filteredModel.controllerConstraints
-            ?.map(c => generateAspectWithEdges(c, showControllerConstraintDescription, idToSNode, options, idCache))
+            ?.map(c => generateAspectWithEdges(c, showControllerConstraintDescription, idToSNode, options, idCache, highlightedIDs))
             .flat(1),
         ...filteredModel.scenarios
-            ?.map(s => generateAspectWithEdges(s, showScenarioDescription, idToSNode, options, idCache))
+            ?.map(s => generateAspectWithEdges(s, showScenarioDescription, idToSNode, options, idCache, highlightedIDs))
             .flat(1),
         ...filteredModel.safetyCons
-            ?.map(sr => generateAspectWithEdges(sr, showSafetyConsDescription, idToSNode, options, idCache))
+            ?.map(sr => generateAspectWithEdges(sr, showSafetyConsDescription, idToSNode, options, idCache, highlightedIDs))
             .flat(1),
     ]);
     return stpaChildren;
 }
 
 /**
- * Determines whether the label of the given {@code aspect} should be shown based on the given {@code showLabels} and {@code labelManagement}.
+ * Determines whether the label of the given {@code aspect} should be shown based on the given {@code showDescriptions} and {@code labelManagement}.
  * @param aspect The aspect for which the label should be shown.
  * @param aspectsToShowDescriptions The aspects that should have a description when the showLabel option is set to automatic.
- * @param showLabels The showLabel option of the STPA model.
+ * @param showDescriptions The showLabel option of the STPA model.
  * @param labelManagement The labelManagement option of the STPA model.
  * @returns whether the label of the given {@code aspect} should be shown.
  */
 function showDescriptionOfAspect(
     aspect: STPAAspect,
     aspectsToShowDescriptions: STPAAspect[],
-    showLabels: showLabelsValue,
+    showDescriptions: showDescriptionsValue[],
     labelManagement: labelManagementValue
 ): boolean {
     if (labelManagement === labelManagementValue.NO_LABELS) {
         return false;
     }
-    if (showLabels === showLabelsValue.ALL) {
+    if (showDescriptions.includes(showDescriptionsValue.ALL)) {
         return true;
     }
     switch (aspect) {
         case STPAAspect.LOSS:
             return (
-                showLabels === showLabelsValue.LOSSES ||
-                (showLabels === showLabelsValue.AUTOMATIC && aspectsToShowDescriptions.includes(STPAAspect.LOSS))
+                showDescriptions.includes(showDescriptionsValue.LOSSES) ||
+                (showDescriptions.includes(showDescriptionsValue.AUTOMATIC) && aspectsToShowDescriptions.includes(STPAAspect.LOSS))
             );
         case STPAAspect.HAZARD:
             return (
-                showLabels === showLabelsValue.HAZARDS ||
-                (showLabels === showLabelsValue.AUTOMATIC && aspectsToShowDescriptions.includes(STPAAspect.HAZARD))
+                showDescriptions.includes(showDescriptionsValue.HAZARDS) ||
+                (showDescriptions.includes(showDescriptionsValue.AUTOMATIC) && aspectsToShowDescriptions.includes(STPAAspect.HAZARD))
             );
         case STPAAspect.SYSTEMCONSTRAINT:
             return (
-                showLabels === showLabelsValue.SYSTEM_CONSTRAINTS ||
-                (showLabels === showLabelsValue.AUTOMATIC &&
+                showDescriptions.includes(showDescriptionsValue.SYSTEM_CONSTRAINTS) ||
+                (showDescriptions.includes(showDescriptionsValue.AUTOMATIC) &&
                     aspectsToShowDescriptions.includes(STPAAspect.SYSTEMCONSTRAINT))
             );
         case STPAAspect.RESPONSIBILITY:
             return (
-                showLabels === showLabelsValue.RESPONSIBILITIES ||
-                (showLabels === showLabelsValue.AUTOMATIC &&
+                showDescriptions.includes(showDescriptionsValue.RESPONSIBILITIES) ||
+                (showDescriptions.includes(showDescriptionsValue.AUTOMATIC) &&
                     aspectsToShowDescriptions.includes(STPAAspect.RESPONSIBILITY))
             );
         case STPAAspect.UCA:
             return (
-                showLabels === showLabelsValue.UCAS ||
-                (showLabels === showLabelsValue.AUTOMATIC && aspectsToShowDescriptions.includes(STPAAspect.UCA))
+                showDescriptions.includes(showDescriptionsValue.UCAS) ||
+                (showDescriptions.includes(showDescriptionsValue.AUTOMATIC) && aspectsToShowDescriptions.includes(STPAAspect.UCA))
             );
         case STPAAspect.CONTROLLERCONSTRAINT:
             return (
-                showLabels === showLabelsValue.CONTROLLER_CONSTRAINTS ||
-                (showLabels === showLabelsValue.AUTOMATIC &&
+                showDescriptions.includes(showDescriptionsValue.CONTROLLER_CONSTRAINTS) ||
+                (showDescriptions.includes(showDescriptionsValue.AUTOMATIC) &&
                     aspectsToShowDescriptions.includes(STPAAspect.CONTROLLERCONSTRAINT))
             );
         case STPAAspect.SCENARIO:
             return (
-                showLabels === showLabelsValue.SCENARIOS ||
-                (showLabels === showLabelsValue.AUTOMATIC && aspectsToShowDescriptions.includes(STPAAspect.SCENARIO))
+                showDescriptions.includes(showDescriptionsValue.SCENARIOS) ||
+                (showDescriptions.includes(showDescriptionsValue.AUTOMATIC) && aspectsToShowDescriptions.includes(STPAAspect.SCENARIO))
             );
         case STPAAspect.SAFETYREQUIREMENT:
             return (
-                showLabels === showLabelsValue.SAFETY_CONSTRAINTS ||
-                (showLabels === showLabelsValue.AUTOMATIC &&
+                showDescriptions.includes(showDescriptionsValue.SAFETY_CONSTRAINTS) ||
+                (showDescriptions.includes(showDescriptionsValue.AUTOMATIC) &&
                     aspectsToShowDescriptions.includes(STPAAspect.SAFETYREQUIREMENT))
             );
     }
@@ -303,6 +309,7 @@ function showDescriptionOfAspect(
  * Generates a node and the edges for the given {@code node}.
  * @param node STPA component for which a node and edges should be generated.
  * @param idCache The ID cache of the STPA model.
+ * @param highlightedIDs [optional] List of node and edge IDs that are currently highlighted
  * @returns A node representing {@code node} and edges representing the references {@code node} contains.
  */
 export function generateAspectWithEdges(
@@ -310,13 +317,18 @@ export function generateAspectWithEdges(
     showDescription: boolean,
     idToSNode: Map<string, SNode>,
     options: StpaSynthesisOptions,
-    idCache: IdCache<AstNode>
+    idCache: IdCache<AstNode>,
+    highlightedIDs?: string[]
 ): SModelElement[] {
     // node must be created first in order to access the id when creating the edges
-    const stpaNode = generateSTPANode(node, showDescription, idToSNode, options, idCache);
+    const stpaNode = generateSTPANode(node, showDescription, idToSNode, options, idCache, highlightedIDs);
     // uca nodes need to save their control action in order to be able to group them by the actions
     if ((isUCA(node) || isContext(node)) && node.$container.system.ref) {
         stpaNode.controlAction = node.$container.system.ref.name + "." + node.$container.action.ref?.name;
+    } 
+    // responsibility nodes need to save their controller in order to highlight them by controller
+    else if ((isResponsibility(node) || isContext(node)) && node.$container.system.ref) {
+        stpaNode.controller = node.$container.system.ref.name;
     }
 
     let nodePort: SModelElement | undefined;
@@ -335,6 +347,7 @@ export function generateAspectWithEdges(
  * Generates a single STPANode for the given {@code node}.
  * @param node The STPA component the node should be created for.
  * @param idCache The ID cache of the STPA model.
+ * @param highlightedIDs [optional] List of node and edge IDs that are currently highlighted
  * @returns A STPANode representing {@code node}.
  */
 export function generateSTPANode(
@@ -342,9 +355,11 @@ export function generateSTPANode(
     showDescription: boolean,
     idToSNode: Map<string, SNode>,
     options: StpaSynthesisOptions,
-    idCache: IdCache<AstNode>
+    idCache: IdCache<AstNode>,
+    highlightedIDs?: string[]
 ): STPANode {
     const nodeId = idCache.uniqueId(node.name.replace(/[.]/g, "_"), node);
+    const showHighlights = options.getShowDescriptionsHighlights(); 
     // determines the hierarchy level for subcomponents. For other components the value is 0.
     let lvl = 0;
     let container = node.$container;
@@ -354,7 +369,7 @@ export function generateSTPANode(
     }
 
     let children: SModelElement[] = generateDescriptionLabels(
-        showDescription,
+        showDescription || ((highlightedIDs?.includes(nodeId) ?? false) && showHighlights),
         nodeId,
         node.name,
         options,
@@ -365,14 +380,14 @@ export function generateSTPANode(
     if (options.getHierarchy() && isHazard(node) && node.subComponents.length !== 0) {
         // adds subhazards
         children = children.concat(
-            node.subComponents?.map((sc: Hazard) => generateSTPANode(sc, showDescription, idToSNode, options, idCache))
+            node.subComponents?.map((sc: Hazard) => generateSTPANode(sc, showDescription, idToSNode, options, idCache, highlightedIDs))
         );
     }
     if (options.getHierarchy() && isSystemConstraint(node) && node.subComponents.length !== 0) {
         // adds subconstraints
         children = children.concat(
             node.subComponents?.map((sc: SystemConstraint) =>
-                generateSTPANode(sc, showDescription, idToSNode, options, idCache)
+                generateSTPANode(sc, showDescription, idToSNode, options, idCache, highlightedIDs)
             )
         );
     }

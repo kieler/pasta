@@ -124,3 +124,28 @@ export namespace MinimalCutSetAnalysisAction {
         };
     }
 }
+
+/** 
+ * Triggers a diagram/view update on highlight. 
+ * Is always send, when something is clicked in the diagram view.
+ * Backend only processes action, when the Highlights StpaSynthesisOptions is true.
+*/
+export interface HighlightUpdateAction extends Action {
+    kind: typeof HighlightUpdateAction.KIND;
+    highlightedIds: string[];
+}
+
+export namespace HighlightUpdateAction {
+    export const KIND = "highlightUpdate";
+
+    export function create(highlightedIds: string[]): HighlightUpdateAction {
+        return {
+            kind: KIND,
+            highlightedIds,
+        };
+    }
+
+    export function isThisAction(action: Action): action is HighlightUpdateAction {
+        return action.kind === HighlightUpdateAction.KIND;
+    }
+}
