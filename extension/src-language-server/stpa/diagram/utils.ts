@@ -331,7 +331,7 @@ export function getCurrentAspect(model: Model): STPAAspect {
     // find first element that is after the cursor position and return the aspect of the previous element
     const index = elements.findIndex(element => element.$cstNode && element.$cstNode.offset >= currentCursorOffset) - 1;
     if (index < 0) {
-        return STPAAspect.LOSS;
+        return getAspect(elements[elements.length - 1]);
     }
     return getAspect(elements[index]);
 }
