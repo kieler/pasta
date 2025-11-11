@@ -20,6 +20,24 @@
 @import "./theme.css";
 @import "./stpa-diagram.css";
 
+.label-background {
+    fill: var(--vscode-editor-background);
+    stroke: none;
+    opacity: 0.8;
+}
+
+.collapse-expand-triangle {
+    fill: darkgrey;
+}
+
+.collapse-expand-sign {
+    stroke: white;
+}
+
+.pasta-hidden {
+    opacity: 0;
+}
+
 .header {
     text-decoration-line: underline;
     font-weight: bold;

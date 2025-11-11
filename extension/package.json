@@ -60,7 +60,7 @@
                 "pasta.stpa.snippets": {
                     "type": "string[]",
                     "default": [],
-                    "description": "Diagram snippets for STPA"
+                    "description": "Diagram blueprints for STPA"
                 }
             }
         },
@@ -189,7 +189,7 @@
             },
             {
                 "command": "pasta.stpa.snippets.add",
-                "title": "Add STPA Diagram Snippet",
+                "title": "Add STPA Diagram Blueprint",
                 "category": "STPA Snippets"
             },
             {
@@ -523,8 +523,8 @@
             "pasta": [
                 {
                     "type": "webview",
-                    "id": "stpa-snippets",
-                    "name": "STPA Snippets"
+                    "id": "stpa-blueprints",
+                    "name": "STPA Blueprints"
                 }
             ]
         }
