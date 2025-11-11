@@ -141,7 +141,7 @@ export abstract class SnippetDiagramServer extends DiagramServer {
      */
     protected handleSendSnippets(action: SendDefaultSnippetsAction): Promise<void> {
         // if no snippets are in the config file, add the default ones
-        if (action.snippets.length === 0) {
+        if (!action.snippets || action.snippets.length === 0) {
             this.snippets = this.defaultSnippets;
             this.connection?.sendNotification(
                 "config/add",
