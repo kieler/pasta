@@ -25,7 +25,7 @@ import { ColorStyleOption, DifferentFormsOption, FeedbackStyleOption, RenderOpti
 import { SendModelRendererAction } from '../snippets/actions';
 import { renderCollapseIcon, renderDiamond, renderEllipse, renderExpandIcon, renderHexagon, renderMirroredTriangle, renderOval, renderPentagon, renderRectangle, renderRectangleForNode, renderRoundedRectangle, renderTrapez, renderTriangle } from '../views-rendering';
 import { collectAllChildren } from './helper-methods';
-import { CSEdge, CSNode, CS_EDGE_TYPE, CS_INTERMEDIATE_EDGE_TYPE, CS_NODE_TYPE, EdgeType, ParentNode, STPAAspect, STPAEdge, STPANode, STPA_EDGE_TYPE, STPA_INTERMEDIATE_EDGE_TYPE } from './stpa-model';
+import { CSEdge, CSNode, CS_EDGE_TYPE, CS_INTERMEDIATE_EDGE_TYPE, CS_NODE_TYPE, EdgeType, PARENT_TYPE, ParentNode, STPAAspect, STPAEdge, STPANode, STPA_EDGE_TYPE, STPA_INTERMEDIATE_EDGE_TYPE } from './stpa-model';
 
 /** Determines if path/aspect highlighting is currently on. */
 let highlighting: boolean;
@@ -56,6 +56,29 @@ export class PolylineArrowEdgeView extends PolylineEdgeView {
         }
     }
 
+    private isParentNode(node: SNodeImpl): node is ParentNode {
+        return node.type === PARENT_TYPE;
+    }
+
+    // Find nearest ParentNode ancestor for an edge
+    private getParentNode(edge: SEdgeImpl): ParentNode {
+        let currentParent = edge.parent;
+        while (currentParent) {
+            if (currentParent instanceof SNodeImpl && this.isParentNode(currentParent)) {
+                return currentParent;
+            }
+        
+            if (currentParent instanceof SNodeImpl) {
+                currentParent = currentParent.parent;
+            } else {
+                // If parent is not a node (shouldn't happen for valid diagrams), stop
+                break;
+            }
+        }
+        // Will throw TypeError if undefined
+        return undefined!;
+    }
+
     protected renderLine(edge: SEdgeImpl, segments: Point[], context: RenderingContext): VNode {
         const firstPoint = segments[0];
         // adjust first point to not have a gap between node and edge
@@ -72,9 +95,17 @@ export class PolylineArrowEdgeView extends PolylineEdgeView {
             }
         }
 
-        // if an STPANode is selected, the components not connected to it should fade out
-        const hidden = (edge.type === STPA_EDGE_TYPE || edge.type === STPA_INTERMEDIATE_EDGE_TYPE) && highlighting && !(edge as STPAEdge).highlight;
-        // feedback edges in the control structure are possibly styled differently
+        // if all edges are shown and an STPANode is selected, the components not connected to it should fade out
+        // otherwise all edges are either greyed out or hidden, when some are selected
+        let greyed: boolean = false;
+        const parentNode: ParentNode = this.getParentNode(edge); // should always return 
+
+        if (!parentNode.showEdges) {
+            greyed = (edge.type === STPA_EDGE_TYPE || edge.type === STPA_INTERMEDIATE_EDGE_TYPE) && !(edge as STPAEdge).highlight;
+        } else {
+            greyed = (edge.type === STPA_EDGE_TYPE || edge.type === STPA_INTERMEDIATE_EDGE_TYPE) && highlighting && !(edge as STPAEdge).highlight;
+        }
+        // feedback edges in the control structure should be dashed
         const feedbackEdge = (edge.type === CS_EDGE_TYPE || edge.type === CS_INTERMEDIATE_EDGE_TYPE) && (edge as CSEdge).edgeType === EdgeType.FEEDBACK;
         // edges that represent missing edges should be highlighted
         const missing = (edge.type === CS_EDGE_TYPE || edge.type === CS_INTERMEDIATE_EDGE_TYPE) && (edge as CSEdge).edgeType === EdgeType.MISSING_FEEDBACK;
@@ -97,15 +128,23 @@ export class PolylineArrowEdgeView extends PolylineEdgeView {
         const dotted = feedbackStyle === dottedFeedback;
         const greyFeedback = feedbackStyle === lightGreyFeedback;
         return <g class-print-edge={printEdge} class-stpa-edge={coloredEdge || lessColoredEdge}
-        class-feedback-dotted={feedbackEdge && dotted} class-feedback-grey={feedbackEdge && greyFeedback} class-missing-edge={missing} class-greyed-out={hidden} aspect={aspect}>
+        class-feedback-dotted={feedbackEdge && dotted} class-feedback-grey={feedbackEdge && greyFeedback} class-missing-edge={missing} class-greyed-out={greyed} aspect={aspect}>
         <path d={path} />
             {...(junctionPointRenderings ?? [])}
             </g>;
     }
 
     protected renderAdditionals(edge: SEdgeImpl, segments: Point[], context: RenderingContext): VNode[] {
-        // if an STPANode is selected, the components not connected to it should fade out
-        const hidden = edge.type === STPA_EDGE_TYPE && highlighting && !(edge as STPAEdge).highlight;
+        // if all edges are shown and an STPANode is selected, the components not connected to it should fade out
+        // otherwise all edges are either greyed out or hidden, when some are selected
+        let greyed: boolean = false;
+        const parentNode: ParentNode = this.getParentNode(edge);
+
+        if (!parentNode.showEdges) {
+            greyed = (edge.type === STPA_EDGE_TYPE || edge.type === STPA_INTERMEDIATE_EDGE_TYPE) && !(edge as STPAEdge).highlight;
+        } else {
+            greyed = (edge.type === STPA_EDGE_TYPE || edge.type === STPA_INTERMEDIATE_EDGE_TYPE) && highlighting && !(edge as STPAEdge).highlight;
+        }
 
         const forelastSegment = segments[segments.length - 2];
         const lastSegment = segments[segments.length - 1];
@@ -131,7 +170,7 @@ export class PolylineArrowEdgeView extends PolylineEdgeView {
         const feedbackStyle = this.renderOptionsRegistry.getValue(FeedbackStyleOption);
         const greyFeedback = feedbackStyle === lightGreyFeedback;
         return [
-            <path  class-missing-edge-arrow={missing} class-print-edge-arrow={printEdge} class-stpa-edge-arrow={coloredEdge || lessColoredEdge} class-greyed-out={hidden} aspect={aspect}
+            <path  class-missing-edge-arrow={missing} class-print-edge-arrow={printEdge} class-stpa-edge-arrow={coloredEdge || lessColoredEdge} class-greyed-out={greyed} aspect={aspect}
                 class-feedback-grey-arrow={feedbackEdge && greyFeedback}    
                 class-sprotty-edge-arrow={sprottyEdge} d="M 6,-3 L 0,0 L 6,3 Z"
                 transform={`rotate(${this.angle(lastPoint, forelastSegment)} ${endpoint}) translate(${endpoint})`} />
@@ -227,7 +266,7 @@ export class STPANodeView extends RectangularNodeView {
         }
 
         // if an STPANode is selected, the components not connected to it should fade out
-        const hidden = highlighting && !node.highlight;
+        const greyed = highlighting && !node.highlight;
 
         return <g
             class-print-node={printNode}
@@ -235,7 +274,7 @@ export class STPANodeView extends RectangularNodeView {
             class-sprotty-node={sprottyNode}
             class-sprotty-port={node instanceof SPortImpl}
             class-mouseover={node.hoverFeedback}
-            class-greyed-out={hidden}>
+            class-greyed-out={greyed}>
             <g class-node-selected={node.selected}>{element}</g>
             {context.renderChildren(node)}
         </g>;
