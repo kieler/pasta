@@ -223,6 +223,8 @@ export function generateVerticalCSEdges(
         edges.push(...translateIOToEdgeAndNode(node.inputs, node, EdgeType.INPUT, idToSNode, idCache));
         // create edges representing the other outputs
         edges.push(...translateIOToEdgeAndNode(node.outputs, node, EdgeType.OUTPUT, idToSNode, idCache));
+        // create edges for internal coordination
+        edges.push(...translateCommandsToEdges(node, node.coordinations, EdgeType.COORDINATION, idToSNode, idCache, false));
 
         // add edges of the children of the node if the node is expanded
         if (expansionState.get(node.name) === true) {
@@ -271,7 +273,9 @@ export function translateCommandsToEdges(
                 const com = edge.comms[i];
                 label.push(com.label);
             }
-            createEdgeForCommand(source, target, edgeId, edgeType, label, idToSNode, idCache, edges, controlActions);
+            // set type to bidirectional coordination, when bi flag is set
+            const coordEdgeType = edge.bi.length === 1 ? EdgeType.BI_COORDINATION : edgeType;
+            createEdgeForCommand(source, target, edgeId, coordEdgeType, label, idToSNode, idCache, edges, controlActions);
         }
     }
 
@@ -461,7 +465,7 @@ export function generateIntermediateCSEdges(
         source,
         assocEdge,
         edgeId,
-        edgeType === EdgeType.CONTROL_ACTION ? PortSide.SOUTH : PortSide.NORTH,
+        edgeType === EdgeType.CONTROL_ACTION ? PortSide.SOUTH : (edgeType === EdgeType.COORDINATION || edgeType === EdgeType.BI_COORDINATION) ? PortSide.EAST : PortSide.NORTH,
         idToSNode,
         idCache,
         ancestor
@@ -470,7 +474,7 @@ export function generateIntermediateCSEdges(
         target,
         assocEdge,
         edgeId,
-        edgeType === EdgeType.CONTROL_ACTION ? PortSide.NORTH : PortSide.SOUTH,
+        edgeType === EdgeType.CONTROL_ACTION ? PortSide.NORTH : (edgeType === EdgeType.COORDINATION || edgeType === EdgeType.BI_COORDINATION) ? PortSide.WEST : PortSide.SOUTH,
         idToSNode,
         idCache,
         ancestor

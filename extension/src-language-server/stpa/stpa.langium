@@ -31,6 +31,9 @@ entry Model:
     ('LossScenarios' scenarios+=LossScenario*)?
     ('SafetyRequirements' safetyCons+=SafetyConstraint*)?;
 
+HorizontalEdge:
+    ('bi' edge='[' comms+=Command (',' comms+=Command)* ']' '->' target=[Node]) | edge='[' comms+=Command (',' comms+=Command)* ']' '->' target=[Node];
+
 Goal:
     name=ID description=STRING;
 
@@ -77,6 +80,7 @@ Node:
         ('output' '[' outputs+=Command (',' outputs+=Command)* ']')?
         ('controlActions' '{'actions+=VerticalEdge*'}')?
         ('feedback' '{'feedbacks+=VerticalEdge*'}')?
+        ('coordination' '{' coordinations+=VerticalEdge* '}')?
         (children+=Node)*
     '}';
 
@@ -95,7 +99,7 @@ VariableValue:
     secondParenthesis=(']'|')'))?;
 
 VerticalEdge:
-    '[' comms+=Command (',' comms+=Command)* ']' '->' target=[Node];
+   (bi+='bi')? '[' comms+=Command (',' comms+=Command)* ']' '->' target=[Node];
 
 Command:
     name=ID label=STRING;

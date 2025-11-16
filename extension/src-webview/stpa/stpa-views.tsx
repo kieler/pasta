@@ -44,15 +44,32 @@ export class PolylineArrowEdgeView extends PolylineEdgeView {
      * @returns a new shifted point.
      */
     protected shiftEdgePoint(p: Point, compareStart: Point, compareEnd: Point, shift: number): Point {
-        // for some reason sometimes the x values are apart by 0.5 although they should be the same, so this is a workaround to fix this
-        const x = compareEnd.x - compareStart.x === 0.5 ? compareEnd.x : (compareEnd.x - compareStart.x === -0.5 ? compareStart.x : p.x);
-        // shift the y value of the point to adjust start/end point of an edge
-        if (compareStart.y < compareEnd.y) {
-            // edge goes down
-            return { x: x, y: p.y - shift };
+        // Determine if it is a horizontal or vertical edge
+        const isHorizontal = Math.abs(compareEnd.x - compareStart.x) > Math.abs(compareEnd.y - compareStart.y);
+        
+        if (isHorizontal) {
+            // shift x-coordinate
+            const y = compareEnd.y - compareStart.y === 0.5 ? compareEnd.y : (compareEnd.y - compareStart.y === -0.5 ? compareStart.y : p.y);
+            
+            if (compareStart.x < compareEnd.x) {
+                // edge goes right
+                return { x: p.x - shift, y: y };
+            } else {
+                // edge goes left
+                return { x: p.x + shift, y: y };
+            }
         } else {
-            // edge goes up
-            return { x: x, y: p.y + shift };
+            // shift y-coordinate 
+            // for some reason sometimes the x values are apart by 0.5 although they should be the same, so this is a workaround to fix this
+            const x = compareEnd.x - compareStart.x === 0.5 ? compareEnd.x : (compareEnd.x - compareStart.x === -0.5 ? compareStart.x : p.x);
+            
+            if (compareStart.y < compareEnd.y) {
+                // edge goes down
+                return { x: x, y: p.y - shift };
+            } else {
+                // edge goes up
+                return { x: x, y: p.y + shift };
+            }
         }
     }
 
@@ -80,9 +97,13 @@ export class PolylineArrowEdgeView extends PolylineEdgeView {
     }
 
     protected renderLine(edge: SEdgeImpl, segments: Point[], context: RenderingContext): VNode {
+        const csEdge = edge.type === CS_EDGE_TYPE || edge.type === CS_INTERMEDIATE_EDGE_TYPE;
+        // bidirectional edges have two arrows, therefore the edge should start at a different point
+        const biCoordinationEdge = csEdge && (edge as CSEdge).edgeType === EdgeType.BI_COORDINATION;
+
         const firstPoint = segments[0];
         // adjust first point to not have a gap between node and edge
-        const start = this.shiftEdgePoint(firstPoint, firstPoint, segments[1], 1);
+        const start = this.shiftEdgePoint(firstPoint, firstPoint, segments[1], biCoordinationEdge ? -1.5 : 1);
         let path = `M ${start.x},${start.y}`;
         for (let i = 1; i < segments.length; i++) {
             const p = segments[i];
@@ -105,10 +126,13 @@ export class PolylineArrowEdgeView extends PolylineEdgeView {
         } else {
             greyed = (edge.type === STPA_EDGE_TYPE || edge.type === STPA_INTERMEDIATE_EDGE_TYPE) && highlighting && !(edge as STPAEdge).highlight;
         }
-        // feedback edges in the control structure should be dashed
-        const feedbackEdge = (edge.type === CS_EDGE_TYPE || edge.type === CS_INTERMEDIATE_EDGE_TYPE) && (edge as CSEdge).edgeType === EdgeType.FEEDBACK;
+      
+        // feedback edges in the control structure are possibly styled differently
+        const feedbackEdge = csEdge && (edge as CSEdge).edgeType === EdgeType.FEEDBACK;
+        // coordination edges are styled differently
+        const coordinationEdge = csEdge && ((edge as CSEdge).edgeType === EdgeType.COORDINATION || biCoordinationEdge);
         // edges that represent missing edges should be highlighted
-        const missing = (edge.type === CS_EDGE_TYPE || edge.type === CS_INTERMEDIATE_EDGE_TYPE) && (edge as CSEdge).edgeType === EdgeType.MISSING_FEEDBACK;
+        const missing = csEdge && (edge as CSEdge).edgeType === EdgeType.MISSING_FEEDBACK;
 
         const colorStyle = this.renderOptionsRegistry.getValue(ColorStyleOption);
         const printEdge = colorStyle === "black & white";
@@ -128,7 +152,8 @@ export class PolylineArrowEdgeView extends PolylineEdgeView {
         const dotted = feedbackStyle === dottedFeedback;
         const greyFeedback = feedbackStyle === lightGreyFeedback;
         return <g class-print-edge={printEdge} class-stpa-edge={coloredEdge || lessColoredEdge}
-        class-feedback-dotted={feedbackEdge && dotted} class-feedback-grey={feedbackEdge && greyFeedback} class-missing-edge={missing} class-greyed-out={greyed} aspect={aspect}>
+        class-feedback-dotted={feedbackEdge && dotted} class-feedback-grey={feedbackEdge && greyFeedback} class-coordination-edge={coordinationEdge} class-missing-edge={missing} class-greyed-out={greyed} aspect={aspect}>
+
         <path d={path} />
             {...(junctionPointRenderings ?? [])}
             </g>;
@@ -146,10 +171,11 @@ export class PolylineArrowEdgeView extends PolylineEdgeView {
             greyed = (edge.type === STPA_EDGE_TYPE || edge.type === STPA_INTERMEDIATE_EDGE_TYPE) && highlighting && !(edge as STPAEdge).highlight;
         }
 
+        const csEdge = edge.type === CS_EDGE_TYPE || edge.type === CS_INTERMEDIATE_EDGE_TYPE;
         const forelastSegment = segments[segments.length - 2];
         const lastSegment = segments[segments.length - 1];
         // determine the last point to draw the arrow correctly (not reaching into the target node)
-        const lastPoint = this.shiftEdgePoint(lastSegment, forelastSegment, lastSegment, 1);
+        const lastPoint = this.shiftEdgePoint(lastSegment, forelastSegment, lastSegment, csEdge ? 1.5 : 2);
         const endpoint = `${lastPoint.x} ${lastPoint.y}`;
 
 
@@ -163,18 +189,39 @@ export class PolylineArrowEdgeView extends PolylineEdgeView {
             aspect = (edge as STPAEdge).aspect % 2 === 0 || !lessColoredEdge ? (edge as STPAEdge).aspect : (edge as STPAEdge).aspect - 1;
         }
         // edges that represent missing edges should be highlighted
-        const missing = (edge.type === CS_EDGE_TYPE || edge.type === CS_INTERMEDIATE_EDGE_TYPE) && (edge as CSEdge).edgeType === EdgeType.MISSING_FEEDBACK;
+        const missing = csEdge && (edge as CSEdge).edgeType === EdgeType.MISSING_FEEDBACK;
 
         // feedback edges in the control structure are possibly styled differently
-        const feedbackEdge = (edge.type === CS_EDGE_TYPE || edge.type === CS_INTERMEDIATE_EDGE_TYPE) && (edge as CSEdge).edgeType === EdgeType.FEEDBACK;
+        const feedbackEdge = csEdge && (edge as CSEdge).edgeType === EdgeType.FEEDBACK;
+
+        // bidirectional edges should have one arrow on each end
+        const biCoordinationEdge = csEdge && (edge as CSEdge).edgeType === EdgeType.BI_COORDINATION;
         const feedbackStyle = this.renderOptionsRegistry.getValue(FeedbackStyleOption);
         const greyFeedback = feedbackStyle === lightGreyFeedback;
-        return [
-            <path  class-missing-edge-arrow={missing} class-print-edge-arrow={printEdge} class-stpa-edge-arrow={coloredEdge || lessColoredEdge} class-greyed-out={greyed} aspect={aspect}
-                class-feedback-grey-arrow={feedbackEdge && greyFeedback}    
-                class-sprotty-edge-arrow={sprottyEdge} d="M 6,-3 L 0,0 L 6,3 Z"
-                transform={`rotate(${this.angle(lastPoint, forelastSegment)} ${endpoint}) translate(${endpoint})`} />
+        const arrows: VNode[] = [
+        // End arrow
+        <path class-missing-edge-arrow={missing} class-print-edge-arrow={printEdge} class-stpa-edge-arrow={coloredEdge || lessColoredEdge} class-greyed-out={greyed} aspect={aspect}
+            class-feedback-grey-arrow={feedbackEdge && greyFeedback}    
+            class-sprotty-edge-arrow={sprottyEdge} d="M 6,-3 L 0,0 L 6,3 Z"
+            transform={`rotate(${this.angle(lastPoint, forelastSegment)} ${endpoint}) translate(${endpoint})`} />
         ];
+    
+        // Add start arrow for bidirectional coordination edges
+        if (biCoordinationEdge && segments.length >= 2) {
+            const firstSegment = segments[0];
+            const secondSegment = segments[1];
+            const firstPoint = this.shiftEdgePoint(firstSegment, secondSegment, firstSegment, 1.5);
+            const startpoint = `${firstPoint.x} ${firstPoint.y}`;
+            
+            arrows.push(
+                <path class-missing-edge-arrow={missing} class-print-edge-arrow={printEdge} class-stpa-edge-arrow={coloredEdge || lessColoredEdge} class-greyed-out={greyed} aspect={aspect}
+                    class-feedback-grey-arrow={feedbackEdge && greyFeedback}    
+                    class-sprotty-edge-arrow={sprottyEdge} d="M 6,-3 L 0,0 L 6,3 Z"
+                    transform={`rotate(${this.angle(firstPoint, secondSegment)} ${startpoint}) translate(${startpoint})`} />
+            );
+        }
+        
+        return arrows;
     }
 
     angle(x0: Point, x1: Point): number {

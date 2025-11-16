@@ -66,6 +66,11 @@
     fill: var(--stpa-feedback-grey-dark) !important;
 }
 
+/* Coordination edges */
+.coordination-edge {
+    stroke-dasharray: 2, 2;
+}
+
 /* High contrast theme */
 .vscode-high-contrast .stpa-edge-arrow[aspect="0"] {
     fill: #AD0000;
