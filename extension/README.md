@@ -109,7 +109,6 @@ SC1 "Vessel must not be exposed to major damage or breakdown" [H1] {
 ControlStructure
 Ferry {
     ControlCentre {
-        hierarchyLevel 0
         processModel {
             mode: [docking, driving]
         }
@@ -121,7 +120,6 @@ Ferry {
         }
     }
     VirtualCaptain {
-        hierarchyLevel 1
         controlActions {
             [pars "Set parameters"] -> Engine
         }
@@ -130,7 +128,6 @@ Ferry {
         }
     }
     Engine {
-        hierarchyLevel 2
         feedback {
             [motion "Motion"] -> VirtualCaptain
         }
@@ -177,6 +174,8 @@ RL1 {
     }
 }
 ```
+*Note*
+The keyword `hierarchyLevel` is deprecated and is no longer supported. The arrangement of the nodes in the different levels of the relationship graph is now determined using the model order. 
 
 ### FTA
 

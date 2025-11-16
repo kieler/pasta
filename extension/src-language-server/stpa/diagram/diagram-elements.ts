@@ -186,14 +186,21 @@ export function createLabel(
  * Creates a dummy node.
  * @param idCache The ID cache of the STPA model.
  * @param level The level of the dummy node.
+ * @param assocNode The associated node of the input / output. (Is either source or target of the connected edge.)
  * @returns a dummy node.
  */
-export function createDummyNode(name: string, level: number | undefined, idCache: IdCache<AstNode>): CSNode {
+export function createDummyNode(name: string, level: number | undefined, idCache: IdCache<AstNode>, assocNode: string): CSNode {
+    const isInput = name.startsWith("input");
+    const assocEdge = {
+        node1: isInput ? name : assocNode,
+        node2: isInput ? assocNode : name
+    };
     const dummyNode: CSNode = {
         type: DUMMY_NODE_TYPE,
         id: idCache.uniqueId("dummy" + name),
         layout: "stack",
-        hasChildren: false,
+        hasChildren: true,
+        children: [createPort(idCache.uniqueId("dummy" + name + "_port"), isInput ? PortSide.SOUTH : PortSide.NORTH, assocEdge)],
         expanded: false,
         layoutOptions: {
             paddingTop: 10.0,
