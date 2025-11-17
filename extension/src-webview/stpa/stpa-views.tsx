@@ -25,7 +25,7 @@ import { ColorStyleOption, DifferentFormsOption, FeedbackStyleOption, RenderOpti
 import { SendModelRendererAction } from '../snippets/actions';
 import { renderCollapseIcon, renderDiamond, renderEllipse, renderExpandIcon, renderHexagon, renderMirroredTriangle, renderOval, renderPentagon, renderRectangle, renderRectangleForNode, renderRoundedRectangle, renderTrapez, renderTriangle } from '../views-rendering';
 import { collectAllChildren } from './helper-methods';
-import { CSEdge, CSNode, CS_EDGE_TYPE, CS_INTERMEDIATE_EDGE_TYPE, CS_NODE_TYPE, EdgeType, PARENT_TYPE, ParentNode, STPAAspect, STPAEdge, STPANode, STPA_EDGE_TYPE, STPA_INTERMEDIATE_EDGE_TYPE } from './stpa-model';
+import { CSEdge, CSNode, CS_EDGE_TYPE, CS_INTERMEDIATE_EDGE_TYPE, CS_NODE_TYPE, EdgeType, PARENT_TYPE, ParentNode, STPAAspect, STPAEdge, STPANode, STPA_EDGE_TYPE, STPA_INTERMEDIATE_EDGE_TYPE, PROCESS_MODEL_PARENT_NODE_TYPE } from './stpa-model';
 
 /** Determines if path/aspect highlighting is currently on. */
 let highlighting: boolean;
@@ -291,10 +291,11 @@ export class CSNodeView extends RectangularNodeView {
         const sprottyNode = colorStyle === "standard";
         const printNode = !sprottyNode;
         const missingFeedback = node.type === CS_NODE_TYPE && (node as CSNode).hasMissingFeedback;
+        const processModel = node.parent.type === PROCESS_MODEL_PARENT_NODE_TYPE && node.type === CS_NODE_TYPE;
         const rectangle = <rect 
-                class-missing-feedback-node={missingFeedback} class-print-node={printNode}
+                class-missing-feedback-node={missingFeedback} class-print-node={printNode} class-process-model={processModel}
                 class-sprotty-node={sprottyNode} class-sprotty-port={node instanceof SPortImpl}
-                class-mouseover={node.hoverFeedback} class-selected={node.selected}
+                class-mouseover={node.hoverFeedback} class-selected={node.selected} 
                 x="0" y="0" width={Math.max(node.size.width, 0)} height={Math.max(node.size.height, 0)}
             > </rect>;
         if (node.type === CS_NODE_TYPE && (node as CSNode).hasChildren) {
