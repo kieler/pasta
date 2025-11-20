@@ -175,7 +175,7 @@ export class PolylineArrowEdgeView extends PolylineEdgeView {
         const forelastSegment = segments[segments.length - 2];
         const lastSegment = segments[segments.length - 1];
         // determine the last point to draw the arrow correctly (not reaching into the target node)
-        const lastPoint = this.shiftEdgePoint(lastSegment, forelastSegment, lastSegment, csEdge ? 1.5 : 2);
+        const lastPoint = this.shiftEdgePoint(lastSegment, forelastSegment, lastSegment, 1.5);
         const endpoint = `${lastPoint.x} ${lastPoint.y}`;
 
 
