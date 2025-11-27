@@ -67,7 +67,6 @@ export class StpaLayoutConfigurator extends DefaultLayoutConfigurator {
             "org.eclipse.elk.layered.nodePlacement.networkSimplex.nodeFlexibility.default": "NODE_SIZE",
             "org.eclipse.elk.spacing.portPort": "10",
             // edges do no start at the border of the node
-            "org.eclipse.elk.spacing.portsSurrounding": "[top=10.0,left=10.0,bottom=10.0,right=10.0]",
             "org.eclipse.elk.priority": priority,
         };
         if (!snode.showEdges) {
@@ -87,6 +86,9 @@ export class StpaLayoutConfigurator extends DefaultLayoutConfigurator {
             options["org.eclipse.elk.layered.considerModelOrder.strategy"] = "NODES_AND_EDGES";
             options["org.eclipse.elk.layered.crossingMinimization.forceNodeModelOrder"] = "true";
             options["org.eclipse.elk.layered.cycleBreaking.strategy"] = "MODEL_ORDER";
+            options["org.eclipse.elk.spacing.portsSurrounding"] = "[top=10.0,left=1.0,bottom=10.0,right=1.0]";
+        } else {
+            options["org.eclipse.elk.spacing.portsSurrounding"] = "[top=10.0,left=10.0,bottom=10.0,right=10.0]";
         }
 
         return options;
@@ -194,13 +196,14 @@ export class StpaLayoutConfigurator extends DefaultLayoutConfigurator {
             // "org.eclipse.elk.partitioning.partition": "" + node.level,
             "org.eclipse.elk.nodeSize.constraints": "NODE_LABELS",
             // edges do no start at the border of the node
-            "org.eclipse.elk.spacing.portsSurrounding": "[top=10.0,left=10.0,bottom=10.0,right=10.0]",
+            "org.eclipse.elk.spacing.portsSurrounding": "[top=1.0,left=1.0,bottom=1.0,right=1.0]",
             "org.eclipse.elk.portConstraints": "FIXED_SIDE",
             // nodes with many edges are streched
             "org.eclipse.elk.layered.nodePlacement.strategy": "NETWORK_SIMPLEX",
             "org.eclipse.elk.layered.nodePlacement.networkSimplex.nodeFlexibility.default": "NODE_SIZE",
             "org.eclipse.elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",
             "org.eclipse.elk.layered.crossingMinimization.forceNodeModelOrder": "true",
+            "org.eclipse.elk.spacing.portPort": "100",
             "org.eclipse.elk.layered.cycleBreaking.strategy": "MODEL_ORDER"
         };
         if (node.children?.find(child => child.type.startsWith("node"))) {
@@ -209,7 +212,7 @@ export class StpaLayoutConfigurator extends DefaultLayoutConfigurator {
             options["org.eclipse.elk.direction"] = "DOWN";
             options["org.eclipse.elk.partitioning.activate"] = "true";
             options["org.eclipse.elk.padding"] = "[top=0.0,left=0.0,bottom=0.0,right=0.0]";
-            options["org.eclipse.elk.spacing.portPort"] = "0.0";
+            options["org.eclipse.elk.spacing.portPort"] = "10.0";
         } else {
             // TODO: maybe want H_LEFT for process model nodes but this expands the node more than needed
             options["org.eclipse.elk.nodeLabels.placement"] = "INSIDE V_CENTER H_CENTER";
