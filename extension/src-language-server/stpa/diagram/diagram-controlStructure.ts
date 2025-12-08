@@ -37,6 +37,9 @@ import {
 import { StpaSynthesisOptions } from "./stpa-synthesis-options.js";
 import { getCommonAncestor, sortPorts } from "./utils.js";
 
+const inputID = "input" as const;
+const outputID = "output" as const;
+
 /**
  * Creates the control structure diagram for the given {@code controlStructure}.
  * @param controlStructure The control structure.
@@ -68,12 +71,12 @@ export function createControlStructure(
     // children of the control structure (first input dummys, then nodes / edges, last output dummys)
     const CSChildren = [
         ...csNodes.flatMap(csNode => {
-            const inputDummy = dummyNodes.find(d => d.id === `dummyinput${csNode.id}`);
+            const inputDummy = dummyNodes.find(d => d.id === `dummy${inputID}${csNode.id}`);
             return inputDummy ? [inputDummy] : [];
         }),
         ...csNodes,
         ...csNodes.flatMap(csNode => {
-            const outputDummy = dummyNodes.find(d => d.id === `dummyoutput${csNode.id}`);
+            const outputDummy = dummyNodes.find(d => d.id === `dummy${outputID}${csNode.id}`);
             return outputDummy ? [outputDummy] : [];
         }),
         ...verticalEdges,
@@ -379,7 +382,7 @@ export function createEdgeForCommand(
 function addPortsToNode(
     nodeId: string,
     idToSNode: Map<string, any>,
-    portTypes: "input" | "output",
+    portTypes: typeof inputID | typeof outputID,
     assocEdge: { node1: string; node2: string }
 ): void {
     const csNode = idToSNode.get(nodeId);
@@ -389,15 +392,15 @@ function addPortsToNode(
             csNode.children = [];
         }
 
-        if (portTypes === "input") {
-           const inputPortId = csNode.id + "_port_input";
+        if (portTypes === inputID) {
+           const inputPortId = csNode.id + `_port_${inputID}`;
             // Check if port already exists
             if (!csNode.children.find((child: PastaPort) => child.id === inputPortId)) {
                 csNode.children.push(createPort(inputPortId, PortSide.WEST, assocEdge));
             }
         }
-        if (portTypes === "output") {
-            const outputPortId = csNode.id + "_port_output";
+        if (portTypes === outputID) {
+            const outputPortId = csNode.id + `_port_${outputID}`;
             // Check if port already exists
             if (!csNode.children.find((child: PastaPort) => child.id === outputPortId)) {
                 csNode.children.push(createPort(outputPortId, PortSide.EAST, assocEdge));
@@ -438,22 +441,22 @@ export function translateIOToEdgeAndNode(
                 // create input port for node
                 // create dummy node for the input
                 const inputDummyNode = createDummyNode(
-                    "input" + node.name,
+                    inputID + node.name,
                     node.level ? node.level - 1 : undefined,
                     idCache,
                     nodeId ?? ""
                 );
                 const assocEdgeInput = { node1: inputDummyNode.id ?? "", node2: nodeId ?? "" };
                 if (nodeId) {
-                    addPortsToNode(nodeId, idToSNode, "input", assocEdgeInput);
+                    addPortsToNode(nodeId, idToSNode, inputID, assocEdgeInput);
                 } else {
                     console.error("No node with ID in cache");
                 }
                 // create edge for the input
                 const inputEdge = createControlStructureEdge(
-                    idCache.uniqueId(`${inputDummyNode.id}_input_${nodeId}`),
+                    idCache.uniqueId(`${inputDummyNode.id}_${inputID}_${nodeId}`),
                     inputDummyNode.id ? inputDummyNode.id + "_port" : "",
-                    nodeId ? nodeId + "_port_input" : "",
+                    nodeId ? nodeId + `_port_${inputID}` : "",
                     label,
                     edgetype,
                     CS_EDGE_TYPE,
@@ -464,7 +467,7 @@ export function translateIOToEdgeAndNode(
             case EdgeType.OUTPUT:
                 // create dummy node for the output
                 const outputDummyNode = createDummyNode(
-                    "output" + node.name,
+                    outputID + node.name,
                     node.level ? node.level + 1 : undefined,
                     idCache,
                     nodeId ?? ""
@@ -472,15 +475,15 @@ export function translateIOToEdgeAndNode(
                 const assocEdgeOutput = { node1: nodeId ?? "", node2: outputDummyNode.id ?? "" };
                 // create output port for node
                 if (nodeId) {
-                    addPortsToNode(nodeId, idToSNode, "output", assocEdgeOutput);
+                    addPortsToNode(nodeId, idToSNode, outputID, assocEdgeOutput);
                 } else {
                     console.error("No node with ID in cache");
                 }
                 
                 // create edge for the output
                 const outputEdge = createControlStructureEdge(
-                    idCache.uniqueId(`${nodeId}_output_${outputDummyNode.id}`),
-                    nodeId ? nodeId + "_port_output" : "",
+                    idCache.uniqueId(`${nodeId}_${outputID}_${outputDummyNode.id}`),
+                    nodeId ? nodeId + `_port_${outputID}` : "",
                     outputDummyNode.id ? outputDummyNode.id + "_port" : "",
                     label,
                     edgetype,
