@@ -25,12 +25,14 @@ export const DUMMY_NODE_TYPE = 'node:dummy';
 export const EDGE_TYPE = 'edge';
 export const CS_EDGE_TYPE = 'edge:controlStructure';
 export const CS_INTERMEDIATE_EDGE_TYPE = 'edge:cs-intermediate';
+export const CS_INVISIBLE_EDGE_TYPE = 'edge:cs-invisible';
 export const STPA_EDGE_TYPE = 'edge:stpa';
 export const STPA_INTERMEDIATE_EDGE_TYPE = 'edge:stpa-intermediate';
 export const PORT_TYPE = 'port:pasta';
 export const HEADER_LABEL_TYPE = 'label:header';
 export const PASTA_LABEL_TYPE = 'label';
 export const EDGE_LABEL_TYPE = 'label:xref';
+export const PROCESS_MODEL_LABEL_TYPE = 'label:process_model';
 
 /**
  * The different aspects of STPA.

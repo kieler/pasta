@@ -17,6 +17,20 @@
 
 @import "./theme.css";
 
+/* label tspan styling */
+.header tspan,
+text tspan.header {
+  font-weight: 700;
+  fill: var(--vscode-editor-foreground);
+}
+
+/* values tspan styling */
+.process-model-value tspan,
+text tspan.process-model-value {
+  font-weight: 400;
+  fill: var(--vscode-editor-foreground); 
+}
+
 .stpa-node {
     stroke: black;
     fill: var(--vscode-editor-background);

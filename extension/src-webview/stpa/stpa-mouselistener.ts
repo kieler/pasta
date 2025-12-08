@@ -4,7 +4,7 @@ import { injectable, inject, postConstruct } from 'inversify';
 import { DISymbol } from "../di.symbols";
 import { OptionsRegistry } from "../options/options-registry";
 import { getConnectedElements, getSameAspect, getAllRelationshipGraphNodes } from "./helper-methods";
-import { CS_NODE_TYPE, CS_EDGE_TYPE, STPA_NODE_TYPE, STPAEdge, STPANode, EdgeType, CSEdge, EdgeLabel } from "./stpa-model";
+import { CS_NODE_TYPE, CS_EDGE_TYPE, STPA_NODE_TYPE, STPAEdge, STPANode, EdgeType, CSEdge, EdgeLabel, CSInvisibleSubcomponent } from "./stpa-model";
 import { HighlightUpdateAction } from "../actions";
 import { UpdateOptionsAction } from "../options/actions";
 import { IdSet, IdMap } from "./stpa-helpers";
@@ -135,6 +135,8 @@ export class StpaMouseListener extends MouseListener {
     doubleClick(target: SModelElementImpl, event: MouseEvent): (Action | Promise<Action>)[] {
         // when a label is selected, we are interested in its parent node
         target = target instanceof SLabelImpl ? target.parent : target;
+        // when the label was inside an invisible subcomponent, we are interested in the parent of the subcomponent
+        target = target instanceof CSInvisibleSubcomponent ? target.parent : target;
         // if the selected node is expandable, the node should be expanded or collapsed
         if (target.type === CS_NODE_TYPE && isExpandable(target)) {
             return [

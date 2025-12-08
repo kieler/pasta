@@ -48,7 +48,7 @@
 
 /* sprotty and black/white colors */
 .vscode-high-contrast .print-node {
-    stroke: white;
+    stroke: var(--vscode-editor-foreground);
     fill: var(--vscode-editor-background);
 }
 
@@ -95,6 +95,11 @@
 .node-selected {
     stroke-width: 5;
     stroke: var(--vscode-button-hover-background);
+}
+
+/* invisible element */
+.invisible {
+    opacity: 0.0;
 }
 
 /* greyed out element */

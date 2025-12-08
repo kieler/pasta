@@ -201,7 +201,8 @@ export class StpaLayoutConfigurator extends DefaultLayoutConfigurator {
             "org.eclipse.elk.layered.nodePlacement.networkSimplex.nodeFlexibility.default": "NODE_SIZE",
             "org.eclipse.elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",
             "org.eclipse.elk.layered.crossingMinimization.forceNodeModelOrder": "true",
-            "org.eclipse.elk.layered.cycleBreaking.strategy": "MODEL_ORDER"
+            "org.eclipse.elk.layered.cycleBreaking.strategy": "MODEL_ORDER",
+            "org.eclipse.elk.separateConnectedComponents": "false"
         };
         if (node.children?.find(child => child.type.startsWith("node"))) {
             // node has children nodes
