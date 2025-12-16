@@ -181,7 +181,7 @@ export function createInvisibleProcessModelEdge(
         false
     );
 
-    return pmScEdge
+    return pmScEdge;
 }
 
 /**

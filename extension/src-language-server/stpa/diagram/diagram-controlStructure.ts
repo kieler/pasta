@@ -25,7 +25,6 @@ import { CSEdge, CSNode, ParentNode } from "./stpa-interfaces.js";
 import {
     CS_EDGE_TYPE,
     CS_INTERMEDIATE_EDGE_TYPE,
-    CS_INVISIBLE_EDGE_TYPE,
     CS_INVISIBLE_SUBCOMPONENT_TYPE,
     CS_NODE_TYPE,
     EdgeType,
