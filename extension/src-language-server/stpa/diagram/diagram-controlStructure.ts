@@ -20,7 +20,7 @@ import { IdCache } from "langium-sprotty";
 import { SModelElement, SLabel, SNode, HAlignment } from "sprotty-protocol";
 import { expansionState } from "../../diagram-server.js";
 import { Command, Graph, Node, Variable, VerticalEdge } from "../../generated/ast.js";
-import { createControlStructureEdge, createDummyNode, createLabel, createPort } from "./diagram-elements.js";
+import { createControlStructureEdge, createInvisibleProcessModelEdge, createDummyNode, createLabel, createPort } from "./diagram-elements.js";
 import { CSEdge, CSNode, ParentNode } from "./stpa-interfaces.js";
 import {
     CS_EDGE_TYPE,
@@ -125,29 +125,7 @@ export function createControlStructureNode(
     const subcomponentContainer = children.find(child => child.type === CS_INVISIBLE_SUBCOMPONENT_TYPE) as SNode | undefined;
 
     if (processModelContainer && subcomponentContainer) {
-        const assocEdge = { node1: processModelContainer.id, node2: subcomponentContainer.id };
-
-        const pmPortId = idCache.uniqueId(`${nodeId}_pm_invis_edge_port`);
-        processModelContainer.children = processModelContainer.children ?? [];
-        processModelContainer.children.push(createPort(pmPortId, PortSide.SOUTH, assocEdge));
-
-        const scPortId = idCache.uniqueId(`${nodeId}_sc_invis_edge_port`);
-        subcomponentContainer.children = subcomponentContainer.children ?? [];
-        subcomponentContainer.children.push(createPort(scPortId, PortSide.NORTH, assocEdge));
-
-        // create an invisibel edge between the two ports
-        const pmScEdge = createControlStructureEdge(
-            idCache.uniqueId(`${nodeId}_pm_sc_invis_edge`),
-            pmPortId,
-            scPortId,
-            [], 
-            EdgeType.CONTROL_ACTION,
-            CS_INVISIBLE_EDGE_TYPE,
-            idCache,
-            false
-        );
-       
-        children.push(pmScEdge);
+        children.push(createInvisibleProcessModelEdge(nodeId, idCache, processModelContainer, subcomponentContainer));
     }
     
     const csNode = {
