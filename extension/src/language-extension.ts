@@ -28,7 +28,6 @@ import * as vscode from "vscode";
 import { AddSnippetAction, GenerateSVGsAction } from "./actions";
 import { ContextTablePanel } from "./context-table-panel";
 import { StorageService } from "./storage-service";
-import { StpaFormattingEditProvider } from "./stpa-formatter";
 import {
     addSnippetsToConfig,
     applyTextEdits,

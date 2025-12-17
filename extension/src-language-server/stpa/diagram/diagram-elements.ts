@@ -17,7 +17,7 @@
 
 import { AstNode } from "langium";
 import { IdCache } from "langium-sprotty";
-import { SLabel, SModelElement } from "sprotty-protocol";
+import { SLabel, SModelElement, SNode } from "sprotty-protocol";
 import { getDescription } from "../../utils.js";
 import { CSEdge, CSNode, PastaPort, STPAEdge, STPANode } from "./stpa-interfaces.js";
 import {
@@ -29,6 +29,7 @@ import {
     PortSide,
     STPAAspect,
     STPA_NODE_TYPE,
+    CS_INVISIBLE_EDGE_TYPE
 } from "./stpa-model.js";
 import { StpaSynthesisOptions } from "./stpa-synthesis-options.js";
 import { getAspect } from "./utils.js";
@@ -141,6 +142,46 @@ export function createControlStructureEdge(
         edgeType: edgeType,
         children: createLabel(label, edgeId, idCache, EDGE_LABEL_TYPE, dummyLabel, controlActions), 
     };
+}
+
+/**
+ * Creates an invisible edge between the process model container and subcomponents container for layout purposes,
+ * @param nodeId The ID of the node, which should have the process model
+ * @param idCache The ID cache of the STPA model
+ * @param processModelContainer The invisible process model node with all process variables
+ * @param subcomponentContainer The invisible subcomponets container
+ * @returns the generated invisible edge
+ */
+export function createInvisibleProcessModelEdge(
+    nodeId: string,
+    idCache: IdCache<AstNode>,
+    processModelContainer: SNode,
+    subcomponentContainer: SNode
+): CSEdge {
+    // creates ports for the process model and invisible subcomponents parent node
+    const assocEdge = { node1: processModelContainer.id, node2: subcomponentContainer.id };
+
+    const pmPortId = idCache.uniqueId(`${nodeId}_pm_invis_edge_port`);
+    processModelContainer.children = processModelContainer.children ?? [];
+    processModelContainer.children.push(createPort(pmPortId, PortSide.SOUTH, assocEdge));
+
+    const scPortId = idCache.uniqueId(`${nodeId}_sc_invis_edge_port`);
+    subcomponentContainer.children = subcomponentContainer.children ?? [];
+    subcomponentContainer.children.push(createPort(scPortId, PortSide.NORTH, assocEdge));
+
+    // create an invisibel edge between the two ports
+    const pmScEdge = createControlStructureEdge(
+        idCache.uniqueId(`${nodeId}_pm_sc_invis_edge`),
+        pmPortId,
+        scPortId,
+        [], 
+        EdgeType.CONTROL_ACTION,
+        CS_INVISIBLE_EDGE_TYPE,
+        idCache,
+        false
+    );
+
+    return pmScEdge;
 }
 
 /**

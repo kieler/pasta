@@ -18,14 +18,14 @@
 /** @jsx svg */
 import { inject, injectable } from 'inversify';
 import { VNode } from 'snabbdom';
-import { IActionDispatcher, IView, IViewArgs, ModelRenderer, PolylineEdgeView, RectangularNodeView, RenderingContext, SEdgeImpl, SGraphImpl, SGraphView, SLabelImpl, SLabelView, SNodeImpl, SPortImpl, TYPES, svg } from 'sprotty';
-import { Point, toDegrees } from "sprotty-protocol";
+import { IActionDispatcher, IView, IViewArgs, ModelRenderer, PolylineEdgeView, RectangularNodeView, RenderingContext, SEdgeImpl, SGraphImpl, SGraphView, SLabelImpl, SLabelView, SNodeImpl, SPortImpl, TYPES, setAttr, svg } from 'sprotty';
+import { getSubType, Point, toDegrees } from "sprotty-protocol";
 import { DISymbol } from '../di.symbols';
 import { ColorStyleOption, DifferentFormsOption, FeedbackStyleOption, RenderOptionsRegistry, dottedFeedback, lightGreyFeedback } from '../options/render-options-registry';
 import { SendModelRendererAction } from '../snippets/actions';
 import { renderCollapseIcon, renderDiamond, renderEllipse, renderExpandIcon, renderHexagon, renderMirroredTriangle, renderOval, renderPentagon, renderRectangle, renderRectangleForNode, renderRoundedRectangle, renderTrapez, renderTriangle } from '../views-rendering';
 import { collectAllChildren } from './helper-methods';
-import { CSEdge, CSNode, CS_EDGE_TYPE, CS_INTERMEDIATE_EDGE_TYPE, CS_NODE_TYPE, EdgeType, PARENT_TYPE, ParentNode, STPAAspect, STPAEdge, STPANode, STPA_EDGE_TYPE, STPA_INTERMEDIATE_EDGE_TYPE } from './stpa-model';
+import { CSEdge, CSNode, CS_EDGE_TYPE, CS_INTERMEDIATE_EDGE_TYPE, CS_INVISIBLE_EDGE_TYPE, CS_NODE_TYPE, EdgeType, PARENT_TYPE, ParentNode, STPAAspect, STPAEdge, STPANode, STPA_EDGE_TYPE, STPA_INTERMEDIATE_EDGE_TYPE, PROCESS_MODEL_PARENT_NODE_TYPE } from './stpa-model';
 
 /** Determines if path/aspect highlighting is currently on. */
 let highlighting: boolean;
@@ -80,6 +80,8 @@ export class PolylineArrowEdgeView extends PolylineEdgeView {
     }
 
     protected renderLine(edge: SEdgeImpl, segments: Point[], context: RenderingContext): VNode {
+        const invisEdge: boolean = edge.type === CS_INVISIBLE_EDGE_TYPE;
+
         const firstPoint = segments[0];
         // adjust first point to not have a gap between node and edge
         const start = this.shiftEdgePoint(firstPoint, firstPoint, segments[1], 1);
@@ -128,7 +130,7 @@ export class PolylineArrowEdgeView extends PolylineEdgeView {
         const dotted = feedbackStyle === dottedFeedback;
         const greyFeedback = feedbackStyle === lightGreyFeedback;
         return <g class-print-edge={printEdge} class-stpa-edge={coloredEdge || lessColoredEdge}
-        class-feedback-dotted={feedbackEdge && dotted} class-feedback-grey={feedbackEdge && greyFeedback} class-missing-edge={missing} class-greyed-out={greyed} aspect={aspect}>
+        class-feedback-dotted={feedbackEdge && dotted} class-feedback-grey={feedbackEdge && greyFeedback} class-missing-edge={missing} class-greyed-out={greyed} class-invisible={invisEdge} aspect={aspect}>
         <path d={path} />
             {...(junctionPointRenderings ?? [])}
             </g>;
@@ -139,6 +141,7 @@ export class PolylineArrowEdgeView extends PolylineEdgeView {
         // otherwise all edges are either greyed out or hidden, when some are selected
         let greyed: boolean = false;
         const parentNode: ParentNode = this.getParentNode(edge);
+        const invisEdge: boolean = edge.type === CS_INVISIBLE_EDGE_TYPE;
 
         if (!parentNode.showEdges) {
             greyed = (edge.type === STPA_EDGE_TYPE || edge.type === STPA_INTERMEDIATE_EDGE_TYPE) && !(edge as STPAEdge).highlight;
@@ -170,7 +173,7 @@ export class PolylineArrowEdgeView extends PolylineEdgeView {
         const feedbackStyle = this.renderOptionsRegistry.getValue(FeedbackStyleOption);
         const greyFeedback = feedbackStyle === lightGreyFeedback;
         return [
-            <path  class-missing-edge-arrow={missing} class-print-edge-arrow={printEdge} class-stpa-edge-arrow={coloredEdge || lessColoredEdge} class-greyed-out={greyed} aspect={aspect}
+            <path  class-missing-edge-arrow={missing} class-print-edge-arrow={printEdge} class-stpa-edge-arrow={coloredEdge || lessColoredEdge} class-greyed-out={greyed} class-invisible={invisEdge} aspect={aspect}
                 class-feedback-grey-arrow={feedbackEdge && greyFeedback}    
                 class-sprotty-edge-arrow={sprottyEdge} d="M 6,-3 L 0,0 L 6,3 Z"
                 transform={`rotate(${this.angle(lastPoint, forelastSegment)} ${endpoint}) translate(${endpoint})`} />
@@ -291,19 +294,21 @@ export class CSNodeView extends RectangularNodeView {
         const sprottyNode = colorStyle === "standard";
         const printNode = !sprottyNode;
         const missingFeedback = node.type === CS_NODE_TYPE && (node as CSNode).hasMissingFeedback;
+        const processModel = node.parent.type === PROCESS_MODEL_PARENT_NODE_TYPE && node.type === CS_NODE_TYPE;
+        const invis = node.type === PROCESS_MODEL_PARENT_NODE_TYPE;
         const rectangle = <rect 
-                class-missing-feedback-node={missingFeedback} class-print-node={printNode}
+                class-missing-feedback-node={missingFeedback} class-print-node={printNode} class-process-model={processModel || invis}
                 class-sprotty-node={sprottyNode} class-sprotty-port={node instanceof SPortImpl}
-                class-mouseover={node.hoverFeedback} class-selected={node.selected}
+                class-mouseover={node.hoverFeedback} class-selected={node.selected} 
                 x="0" y="0" width={Math.max(node.size.width, 0)} height={Math.max(node.size.height, 0)}
             > </rect>;
         if (node.type === CS_NODE_TYPE && (node as CSNode).hasChildren) {
             // render the expand/collapse icon indicating that the node can be expanded
             const icon = (node as CSNode).expanded ? renderCollapseIcon() : renderExpandIcon();
             return <g>
-                {icon}
                 {rectangle}
                 {context.renderChildren(node)}
+                {icon}
             </g>;
         } else {
             return <g>
@@ -383,6 +388,25 @@ export class HeaderLabelView extends SLabelView {
         return <g class-header={true}>
             {super.render(label, context)}
         </g>;
+    }
+}
+
+@injectable()
+export class ProcessModelLabelView extends SLabelView {
+    render(label: Readonly<SLabelImpl>, context: RenderingContext): VNode | undefined {
+        const [header = "", values = ""] = label.text.split(": ");
+
+        // Render the label as header followed by the values in one line.
+        const vnode = <text class-sprotty-label={true}>
+                        <tspan class-process-model-value={true} dx={6}>{"- "}</tspan>
+                        <tspan class-header={true}>{header}</tspan>
+                        <tspan class-process-model-value={true}>{": " + values}</tspan>
+                    </text>;
+        const subType = getSubType(label);
+        if (subType) {
+            setAttr(vnode, 'class', subType);
+        }
+        return <g>{vnode}</g>
     }
 }
 

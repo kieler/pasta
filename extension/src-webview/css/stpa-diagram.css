@@ -17,10 +17,31 @@
 
 @import "./theme.css";
 
+/* label tspan styling */
+.header tspan,
+text tspan.header {
+  font-weight: 700;
+  fill: var(--vscode-editor-foreground);
+}
+
+/* values tspan styling */
+.process-model-value tspan,
+text tspan.process-model-value {
+  font-weight: 400;
+  fill: var(--vscode-editor-foreground); 
+}
+
 .stpa-node {
     stroke: black;
-    fill: transparent;
+    fill: var(--vscode-editor-background);
     stroke-width: 2;
+}
+
+/* different color for process model*/
+ rect.process-model,
+.stpa-node.process-model {
+    fill: var(--vscode-editor-foreground);
+    stroke: var(--vscode-editor-foreground);
 }
 
 /* red highlighting for visualization of missing feedback edges */
@@ -148,6 +169,17 @@
     stroke: #2f4f4f;
 }
 
+.vscode-high-contrast rect.process-model,
+.vscode-high-contrast .stpa-node.process-model {
+    fill: var(--vscode-editor-foreground);
+    stroke: var(--vscode-editor-foreground);
+}
+
+.vscode-high-contrast .stpa-node.process-model .sprotty-label text,
+.vscode-high-contrast g:has(> rect.process-model) text {
+    fill: var(--vscode-editor-background);
+}
+
 /* Dark theme */
 .vscode-dark .stpa-edge-arrow[aspect="0"] {
     fill: var(--stpa-loss-dark);
@@ -229,6 +261,17 @@
     stroke: var(--stpa-safety-requirement-dark);
 }
 
+.vscode-dark rect.process-model,
+.vscode-dark .stpa-node.process-model {
+    fill:  var(--vscode-editor-foreground);
+    stroke:  var(--vscode-editor-foreground);
+}
+
+.vscode-dark .stpa-node.process-model .sprotty-label text,
+.vscode-dark g:has(> rect.process-model) text {
+    fill: var(--vscode-editor-background);
+}
+
 /* Light theme */
 .vscode-light .stpa-edge-arrow[aspect="0"] {
     fill: var(--stpa-loss-light);
@@ -308,4 +351,15 @@
 .vscode-light .stpa-edge[aspect="7"],
 .vscode-light .stpa-edge-arrow[aspect="7"] {
     stroke: var(--stpa-safety-requirement-light);
+}
+
+.vscode-light rect.process-model,
+.vscode-light .stpa-node.process-model {
+    fill: var(--vscode-editor-foreground);
+    stroke: var(--vscode-editor-foreground);
+}
+
+.vscode-light .stpa-node.process-model .sprotty-label text,
+.vscode-light g:has(> rect.process-model) text {
+    fill: var(--vscode-editor-background);
 }

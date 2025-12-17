@@ -30,10 +30,12 @@ export const CS_EDGE_TYPE = 'edge:controlStructure';
 export const STPA_EDGE_TYPE = 'edge:stpa';
 export const STPA_INTERMEDIATE_EDGE_TYPE = 'edge:stpa-intermediate';
 export const CS_INTERMEDIATE_EDGE_TYPE = 'edge:cs-intermediate';
+export const CS_INVISIBLE_EDGE_TYPE = 'edge:cs-invisible';
 export const PORT_TYPE = 'port:pasta';
 export const HEADER_LABEL_TYPE = 'label:header';
 export const PASTA_LABEL_TYPE = 'label';
 export const EDGE_LABEL_TYPE = 'label:xref';
+export const PROCESS_MODEL_LABEL_TYPE = 'label:process_model';
 
 export class ParentNode extends SNodeImpl {
     modelOrder: boolean;
@@ -103,6 +105,14 @@ export class EdgeLabel extends SLabelImpl {
         side: "on",
     };
     controlAction?: string;
+}
+
+/**
+ * Node representing an invisible subcomponent in the control structure.
+ */
+export class CSInvisibleSubcomponent extends SNodeImpl {
+    // omitted selectFeature and connectableFeature so this node is not independently selectable / draggable.
+    static readonly DEFAULT_FEATURES = [layoutContainerFeature, layoutableChildFeature, fadeFeature];
 }
 
 /**

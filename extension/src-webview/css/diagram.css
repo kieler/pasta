@@ -48,8 +48,8 @@
 
 /* sprotty and black/white colors */
 .vscode-high-contrast .print-node {
-    stroke: white;
-    fill: transparent;
+    stroke: var(--vscode-editor-foreground);
+    fill: var(--vscode-editor-background);
 }
 
 .vscode-high-contrast .sprotty-node {
@@ -59,7 +59,7 @@
 
 .vscode-dark .print-node {
     stroke: var(--vscode-editor-foreground);
-    fill: transparent;
+    fill: var(--vscode-editor-background);
 }
 
 .vscode-dark .sprotty-node {
@@ -69,7 +69,7 @@
 
 .vscode-light .print-node {
     stroke: black;
-    fill: transparent;
+    fill: var(--vscode-editor-background);
 }
 
 .vscode-light .sprotty-node {
@@ -95,6 +95,11 @@
 .node-selected {
     stroke-width: 5;
     stroke: var(--vscode-button-hover-background);
+}
+
+/* invisible element */
+.invisible {
+    opacity: 0.0;
 }
 
 /* greyed out element */

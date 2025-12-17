@@ -30,7 +30,6 @@ import {
     SGraphImpl,
     SLabelImpl,
     SLabelView,
-    SNodeImpl,
     TYPES,
     configureCommand,
     configureModelElement,
@@ -71,8 +70,10 @@ import { snippetModule } from './snippets/snippet-module';
 import {
     CSEdge,
     CSNode,
+    CSInvisibleSubcomponent,
     CS_EDGE_TYPE,
     CS_INTERMEDIATE_EDGE_TYPE,
+    CS_INVISIBLE_EDGE_TYPE,
     CS_INVISIBLE_SUBCOMPONENT_TYPE,
     CS_NODE_TYPE,
     DUMMY_NODE_TYPE,
@@ -82,6 +83,7 @@ import {
     PARENT_TYPE,
     PASTA_LABEL_TYPE,
     PORT_TYPE,
+    PROCESS_MODEL_LABEL_TYPE,
     PROCESS_MODEL_PARENT_NODE_TYPE,
     ParentNode,
     PastaPort,
@@ -101,6 +103,7 @@ import {
     ParentNodeView,
     PolylineArrowEdgeView,
     PortView,
+    ProcessModelLabelView,
     STPAGraphView,
     STPANodeView
 } from "./stpa/stpa-views";
@@ -128,13 +131,14 @@ const pastaDiagramModule = new ContainerModule((bind, unbind, isBound, rebind) =
     configureModelElement(context, PASTA_LABEL_TYPE, SLabelImpl, SLabelView);
     configureModelElement(context, EDGE_LABEL_TYPE, EdgeLabel, EdgeLabelView);
     configureModelElement(context, HEADER_LABEL_TYPE, SLabelImpl, HeaderLabelView);
+    configureModelElement(context, PROCESS_MODEL_LABEL_TYPE, SLabelImpl, ProcessModelLabelView);
     configureModelElement(context, "html", HtmlRootImpl, HtmlRootView);
     configureModelElement(context, "pre-rendered", PreRenderedElementImpl, PreRenderedView);
 
     // STPA
     configureModelElement(context, "graph", SGraphImpl, STPAGraphView);
-    configureModelElement(context, CS_INVISIBLE_SUBCOMPONENT_TYPE, SNodeImpl, InvisibleNodeView);
-    configureModelElement(context, PROCESS_MODEL_PARENT_NODE_TYPE, SNodeImpl, InvisibleNodeView);
+    configureModelElement(context, CS_INVISIBLE_SUBCOMPONENT_TYPE, CSInvisibleSubcomponent, InvisibleNodeView);
+    configureModelElement(context, PROCESS_MODEL_PARENT_NODE_TYPE, CSInvisibleSubcomponent, InvisibleNodeView);
     configureModelElement(context, DUMMY_NODE_TYPE, CSNode, CSNodeView);
     configureModelElement(context, CS_NODE_TYPE, CSNode, CSNodeView);
     configureModelElement(context, STPA_NODE_TYPE, STPANode, STPANodeView);
@@ -142,6 +146,7 @@ const pastaDiagramModule = new ContainerModule((bind, unbind, isBound, rebind) =
     configureModelElement(context, STPA_EDGE_TYPE, STPAEdge, PolylineArrowEdgeView);
     configureModelElement(context, STPA_INTERMEDIATE_EDGE_TYPE, STPAEdge, IntermediateEdgeView);
     configureModelElement(context, CS_INTERMEDIATE_EDGE_TYPE, CSEdge, IntermediateEdgeView);
+    configureModelElement(context, CS_INVISIBLE_EDGE_TYPE, CSEdge, IntermediateEdgeView);
     configureModelElement(context, CS_EDGE_TYPE, CSEdge, PolylineArrowEdgeView);
     configureModelElement(context, PORT_TYPE, PastaPort, PortView);
 
