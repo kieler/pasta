@@ -37,7 +37,9 @@ export function createSCChartText(
 ): string {
     let result = "";
     // ltl annotations at the top
-    ltlFormulas.forEach((LTLFormula) => (result += createLTLAnnotation(LTLFormula)));
+    if (ltlFormulas) {
+        ltlFormulas.forEach((LTLFormula) => (result += createLTLAnnotation(LTLFormula)));
+    }
     // name of the acchart must be different to the enum name
     result += `scchart SBM_${controllerName} {\n\n`;
     // enum for the control action

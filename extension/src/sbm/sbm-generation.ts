@@ -20,6 +20,8 @@ import { createFile } from "../utils";
 import { createSCChartText } from "./scchart-creation";
 import { EMPTY_STATE_NAME, Enum, LTLFormula, State, Transition, UCA_TYPE, Variable } from "./utils";
 
+const optimize = false;
+
 /**
  * Creates a safe behavioral model for each controller.
  * @param controlActionsMap The control actions for each controller.
@@ -62,12 +64,17 @@ async function createControllerSBM(
     }
 
     // group formulas and create states for control actions
-    const formulaMap = groupFormulasByActionAndType(ltlFormulas);
     let states = createStatesForActions(controlActions);
-    // add transitions to the states
-    // when adding transition for continous UCA types new states may be added
-    states = addTransitions(formulaMap, states);
-    states = filterReachableStates(states);
+    if (ltlFormulas) {
+        const formulaMap = groupFormulasByActionAndType(ltlFormulas);
+        // add transitions to the states
+        // when adding transition for continous UCA types new states may be added
+        states = addTransitions(formulaMap, states);
+    }
+    // filter unreachable states
+    if (optimize) {
+        states = filterReachableStates(states);
+    }
 
     // sort the transitions so that the ones to the empty state are always the last transitions
     /* Must be done because the transitions to the empty state should only ensure that the state is left 
@@ -84,7 +91,7 @@ async function createControllerSBM(
 
     // determine the variables for the scchart including a variable for the control action
     const controlActionVariable = { name: "controlAction", type: `ref ${controllerName}` };
-    const contextVariables = collectContextVariables(ltlFormulas);
+    const contextVariables = ltlFormulas ? collectContextVariables(ltlFormulas) : { variables: [], enums: [] };
     const variables = contextVariables.variables.concat([controlActionVariable]);
     // create the scchart
     const scchartText = createSCChartText(
@@ -320,11 +327,14 @@ function addNotProvidedTransitions(notProvidedMap: Map<string, LTLFormula[]>, st
                 // transition from all other states to the controlaction state
                 notProvidedMap.get(controlAction)?.forEach((ltlFormula) => {
                     // prevent duplicates
-                    const sameTransition = state.transitions.find(
-                        (transition) =>
-                            transition.target === controlActionState.name &&
-                            transition.trigger === ltlFormula.contextVariables
-                    );
+                    let sameTransition = undefined;
+                    if (optimize) {
+                        sameTransition = state.transitions.find(
+                            (transition) =>
+                                transition.target === controlActionState.name &&
+                                transition.trigger === ltlFormula.contextVariables
+                        );
+                    }
                     if (sameTransition === undefined) {
                         // add transition
                         const transition = {
@@ -351,9 +361,12 @@ function addProvidedTransitions(providedMap: Map<string, LTLFormula[]>, states: 
             providedMap.get(controlAction)?.forEach((ltlFormula) => {
                 // only add a transition if there not already exists one with the same trigger
                 // trigger still may be a subset of another trigger -> set priority or trigger accordingly
-                const sameTrigger = controlActionState.transitions.find(
-                    (transition) => transition.trigger === ltlFormula.contextVariables
-                );
+                let sameTrigger = undefined;
+                if (optimize) { 
+                    sameTrigger = controlActionState.transitions.find(
+                        (transition) => transition.trigger === ltlFormula.contextVariables
+                    );
+                }
                 if (sameTrigger === undefined) {
                     // transition from controlaction state to the empty state
                     const transition = {
@@ -511,7 +524,7 @@ function copyAndAdjustIncomingTransitions(
     states.forEach((state) => {
         const transitionsToDuplicate: Transition[] = [];
         const transitionsToCA = state.transitions.filter((transition) => transition.target === originalState.name);
-        const deletTransitions: Transition[] = [];
+        const deleteTransitions: Transition[] = [];
         transitionsToCA.forEach((transition) => {
             if (transition.trigger) {
                 const newTriggers = createNewTriggersForIncomingTransitions(transition.trigger, ltlFormula);
@@ -525,11 +538,11 @@ function copyAndAdjustIncomingTransitions(
                 if (newTriggers.originalTrigger !== "false") {
                     transition.trigger = newTriggers.originalTrigger;
                 } else {
-                    deletTransitions.push(transition);
+                    deleteTransitions.push(transition);
                 }
             }
         });
-        state.transitions = state.transitions.filter((transition) => !deletTransitions.includes(transition));
+        state.transitions = state.transitions.filter((transition) => !deleteTransitions.includes(transition));
         state.transitions = state.transitions.concat(transitionsToDuplicate);
     });
 }
@@ -549,7 +562,7 @@ function createNewTriggersForIncomingTransitions(
     const contextVariables = ltlFormula.contextVariables.split("&&");
     contextVariables.forEach((variable) => {
         const variableName = variable.trim();
-        if (trigger.includes(variableName)) {
+        if (optimize && trigger.includes(variableName)) {
             // the new trigger for the duplicate transition would contain "variableName && variableName",
             // so we do not need to modify the trigger
             // the new trigger for the original transition would contain "variableName && !variableName",
