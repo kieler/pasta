@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-import { Action, CollapseExpandAction, CollapseExpandAllAction, DiagramServices, JsonMap, RequestAction, RequestModelAction, ResponseAction } from "sprotty-protocol";
+import { Action, CollapseExpandAction, CollapseExpandAllAction, DiagramServices, JsonMap, RequestAction, RequestModelAction, ResponseAction, SModelElement } from "sprotty-protocol";
 import { Connection } from "vscode-languageserver";
 import { FtaServices } from "./fta/fta-module.js";
 import { SetSynthesisOptionsAction, UpdateOptionsAction } from "./options/actions.js";
@@ -23,7 +23,7 @@ import { DropDownOption } from "./options/option-models.js";
 import { SnippetDiagramServer } from "./snippets/snippet-diagram-server.js";
 import { LanguageSnippet } from "./snippets/snippet-model.js";
 import { StpaDiagramSnippets } from "./snippets/stpa-snippets.js";
-import { GenerateSVGsAction, RequestSvgAction, SvgAction, UpdateDiagramAction } from "./stpa/actions.js";
+import { GenerateSVGsAction, RequestSvgAction, SvgAction, UpdateDiagramAction, HighlightUpdateAction } from "./stpa/actions.js";
 import { StpaSynthesisOptions, filteringUCAsID } from "./stpa/diagram/stpa-synthesis-options.js";
 import {
     COMPLETE_GRAPH_PATH,
@@ -60,6 +60,7 @@ export class PastaDiagramServer extends SnippetDiagramServer {
     protected synthesisOptions: SynthesisOptions | undefined;
     protected stpaSnippets: StpaDiagramSnippets | undefined;
     protected connection: Connection | undefined;
+    protected language: StpaServices | FtaServices;
 
     constructor(
         dispatch: <A extends Action>(action: A) => Promise<void>,
@@ -86,6 +87,7 @@ export class PastaDiagramServer extends SnippetDiagramServer {
         this.synthesisOptions = language.options.SynthesisOptions;
         this.clientId = clientId;
         this.connection = connection;
+        this.language = language;
     }
 
     accept(action: Action): Promise<void> {
@@ -106,6 +108,11 @@ export class PastaDiagramServer extends SnippetDiagramServer {
                 return this.handleGenerateSVGDiagrams(action as GenerateSVGsAction);
             case UpdateDiagramAction.KIND:
                 return this.updateView(this.state.options);
+            case HighlightUpdateAction.KIND:
+                const stpaOptions = (this.language as StpaServices).options.SynthesisOptions;
+                if (stpaOptions.getShowDescriptionsHighlights()) {
+                    return this.handleHighlightUpdate(this.state.options, action as HighlightUpdateAction);
+                }
             case CollapseExpandAction.KIND:
                 return this.collapseExpand(action as CollapseExpandAction);
             case CollapseExpandAllAction.KIND:
@@ -114,6 +121,63 @@ export class PastaDiagramServer extends SnippetDiagramServer {
         }
         return super.handleAction(action);
     }
+
+    /**
+     * Create a new model and highlights the correct elements when the backend gets an highlight update.
+     * @param options The options of the model that should be created.
+     * @param action The action that triggered this method.
+     * @returns 
+     */
+    protected async handleHighlightUpdate(options: JsonMap | undefined, action: HighlightUpdateAction): Promise<void> {
+        
+        this.state.options = options ?? {};
+        this.state.options["highlightedIDs"] = action.highlightedIds;
+        try {
+            const newRoot = await this.diagramGenerator.generate({
+                options: this.state.options,
+                state: this.state,
+            });
+            // only update the view if the new root has children, otherwise an error occured
+            if (newRoot.children?.length !== 0) {
+
+                //highlight all the correct nodes and edges
+                newRoot.children!.forEach(child => 
+                    this.highlightElements(child, action.highlightedIds)
+                );
+
+                newRoot.revision = ++this.state.revision;
+                this.state.currentRoot = newRoot;
+                await this.submitModel(this.state.currentRoot, true);
+                // ensures the the filterUCA option is correct
+                this.dispatch({
+                    kind: UpdateOptionsAction.KIND,
+                    valuedSynthesisOptions: this.synthesisOptions?.getSynthesisOptions() ?? [],
+                    clientId: this.clientId,
+                    _source: 'highlight',
+                });
+            }
+        } catch (err) {
+            this.rejectRemoteRequest(undefined, err as Error);
+            console.error("Failed to generate diagram:", err);
+        }
+    }
+
+    /**
+     * Highlights model elements recursivly if they are in the list.
+     * @param element The model element that gets possibly highlighted and all its children.
+     * @param highlightedIds All IDs of the elements that should be highlighted.
+     * @returns 
+     */
+    private highlightElements(element: SModelElement, highlightedIds: string[]): void {
+        if (highlightedIds.includes(element.id)) {
+            (element as any).highlight = true;
+        }
+        
+        element.children?.forEach(child => 
+            this.highlightElements(child, highlightedIds)
+        );
+    }
+    
 
     /**
      * Collapses and expands the nodes with the given ids and updates the view.

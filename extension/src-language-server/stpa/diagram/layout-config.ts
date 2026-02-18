@@ -47,11 +47,12 @@ export class StpaLayoutConfigurator extends DefaultLayoutConfigurator {
         // priority is used to determine the order of the nodes
         let priority = "";
         const csParent = snode.children?.find(child => child.type === CS_NODE_TYPE);
+        const relationshipNode = snode.children?.find(child => child.type === STPA_NODE_TYPE);
         if (csParent) {
             // options for the control structure
             direction = "DOWN";
             priority = "1";
-        } else if (snode.children?.find(child => child.type === STPA_NODE_TYPE)) {
+        } else if (relationshipNode) {
             // options for the STPA graph
             direction = "UP";
             priority = "0";
@@ -69,6 +70,12 @@ export class StpaLayoutConfigurator extends DefaultLayoutConfigurator {
             "org.eclipse.elk.spacing.portsSurrounding": "[top=10.0,left=10.0,bottom=10.0,right=10.0]",
             "org.eclipse.elk.priority": priority,
         };
+        if (!snode.showEdges) {
+            options["org.eclipse.elk.layered.spacing.edgeEdgeBetweenLayers"] = "0";
+            options["org.eclipse.elk.layered.nodePlacement.networkSimplex.nodeFlexibility.default"] = "NONE";
+        } else if (relationshipNode) {
+            options["org.eclipse.elk.layered.spacing.edgeEdgeBetweenLayers"] = "6";
+        }
 
         // model order is used to determine the order of the children
         if (snode.modelOrder) {
@@ -128,6 +135,7 @@ export class StpaLayoutConfigurator extends DefaultLayoutConfigurator {
             // nodes with many edges are streched
             "org.eclipse.elk.layered.nodePlacement.strategy": "NETWORK_SIMPLEX",
             "org.eclipse.elk.layered.nodePlacement.networkSimplex.nodeFlexibility.default": "NODE_SIZE",
+            "org.eclipse.elk.spacing.portsSurrounding": "[top=10.0,left=10.0,bottom=10.0,right=10.0]",
         };
     }
 
@@ -193,7 +201,8 @@ export class StpaLayoutConfigurator extends DefaultLayoutConfigurator {
             "org.eclipse.elk.layered.nodePlacement.networkSimplex.nodeFlexibility.default": "NODE_SIZE",
             "org.eclipse.elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",
             "org.eclipse.elk.layered.crossingMinimization.forceNodeModelOrder": "true",
-            "org.eclipse.elk.layered.cycleBreaking.strategy": "MODEL_ORDER"
+            "org.eclipse.elk.layered.cycleBreaking.strategy": "MODEL_ORDER",
+            "org.eclipse.elk.separateConnectedComponents": "false"
         };
         if (node.children?.find(child => child.type.startsWith("node"))) {
             // node has children nodes

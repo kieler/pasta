@@ -1,7 +1,7 @@
-import * as chai from 'chai';
-import * as rewire from 'rewire';
+// import * as chai from 'chai';
+// import * as rewire from 'rewire';
 
-const should = chai.should();
+// const should = chai.should();
 // const app = rewire('../extension/src-language-server/stpa/modelChecking/model-checking.ts');
 
 // describe('#notProvidedLTL(variables, action)', () => {    

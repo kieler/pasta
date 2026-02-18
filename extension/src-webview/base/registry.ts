@@ -40,7 +40,7 @@ type Handler = () => void;
  */
 @injectable()
 export abstract class Registry implements IActionHandler {
-    private _listeners: (() => void)[] = [];
+    protected _listeners: (() => void)[] = [];
 
     abstract handle(action: Action): void | Action | ICommand;
 

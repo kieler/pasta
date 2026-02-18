@@ -17,7 +17,7 @@
 
 import { CstNode, isCompositeCstNode, LangiumDocument } from "langium";
 import { TextDocumentContentChangeEvent } from "vscode";
-import { Range, RenameParams, TextEdit } from "vscode-languageserver";
+import { RenameParams, TextEdit } from "vscode-languageserver";
 import {
     ActionUCAs,
     ControllerConstraint,
@@ -171,27 +171,15 @@ export class IDEnforcer {
                 start: { line: range.start.line, character: range.start.character },
                 end: { line: range.start.line, character: range.start.character + modifiedElement.name.length },
             };
-            this.fixHazardRange(newRange, prefix, modifiedElement);
             newRange.end.character = newRange.start.character + modifiedElement.name.length;
             newRange.end.line = newRange.start.line;
+            // add leading zero to the counter if it is less than 10
+            const counter = index < 10 ? "0" + index : index;
             // create the edit
-            const modifiedElementEdit = TextEdit.replace(newRange, prefix + index);
+            const modifiedElementEdit = TextEdit.replace(newRange, prefix + counter);
             edits.push(modifiedElementEdit);
         }
         return edits;
-    }
-
-    /**
-     * For some reason the range of the hazard is not correct. This method fixes this manually.
-     * @param range The range of the hazard.
-     * @param prefix The prefix to check whether the modified element is a hazard.
-     * @param modifiedElement The modified element.
-     */
-    protected fixHazardRange(range: Range, prefix: string, modifiedElement: elementWithName): void {
-        // range for hazards is wrong (dont know why), so it must be adjusted
-        if (prefix === "H") {
-            range.start.character -= 2 + modifiedElement.name.length;
-        }
     }
 
     /**
@@ -246,7 +234,9 @@ export class IDEnforcer {
                             const range = elementToRename.$cstNode.range;
                             range.end.character = range.start.character + elementToRename.name.length;
                             range.end.line = range.start.line;
-                            const modifiedElementEdit = TextEdit.replace(range, prefix + (i + 1));
+                            // add leading zero to the counter if it is less than 10
+                            const counter = i + 1 < 10 ? "0" + (i + 1) : i + 1;
+                            const modifiedElementEdit = TextEdit.replace(range, prefix + counter);
                             edits.push(modifiedElementEdit);
                         }
                         // rename references by calling the rename function with the modified element
@@ -336,12 +326,14 @@ export class IDEnforcer {
      */
     protected async renameID(element: elementWithName, prefix: string, counter: number): Promise<TextEdit[]> {
         let edits: TextEdit[] = [];
+        // add leading zero to the counter if it is less than 10
+        const updatedCounter = counter < 10 ? "0" + counter : counter;
         if (element && element.$cstNode) {
             // parameters needed for renaming
             const params: RenameParams = {
                 textDocument: this.currentDocument.textDocument,
                 position: element.$cstNode.range.start,
-                newName: prefix + counter,
+                newName: prefix + updatedCounter,
             };
             // compute the textedits for renaming
             const edit = await this.stpaServices.lsp.RenameProvider!.rename(this.currentDocument, params);
@@ -352,7 +344,7 @@ export class IDEnforcer {
             if ((isHazard(element) || isSystemConstraint(element)) && element.subComponents.length !== 0) {
                 let index = 1;
                 for (const child of element.subComponents) {
-                    edits = edits.concat(await this.renameID(child, prefix + counter + ".", index));
+                    edits = edits.concat(await this.renameID(child, prefix + updatedCounter + ".", index));
                     index++;
                 }
             }

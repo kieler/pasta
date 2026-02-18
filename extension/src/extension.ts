@@ -44,7 +44,7 @@ const validationContexts = [
     "checkResponsibilitiesForConstraints",
     "checkConstraintsForUCAs",
     "checkScenariosForUCAs",
-    "checkSafetyRequirementsForUCAs",
+    "checkSafetyRequirementsForScenarios",
     "checkMissingFeedback",
 ];
 
@@ -196,7 +196,7 @@ function resetContextForStorageOptions(): void {
     vscode.commands.executeCommand("setContext", "pasta.checkResponsibilitiesForConstraints", true);
     vscode.commands.executeCommand("setContext", "pasta.checkConstraintsForUCAs", true);
     vscode.commands.executeCommand("setContext", "pasta.checkScenariosForUCAs", true);
-    vscode.commands.executeCommand("setContext", "pasta.checkSafetyRequirementsForUCAs", true);
+    vscode.commands.executeCommand("setContext", "pasta.checkSafetyRequirementsForScenarios", true);
     vscode.commands.executeCommand("setContext", "pasta.checkMissingFeedback", true);
     vscode.commands.executeCommand("setContext", "pasta.generateIDs", true);
 }
@@ -516,7 +516,7 @@ function registerDiagramSnippetWebview(manager: StpaLspVscodeExtension, context:
             _token: vscode.CancellationToken
         ): void | Thenable<void> {
             const snippetWebview = new DiagramSnippetWebview(
-                "snippets",
+                "blueprints",
                 manager,
                 createFileUri(manager.options.extensionUri.fsPath, 'pack', 'src-diagram-snippets', 'main.js'),
                 createFileUri(manager.options.extensionUri.fsPath, 'pack', 'src-diagram-snippets', 'main.css')
@@ -534,7 +534,7 @@ function registerDiagramSnippetWebview(manager: StpaLspVscodeExtension, context:
         },
     };
     // register the webview view provider
-    vscode.window.registerWebviewViewProvider("stpa-snippets", provider);
+    vscode.window.registerWebviewViewProvider("stpa-blueprints", provider);
     // register the command to add snippets
     context.subscriptions.push(
         vscode.commands.registerCommand("pasta" + ".stpa.snippets.add", async (...commandArgs: any) => {

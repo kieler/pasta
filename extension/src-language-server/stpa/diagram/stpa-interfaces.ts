@@ -20,6 +20,8 @@ import { EdgeType, PortSide, STPAAspect } from "./stpa-model.js";
 
 export interface ParentNode extends SNode {
     modelOrder: boolean;
+    showBorder: boolean;
+    showEdges: boolean;
 }
 
 /**
@@ -33,6 +35,7 @@ export interface STPANode extends SNode {
     level?: number;
     controlAction?: string;
     modelOrder?: boolean;
+    controller?: string;
 }
 
 /**

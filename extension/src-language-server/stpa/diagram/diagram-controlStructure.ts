@@ -17,10 +17,10 @@
 
 import { AstNode } from "langium";
 import { IdCache } from "langium-sprotty";
-import { SModelElement, SNode } from "sprotty-protocol";
+import { SModelElement, SLabel, SNode, HAlignment } from "sprotty-protocol";
 import { expansionState } from "../../diagram-server.js";
 import { Command, Graph, Node, Variable, VerticalEdge } from "../../generated/ast.js";
-import { createControlStructureEdge, createDummyNode, createLabel, createPort } from "./diagram-elements.js";
+import { createControlStructureEdge, createInvisibleProcessModelEdge, createDummyNode, createLabel, createPort } from "./diagram-elements.js";
 import { CSEdge, CSNode, ParentNode } from "./stpa-interfaces.js";
 import {
     CS_EDGE_TYPE,
@@ -28,10 +28,10 @@ import {
     CS_INVISIBLE_SUBCOMPONENT_TYPE,
     CS_NODE_TYPE,
     EdgeType,
-    HEADER_LABEL_TYPE,
     PARENT_TYPE,
     PASTA_LABEL_TYPE,
     PROCESS_MODEL_PARENT_NODE_TYPE,
+    PROCESS_MODEL_LABEL_TYPE,
     PortSide,
 } from "./stpa-model.js";
 import { StpaSynthesisOptions } from "./stpa-synthesis-options.js";
@@ -73,6 +73,8 @@ export function createControlStructure(
         id: "controlStructure",
         children: CSChildren,
         modelOrder: options.getModelOrder(),
+        showEdges: true,
+        showBorder: options.getShowRelationshipGraph(),
     };
 }
 
@@ -93,7 +95,7 @@ export function createControlStructureNode(
     const children: SModelElement[] = createLabel([label], nodeId, idCache, PASTA_LABEL_TYPE);
     if (options.getShowProcessModels()) {
         // add nodes representing the process model
-        children.push(createProcessModelNodes(node.variables, idCache));
+        children.push(createProcessModelNode(node.variables, idCache));
     }
     // add children of the control structure node if the node is expanded
     if (node.children?.length !== 0 && expansionState.get(node.name) === true) {
@@ -116,6 +118,15 @@ export function createControlStructureNode(
         });
         children.push(invisibleNode);
     }
+
+    // add invisibel edge, so that the order of process model and subcomponents is correct
+    const processModelContainer = children.find(child => child.type === PROCESS_MODEL_PARENT_NODE_TYPE) as SNode | undefined;
+    const subcomponentContainer = children.find(child => child.type === CS_INVISIBLE_SUBCOMPONENT_TYPE) as SNode | undefined;
+
+    if (processModelContainer && subcomponentContainer) {
+        children.push(createInvisibleProcessModelEdge(nodeId, idCache, processModelContainer, subcomponentContainer));
+    }
+    
     const csNode = {
         type: CS_NODE_TYPE,
         id: nodeId,
@@ -136,50 +147,35 @@ export function createControlStructureNode(
 }
 
 /**
- * Creates nodes representing the process model defined by the {@code variables} and encapsulates them in an invisible node.
+ * Creates labels representing the process model defined by the {@code variables} and encapsulates them in an invisible node.
  * @param variables The variables of the process model.
  * @param idCache The id cache of the STPA model.
- * @returns an invisible node containing the nodes representing the process model.
+ * @returns an invisible node containing the labels representing the process model.
  */
-export function createProcessModelNodes(variables: Variable[], idCache: IdCache<AstNode>): SNode {
-    const csChildren: SModelElement[] = [];
+export function createProcessModelNode(variables: Variable[], idCache: IdCache<AstNode>): SNode {
+    const csChildren: SLabel[] = [];
     for (const variable of variables) {
         // translate the variable name to a header label and the values to further labels
         const label = variable.name;
         const nodeId = idCache.uniqueId(variable.name, variable);
-        const values = variable.values?.map(value => value.name);
-        const children = [
-            ...createLabel([label], nodeId, idCache, HEADER_LABEL_TYPE),
-            ...createLabel(values, nodeId, idCache, PASTA_LABEL_TYPE),
-        ];
-        // create the actual node with the created labels
-        const csNode = {
-            type: CS_NODE_TYPE,
-            id: nodeId,
-            children: children,
-            hasChildren: false,
-            expanded: expansionState.get(variable.name) === true,
-            layout: "stack",
-            layoutOptions: {
-                paddingTop: 10.0,
-                paddingBottom: 10.0,
-                paddingLeft: 10.0,
-                paddingRight: 10.0,
-            },
-        } as CSNode;
-        csChildren.push(csNode);
+        const values = variable.values?.map(value => value.name).join(", ") ?? "";
+        // create a combined label of the header with all its values
+        const combinedLabel = values ? `${label}: ${values}` : label;
+        const children = createLabel([combinedLabel], nodeId, idCache, PROCESS_MODEL_LABEL_TYPE);
+        csChildren.push(...children);
     }
-    // encapsulate the nodes representing the process model in an invisible node
+    // encapsulate the labels representing the process model in an invisible node
     const invisibleNode = {
         type: PROCESS_MODEL_PARENT_NODE_TYPE,
         id: idCache.uniqueId("invisible"),
         children: csChildren,
-        layout: "stack",
+        layout: "vbox",
         layoutOptions: {
             paddingTop: 10.0,
             paddingBottom: 10.0,
             paddingLeft: 10.0,
             paddingRight: 10.0,
+            hAlign: 'left' as HAlignment
         },
     };
     return invisibleNode;
@@ -259,6 +255,8 @@ export function translateCommandsToEdges(
             `${idCache.getId(source)}_${edge.comms[0].name}_${idCache.getId(target)}`,
             edge
         );
+        // get all control actions of one control structure edge
+        const controlActions = edge.comms.map(comm => idCache.uniqueId(`${idCache.getId(source)}.${comm.name}`, edge));
 
         if (target) {
             // multiple commands to same target is represented by one edge -> combine labels to one
@@ -267,7 +265,7 @@ export function translateCommandsToEdges(
                 const com = edge.comms[i];
                 label.push(com.label);
             }
-            createEdgeForCommand(source, target, edgeId, edgeType, label, idToSNode, idCache, edges);
+            createEdgeForCommand(source, target, edgeId, edgeType, label, idToSNode, idCache, edges, controlActions);
         }
     }
 
@@ -312,6 +310,7 @@ export function translateCommandsToEdges(
  * @param idToSNode The map of IDs to SNodes.
  * @param idCache The ID cache of the STPA model.
  * @param edges The list of edges to add the created edges to.
+ * @param controlActions [optional] List of all the control actions with source from one CSEdge.
  */
 export function createEdgeForCommand(
     source: Node,
@@ -321,7 +320,8 @@ export function createEdgeForCommand(
     label: string[],
     idToSNode: Map<string, SNode>,
     idCache: IdCache<AstNode>,
-    edges: CSEdge[]
+    edges: CSEdge[],
+    controlActions?: string[],
 ): void {
     // edges can be hierachy crossing so we must determine the common ancestor of source and target
     const commonAncestor = getCommonAncestor(source, target);
@@ -336,7 +336,9 @@ export function createEdgeForCommand(
         edgeType,
         // if the common ancestor is the parent of the target we want an edge with an arrow otherwise an intermediate edge
         target.$container === commonAncestor ? CS_EDGE_TYPE : CS_INTERMEDIATE_EDGE_TYPE,
-        idCache
+        idCache, 
+        true,
+        controlActions
     );
     if (commonAncestor?.$type === "Graph") {
         // if the common ancestor is the graph, the edge must be added at the top level and hence have to be returned

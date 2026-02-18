@@ -28,7 +28,6 @@ import * as vscode from "vscode";
 import { AddSnippetAction, GenerateSVGsAction } from "./actions";
 import { ContextTablePanel } from "./context-table-panel";
 import { StorageService } from "./storage-service";
-import { StpaFormattingEditProvider } from "./stpa-formatter";
 import {
     addSnippetsToConfig,
     applyTextEdits,
@@ -67,8 +66,8 @@ export class StpaLspVscodeExtension extends LspWebviewPanelManager {
         });
 
         // add auto formatting provider
-        const sel: vscode.DocumentSelector = { scheme: "file", language: "stpa" };
-        vscode.languages.registerDocumentFormattingEditProvider(sel, new StpaFormattingEditProvider());
+        // const sel: vscode.DocumentSelector = { scheme: "file", language: "stpa" };
+        // vscode.languages.registerDocumentFormattingEditProvider(sel, new StpaFormattingEditProvider());
 
         this.addReactionsToSnippetCommands(options);
         this.addReactionsToContextTableCommands(options);

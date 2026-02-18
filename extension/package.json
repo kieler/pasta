@@ -2,7 +2,7 @@
     "name": "pasta",
     "displayName": "PASTA (STPA-DSL)",
     "description": "A DSL for STPA. Includes an automatic visualization of the defined relationships and control structure.",
-    "version": "0.6.1",
+    "version": "0.6.3",
     "publisher": "kieler",
     "author": "KIELER <kieler@rtsys.informatik.uni-kiel.de>",
     "icon": "icon.png",
@@ -60,7 +60,7 @@
                 "pasta.stpa.snippets": {
                     "type": "string[]",
                     "default": [],
-                    "description": "Diagram snippets for STPA"
+                    "description": "Diagram blueprints for STPA"
                 }
             }
         },
@@ -133,13 +133,13 @@
                 "category": "STPA Checks"
             },
             {
-                "command": "pasta.stpa.checks.setCheckSafetyRequirementsForUCAs",
-                "title": "Set the safety requirements for UCA check",
+                "command": "pasta.stpa.checks.setCheckSafetyRequirementsForScenarios",
+                "title": "Set the safety requirements for scenarios check",
                 "category": "STPA Checks"
             },
             {
-                "command": "pasta.stpa.checks.unsetCheckSafetyRequirementsForUCAs",
-                "title": "✓ Set the safety requirements for UCA check",
+                "command": "pasta.stpa.checks.unsetCheckSafetyRequirementsForScenarios",
+                "title": "✓ Set the safety requirements for scenarios check",
                 "category": "STPA Checks"
             },
             {
@@ -189,7 +189,7 @@
             },
             {
                 "command": "pasta.stpa.snippets.add",
-                "title": "Add STPA Diagram Snippet",
+                "title": "Add STPA Diagram Blueprint",
                 "category": "STPA Snippets"
             },
             {
@@ -261,12 +261,12 @@
                     "when": "editorLangId == 'stpa' && checkScenariosForUCAs == true"
                 },
                 {
-                    "command": "pasta.stpa.checks.setCheckSafetyRequirementsForUCAs",
-                    "when": "editorLangId == 'stpa' && checkSafetyRequirementsForUCAs == false"
+                    "command": "pasta.stpa.checks.setCheckSafetyRequirementsForScenarios",
+                    "when": "editorLangId == 'stpa' && checkSafetyRequirementsForScenarios == false"
                 },
                 {
-                    "command": "pasta.stpa.checks.unsetCheckSafetyRequirementsForUCAs",
-                    "when": "editorLangId == 'stpa' && checkSafetyRequirementsForUCAs == true"
+                    "command": "pasta.stpa.checks.unsetCheckSafetyRequirementsForScenarios",
+                    "when": "editorLangId == 'stpa' && checkSafetyRequirementsForScenarios == true"
                 },
                 {
                     "command": "pasta.stpa.checks.setCheckMissingFeedback",
@@ -409,15 +409,15 @@
                     "group": "checks@3"
                 },
                 {
-                    "command": "pasta.stpa.checks.setCheckSafetyRequirementsForUCAs",
+                    "command": "pasta.stpa.checks.setCheckSafetyRequirementsForScenarios",
                     "title": "editorLangId == 'stpa'",
-                    "when": "editorLangId == 'stpa' && pasta.checkSafetyRequirementsForUCAs == false",
+                    "when": "editorLangId == 'stpa' && pasta.checkSafetyRequirementsForScenarios == false",
                     "group": "checks@4"
                 },
                 {
-                    "command": "pasta.stpa.checks.unsetCheckSafetyRequirementsForUCAs",
+                    "command": "pasta.stpa.checks.unsetCheckSafetyRequirementsForScenarios",
                     "title": "editorLangId == 'stpa'",
-                    "when": "editorLangId == 'stpa' && pasta.checkSafetyRequirementsForUCAs == true",
+                    "when": "editorLangId == 'stpa' && pasta.checkSafetyRequirementsForScenarios == true",
                     "group": "checks@4"
                 },
                 {
@@ -523,8 +523,8 @@
             "pasta": [
                 {
                     "type": "webview",
-                    "id": "stpa-snippets",
-                    "name": "STPA Snippets"
+                    "id": "stpa-blueprints",
+                    "name": "STPA Blueprints"
                 }
             ]
         }
@@ -586,7 +586,7 @@
         "langium:watch": "langium generate --watch",
         "lint": "eslint .",
         "build": "yarn run langium:generate && tsc -b src src-diagram-snippets src-language-server src-webview src-context-table && node esbuild.mjs",
-        "watch": "webpack --watch",
+        "watch": "node esbuild.mjs --watch",
         "package": "vsce package --yarn -o pasta.vsix",
         "predistribute": "yarn run package",
         "distribute": "yarn run distribute:vsce && yarn run distribute:ovsx",
