@@ -74,6 +74,10 @@ export class StpaValidator {
     checkMissingFeedback = true;
 
     checkForConflictingUCAs = true;
+    
+    // TODO: user should be able to toggle this check
+    /** Boolean option to toggle the check whether there is only one action to send in each context. */
+    checkForSingleAction = false;
 
     /**
      * Map from node ID to a list of nodes to which a feedback is missing.
@@ -266,9 +270,10 @@ export class StpaValidator {
         // check for conflicts between UCAs and DCAs
         this.checkForConflictsBetweenUCAsAndDCAs(model.rules, model.allDCAs, accept);
 
-        // TODO: user should be able to turn this check off
-        // check that in each context only one action should be provided, otherwise the generated statechart sbm does not work
-        this.checkForSingleAction(model.rules, model.allDCAs, accept);
+        if (this.checkForSingleAction) {
+            // check that in each context only one action should be provided, otherwise the generated statechart sbm does not work
+            this.checkSingleAction(model.rules, model.allDCAs, accept);
+        }
     }
 
     /**
@@ -349,7 +354,7 @@ export class StpaValidator {
      * @param dcas The DCAs to check.
      * @param accept
      */
-    protected checkForSingleAction(ucas: Rule[], dcas: DCARule[], accept: ValidationAcceptor): void {
+    protected checkSingleAction(ucas: Rule[], dcas: DCARule[], accept: ValidationAcceptor): void {
         // check the UCAs among each other
         for (let i = 0; i < ucas.length; i++) {
             const uca = ucas[i];
