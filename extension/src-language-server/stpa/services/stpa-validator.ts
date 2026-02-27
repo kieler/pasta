@@ -135,10 +135,10 @@ export class StpaValidator {
             : [];
         const nodesToCheck = [...ucas, ...contexts];
         for (const node of nodesToCheck) {
-            if (!constraintsRefs.has(node.name)) {
+            if (this.checkConstraintsForUCAs && !constraintsRefs.has(node.name)) {
                 accept("warning", "This element is not referenced by any controller constraint", { node: node, property: "name" });
             }
-            if (!scenarioRefs.includes(node.name)) {
+            if (this.checkScenariosForUCAs && !scenarioRefs.includes(node.name)) {
                 accept("warning", "This element is not referenced by any scenario", { node: node, property: "name" });
             }
         }
