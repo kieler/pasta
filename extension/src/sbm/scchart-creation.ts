@@ -17,6 +17,10 @@
 
 import { EMPTY_STATE_NAME, Enum, LTLFormula, State, Variable } from "./utils";
 
+// TODO: should be set by the user through the UI
+/** Determines whether the system should do a boot up step in the beginning. If true, the formulas are modified with an additional X operator at the start. */
+const bootUpStep = true;
+
 /**
  * Creates the text for an scchart based on the given arguments.
  * @param controllerName The name of the controller that is modelled.
@@ -58,7 +62,8 @@ export function createSCChartText(
  * @returns an ltl annotation for the {@code ltlFormula}.
  */
 function createLTLAnnotation(ltlFormula: LTLFormula): string {
-    return `@LTL "${ltlFormula.formula}", "${ltlFormula.description}", "${ltlFormula.ucaId}" \n`;
+    const formula = bootUpStep ? `X(${ltlFormula.formula})` : ltlFormula.formula;
+    return `@LTL "${formula}", "${ltlFormula.description}", "${ltlFormula.ucaId}" \n`;
 }
 
 /**
