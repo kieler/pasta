@@ -382,7 +382,7 @@ export class StpaValidator {
                 v => v.variable.$refText === context1.assignedValues[i].variable.$refText
             );
             if (
-                varIndex === -1 ||
+                varIndex !== -1 &&
                 context2.assignedValues[varIndex].value.$refText !== context1.assignedValues[i].value.$refText
             ) {
                 isSame = false;
@@ -397,7 +397,7 @@ export class StpaValidator {
                     v => v.variable.$refText === context2.assignedValues[i].variable.$refText
                 );
                 if (
-                    varIndex === -1 ||
+                    varIndex !== -1 &&
                     context1.assignedValues[varIndex].value.$refText !== context2.assignedValues[i].value.$refText
                 ) {
                     isSame = false;
