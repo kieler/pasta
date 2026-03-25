@@ -25,13 +25,13 @@ import { EMPTY_STATE_NAME, Enum, LTLFormula, State, Transition, UCA_TYPE, Variab
  * @param controlActionsMap The control actions for each controller.
  * @param formulaMap The ltl formulas for each controller.
  */
-export function createSBMs(
+export async function createSBMs(
     controlActionsMap: Record<string, string[]>,
     formulaMap: Record<string, LTLFormula[]>
-): void {
-    Object.keys(controlActionsMap).forEach(async controller =>
-        await createControllerSBM(controller, controlActionsMap[controller], formulaMap[controller] ?? [])
-    );
+): Promise<void> {
+    for (const controller of Object.keys(controlActionsMap)) {
+        await createControllerSBM(controller, controlActionsMap[controller], formulaMap[controller] ?? []);
+    }
 }
 
 /**
