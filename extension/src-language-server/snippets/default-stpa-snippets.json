@@ -2,8 +2,6 @@
     "snippets": [
         {"name": "simpleCSSnippet",
         "code": "\nControlStructure\nCS {\n    Controller {\n        hierarchyLevel 0\n        controlActions {\n            [ca \"control action\"] -> ControlledProcess\n        }\n    }\n    ControlledProcess {\n        hierarchyLevel 1\n        feedback {\n            [fb \"feedback\"] -> Controller\n        }\n    }\n}\n"},
-        {"name": "simpleCSWithAcsSnippet",
-        "code": "\nControlStructure\nCS {\n    Controller {\n        hierarchyLevel 0\n        controlActions {\n            [ca \"control action\"] -> Actuator\n        }\n    }\n    Actuator {\n        hierarchyLevel 1\n        controlActions {\n            [caAc \"control action\"] -> ControlledProcess\n        }\n    }\n    Sensor {\n        hierarchyLevel 1\n        feedback {\n            [fbS \"feedback\"] -> Controller\n        }\n    }\n    ControlledProcess {\n        hierarchyLevel 2\n        feedback {\n            [fb \"feedback\"] -> Sensor\n        }\n    }\n}\n"},
         {"name": "consControllerSnippet",
         "code": "\nControlStructure\nCS {\n    ControllerA {\n        hierarchyLevel 0\n        controlActions {\n            [ca \"control action\"] -> ControllerB\n        }\n    }\n    ControllerB {\n        hierarchyLevel 1\n        controlActions {\n            [ca \"control action\"] -> ControlledProcess\n        }\n        feedback {\n            [fb \"feedback\"] -> ControllerA\n        }\n    }\n    ControlledProcess {\n        hierarchyLevel 2\n        feedback {\n            [fb \"feedback\"] -> ControllerB\n        }\n    }\n}\n"},
         {"name": "parallelContsSnippet",
