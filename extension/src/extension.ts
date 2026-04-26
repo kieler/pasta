@@ -214,9 +214,27 @@ function resetContextForStorageOptions(): void {
     vscode.commands.executeCommand("setContext", "pasta.generateIDs", true);
 }
 
-async function setMarkersVisible(visible: boolean, decorationProvider: InlineMarkdownDecorator): Promise<void> {
+async function setMarkersVisible(visible: boolean, decorationProvider: InlineMarkdownDecorator, manager: StpaLspVscodeExtension): Promise<void> {
     decorationProvider.updateMarkerVisibility(visible);
     await vscode.commands.executeCommand("setContext", "pasta.markersVisible", visible);
+     // Sync pasta.markersVisible context with showInlineMarkers synthesis option
+    if (manager.endpoints && manager.endpoints.length > 0) {
+        const setSynthesisOption = {
+            kind: "setSynthesisOptions",
+            options: [
+                {
+                    id: "showInlineMarkers",
+                    currentValue: visible,
+                }
+            ]
+        };
+        
+        manager.endpoints.forEach(endpoint => {
+            endpoint.sendAction(setSynthesisOption);
+        });
+        
+        updateViews(manager, vscode.window.activeTextEditor?.document);
+    }
 }
 
 /**
@@ -236,13 +254,13 @@ function registerSTPACommands(
     if (decorationProvider) {
         context.subscriptions.push(
         vscode.commands.registerCommand("pasta.editor.editorMode", async () => {
-            await setMarkersVisible(false, decorationProvider);
+            await setMarkersVisible(false, decorationProvider, manager);
         })
         );
 
         context.subscriptions.push(
         vscode.commands.registerCommand("pasta.editor.watchMode", async () => {
-            await setMarkersVisible(true, decorationProvider);
+            await setMarkersVisible(true, decorationProvider, manager);
         })
         );
     }

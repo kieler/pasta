@@ -139,7 +139,7 @@ export function getDescription(
     idCache: IdCache<AstNode>
 ): SLabel[] {
     const labels: SLabel[] = [];
-    description = stripInlineMarkers(description);
+    description = description //stripInlineMarkers(description);
     const words = description.split(" ");
     let current = "";
     switch (labelManagement) {

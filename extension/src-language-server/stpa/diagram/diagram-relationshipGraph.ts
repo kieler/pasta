@@ -41,7 +41,7 @@ import {
     getTargets,
     setLevelsForSTPANodes,
 } from "./utils.js";
-import { getRawStringInnerFromCst } from "../../utils.js";
+import { getRawStringInnerFromCst, stripInlineMarkers } from "../../utils.js";
 
 /**
  * Creates the relationship graph for the STPA model.
@@ -372,6 +372,12 @@ export function generateSTPANode(
 ): STPANode {
     const nodeId = idCache.uniqueId(node.name.replace(/[.]/g, "_"), node);
     const showHighlights = options.getShowDescriptionsHighlights(); 
+    const label = isContext(node) 
+        ? createUCAContextDescription(node)
+        : options.getShowInlineMarkers() 
+            ? getRawStringInnerFromCst(node)
+            : stripInlineMarkers(getRawStringInnerFromCst(node) ?? "") ?? "";
+            
     // determines the hierarchy level for subcomponents. For other components the value is 0.
     let lvl = 0;
     let container = node.$container;
@@ -386,7 +392,7 @@ export function generateSTPANode(
         node.name,
         options,
         idCache,
-        isContext(node) ? createUCAContextDescription(node) : getRawStringInnerFromCst(node) ?? node.description ?? ""
+        label
     );
     // if the hierarchy option is true, the subcomponents are added as children to the parent
     if (options.getHierarchy() && isHazard(node) && node.subComponents.length !== 0) {
