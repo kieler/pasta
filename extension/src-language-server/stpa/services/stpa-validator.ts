@@ -67,8 +67,11 @@ export class StpaValidator {
     /** Boolean option to toggle the check whether all UCAs are covered by scenarios. */
     checkScenariosForUCAs = true;
 
-    /** Boolean option to toggle the check whether all UCAs are covered by safety requirements. */
+    /** Boolean option to toggle the check whether all scenarios are covered by safety requirements. */
     checkSafetyRequirementsForScenarios = true;
+
+    /** Maps elements that are missing references to their warning messages. */
+    missingReferences: Map<string, string[]> = new Map();
 
     /** Boolean option to toggle the check whether system components are missing feedback in the control structure. */
     checkMissingFeedback = true;
@@ -86,6 +89,7 @@ export class StpaValidator {
      * @param accept
      */
     checkModel(model: Model, accept: ValidationAcceptor): void {
+        this.missingReferences.clear();
         this.checkAllAspectsPresent(model, accept);
         this.checkForTODOs(model, accept);
 
@@ -100,13 +104,14 @@ export class StpaValidator {
         const contexts = model.rules?.map(rule => rule.contexts).flat(1);
 
         // check that all losses are referenced by at least one hazard
-        this.checkThatElementsAreReferenced(model.losses, hazards, "This loss is not referenced by any hazard", accept);
+        this.checkThatElementsAreReferenced(model.losses, hazards, this.missingReferences, "This loss is not referenced by any hazard", accept, );
         // check that all hazards are referenced by at least one system-level constraint
         this.checkThatElementsAreReferenced(
             hazards,
             sysCons,
+            this.missingReferences,
             "This hazard is not referenced by any system-level constraint",
-            accept
+            accept,
         );
         // check that all system-level constraints are referenced by at least one responsibility
 
@@ -114,16 +119,18 @@ export class StpaValidator {
             this.checkThatElementsAreReferenced(
                 sysCons,
                 responsibilities,
+                this.missingReferences,
                 "This system-level constraint is not referenced by any responsibility",
-                accept
+                accept,
             );
         }
         // check that all hazards are referenced by at least one UCA
         this.checkThatElementsAreReferenced(
             hazards,
             [...ucas.map(uca => uca.list), ...contexts.map(context => context.list)],
+            this.missingReferences,
             "This hazard is not referenced by any UCA",
-            accept
+            accept,
         );
 
         // get referenced ucas from the different aspects
@@ -136,10 +143,14 @@ export class StpaValidator {
         const nodesToCheck = [...ucas, ...contexts];
         for (const node of nodesToCheck) {
             if (this.checkConstraintsForUCAs && !constraintsRefs.has(node.name)) {
-                accept("warning", "This element is not referenced by any controller constraint", { node: node, property: "name" });
+                const warning: string = "This element is not referenced by any controller constraint";
+                accept("warning", warning, { node: node, property: "name" });
+                    this.missingReferences.set(node.name, [...(this.missingReferences.get(node.name) ?? []), warning]); 
             }
             if (this.checkScenariosForUCAs && !scenarioRefs.includes(node.name)) {
-                accept("warning", "This element is not referenced by any scenario", { node: node, property: "name" });
+                const warning: string = "This element is not referenced by any scenario";
+                accept("warning", warning, { node: node, property: "name" });
+                    this.missingReferences.set(node.name, [...(this.missingReferences.get(node.name) ?? []), warning]); 
             }
         }
 
@@ -148,8 +159,9 @@ export class StpaValidator {
             this.checkThatElementsAreReferenced(
                 model.scenarios,
                 model.safetyCons,
+                this.missingReferences,
                 "This scenario is not referenced by any safety requirement",
-                accept
+                accept,
             );
         }
 
@@ -173,7 +185,7 @@ export class StpaValidator {
             ...model.allUCAs.map(alluca => alluca.system?.ref?.name + "." + alluca.action?.ref?.name),
             ...model.rules.map(rule => rule.system?.ref?.name + "." + rule.action?.ref?.name),
         ];
-        this.checkControlActionsReferencedByUCA(model.controlStructure?.nodes ?? [], ucaActions, accept);
+        this.checkControlActionsReferencedByUCA(model.controlStructure?.nodes ?? [], ucaActions, this.missingReferences, accept);
         // check UCAs and DCAs
         this.checkUCAsAndDCAs(model, accept);
     }
@@ -183,19 +195,22 @@ export class StpaValidator {
      * If not, a warning is issued.
      * @param elementsThatShouldBeReferenced The elements that should be referenced.
      * @param elementsThatReference The elements that should reference the elements of the first list.
+     * @param missingElementsMap The map to which the missing elements with their warning messages will be added.
      * @param warning The warning message to issue if an element is not referenced.
      * @param accept 
      */
     checkThatElementsAreReferenced(
         elementsThatShouldBeReferenced: elementWithName[],
         elementsThatReference: elementWithRefs[],
+        missingElementsMap: Map<string, string[]>,
         warning: string,
-        accept: ValidationAcceptor
+        accept: ValidationAcceptor,
     ): void {
         const referencedElements = this.collectReferences(elementsThatReference);
         for (const element of elementsThatShouldBeReferenced) {
             if (!referencedElements.has(element.name)) {
                 accept("warning", warning, { node: element, property: "name" });
+                missingElementsMap.set(element.name, [...(missingElementsMap.get(element.name) ?? []), warning]);
             }
         }
     }
@@ -204,26 +219,30 @@ export class StpaValidator {
      * Check whether the control actions of a node are referenced by at least one UCA.
      * @param nodes The nodes to check.
      * @param ucaActions The control actions that are referenced by a UCA.
+     * @param missingElementsMap The map to which the missing elements with their warning messages will be added.
      * @param accept
      */
     protected checkControlActionsReferencedByUCA(
         nodes: Node[],
         ucaActions: string[],
-        accept: ValidationAcceptor
+        missingElementsMap: Map<string, string[]>,
+        accept: ValidationAcceptor,
     ): void {
         nodes.forEach(node => {
             node.actions.forEach(action =>
                 action.comms.forEach(command => {
                     const name = node.name + "." + command.name;
                     if (!ucaActions.includes(name)) {
-                        accept("warning", "This action is not referenced by a UCA", {
+                        const warning: string = "This control action is not referenced by any UCA";
+                        accept("warning", warning, {
                             node: command,
                             property: "name",
                         });
+                        missingElementsMap.set(name, [...(missingElementsMap.get(name) ?? []), warning]);
                     }
                 })
             );
-            this.checkControlActionsReferencedByUCA(node.children, ucaActions, accept);
+            this.checkControlActionsReferencedByUCA(node.children, ucaActions, missingElementsMap, accept);
         });
     }
 

@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
       "types": ["node"],
+      "baseUrl": "./",
       "paths": {
         "langium": ["../node_modules/langium/lib/index.d.ts"],
         "langium/*": ["../node_modules/langium/lib/*/index.d.ts", "../node_modules/langium/lib/*"],
