@@ -30,7 +30,7 @@ Alternatively the textual representation can be entered in the diagram snippets 
 
 ### Context Table
 
-Instead of informal UCA definitions a context table may be used. This is done by using the section `Context-Table` instead of `UCAs`. A context table can then be generated automatically and shown alongside the diagram by selecting `Show Context Tables` in the editor context menu or the corresponding icon right above the editor. Clicking on a UCA in the context table highlights the corresponding node in the diagram and its definition in the editor. In the context table view a control action can be selected in order to inspect it. 
+Instead of informal UCA definitions a context table may be used. This is done by using the section `Context-Table` instead of `UCAs`. A context table can then be generated automatically and shown alongside the diagram by selecting `Show Context Tables` in the editor context menu or the corresponding icon right above the editor. Clicking on a UCA in the context table highlights the corresponding node in the diagram and its definition in the editor. Clicking on the +-Button in the Hazardous? cells adds a new UCA in the editor. In the context table view a control action can be selected in order to inspect it. 
 
 ### Automation through Completion Item
 

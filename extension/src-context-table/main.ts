@@ -24,16 +24,14 @@ import { createHeaderElement, createHeaderRow, createRow, createTable, createTHe
 import {
     addSelector,
     addText,
-    ContextCell,
     convertControlActionsToStrings,
+    getHeadersForType,
     replaceSelector,
 } from "./utils";
-import { ContextTableControlAction, ContextTableRule, ContextTableSystemVariables, ContextTableVariable, ContextTableVariableValues, Row, Type } from './utils-classes';
+import { ContextTableControlAction, ContextTableRule, ContextTableSystemVariables, ContextTableVariable, ContextTableVariableValues, Row, Type, ContextCell } from './utils-classes';
 
-interface vscode {
-    postMessage(message: any): void;
-}
-declare const vscode: vscode;
+declare const vscode: { postMessage(message: any): void };
+
 
 export class ContextTable extends Table {
     /** Ids for the html elements */
@@ -84,6 +82,9 @@ export class ContextTable extends Table {
         });
     }
 
+    protected __mergeListenersInitialized = false;
+
+    // communication between extension host -> webview
     protected handleMessages(message: any): void {
         const action = message.data.action;
         if (action) {
@@ -116,6 +117,7 @@ export class ContextTable extends Table {
         if (table) {
             const newTable = createTable(this.tableId);
             patch(table, newTable);
+            this.mergeNoCellsVisuals(document.getElementById(this.tableId) as HTMLTableElement);
         }
     }
 
@@ -258,15 +260,7 @@ export class ContextTable extends Table {
             headers.push(header);
         });
         // hazardous sub-options, which depend on the selected action type
-        let times: string[] = [];
-        switch (this.selectedType) {
-            case Type.PROVIDED:
-                times = ["Anytime", "Too Early / Too Late", "Stopped Too Soon / Applied Too Long"];
-                break;
-            case Type.BOTH:
-                times = ["Anytime", "Too Early / Too Late", "Stopped Too Soon / Applied Too Long", "Never"];
-                break;
-        }
+        const times: string[] = getHeadersForType(this.selectedType);
         times.forEach(time => {
             const header = createHeaderElement(time, this.stickValue);
             headers.push(header);
@@ -312,6 +306,25 @@ export class ContextTable extends Table {
             } else {
                 // table is empty
                 this.addRow(table, { variables: [], results: [] }, "empty-table");
+            }
+            this.mergeNoCellsVisuals(table);
+
+            // initialize one-time listeners to keep overlays synced on viewport changes
+            if (!this.__mergeListenersInitialized) {
+                // window resize
+                window.addEventListener("resize", () => {
+                    const t = document.getElementById(this.tableId) as HTMLTableElement | null;
+                    if (t) {
+                        this.mergeNoCellsVisuals(t);
+                    }
+                }, { passive: true });
+
+                const container = table.parentElement as HTMLElement | null;
+                if (container) {
+                    container.addEventListener("scroll", () => this.mergeNoCellsVisuals(table), { passive: true });
+                }
+
+                this.__mergeListenersInitialized = true;
             }
         }
     }
@@ -380,7 +393,7 @@ export class ContextTable extends Table {
         if (row.variables.length > 0) {
             // values of the context variables
             cells = row.variables.map(variable => {
-                return { cssClass: "context-variable", value: variable.value, colSpan: 1 };
+                return { cssClass: "context-variable", value: variable.value, colSpan: 1};
             });
             // append the result cells
             cells = cells.concat(createResults(row.results));
@@ -398,12 +411,82 @@ export class ContextTable extends Table {
                     colSpan = 4;
                     break;
             }
-            cells.push({ cssClass: "result", value: "No", colSpan: colSpan });
+
+            // Create one cell per result column. To visually merge them -> 'result-no' class.
+            for (let k = 0; k < colSpan; k++) {
+                const posClass =  colSpan === 1 ? 'result-no-start-end' : ((k === 0) ? "result-no-start" : ((k === colSpan - 1) ? 'result-no-end' : 'result-no-mid'));
+                cells.push({
+                    cssClass: posClass,
+                    value: "No",
+                    colSpan: 1
+                });
+            }
         }
 
         // create the row
-        const htmlRow = createRow(id, cells);
+        const htmlRow = createRow(id, cells, this.currentVariables, this.selectedControlAction, this.selectedType);
         patch(placeholderRow, htmlRow);
+    }
+
+     /**
+     * Function that visually merges contiguous result-no cells by creating one absolutely-positioned overlay element 
+     * that displays a single centered "No"
+     * @param table The context table element
+     */
+    protected mergeNoCellsVisuals(table: HTMLTableElement): void {
+        const container = table.parentElement as HTMLElement;
+        if (!container) {return;}
+        if (getComputedStyle(container).position === 'static') {container.style.position = 'relative';}
+
+        // remove previous overlays
+        container.querySelectorAll('.result-no-overlay').forEach(o => o.remove());
+
+        // clear any previous inline color on result-no cells
+        table.querySelectorAll('td').forEach(td => {
+            const cls = td.className || '';
+            if (cls.startsWith('result-no')) {
+                (td as HTMLElement).style.color = '';
+            }
+        });
+
+        // iterate only run starts 
+        const starts = table.querySelectorAll('td.result-no-start, td.result-no-start-end');
+        starts.forEach(startCell => {
+            const row = startCell.parentElement as HTMLTableRowElement;
+            let lastCell: Element = startCell;
+            const runCells: HTMLElement[] = [startCell as HTMLElement];
+
+            let next = startCell.nextElementSibling;
+            while (next && (next as HTMLElement).className && (next as HTMLElement).className.startsWith('result-no')) {
+                runCells.push(next as HTMLElement);
+                lastCell = next;
+                next = next.nextElementSibling;
+            }
+
+            // hide underlying visible text for the run
+            runCells.forEach(td => (td as HTMLElement).style.color = 'transparent');
+
+            // measure using offset positions relative to the container 
+            const firstOffsetLeft = (startCell as HTMLElement).offsetLeft;
+            const firstHeight = (startCell as HTMLElement).offsetHeight;
+            const lastRight = (lastCell as HTMLElement).offsetLeft + (lastCell as HTMLElement).offsetWidth;
+            const width = lastRight - firstOffsetLeft;
+            const height = firstHeight;
+            const left = firstOffsetLeft;
+            const top = (row.firstElementChild as HTMLElement).offsetTop;
+
+            const overlay = document.createElement('div');
+            overlay.className = 'result-no-overlay';
+            overlay.style.position = 'absolute';
+            overlay.style.left = `${left}px`;
+            overlay.style.top = `${top}px`;
+            overlay.style.width = `${width}px`;
+            overlay.style.height = `${height}px`;
+            overlay.style.pointerEvents = 'none';
+            overlay.style.zIndex = '1';
+            overlay.innerText = 'No';
+            container.appendChild(overlay);
+        });
     }
 
     /**

@@ -1,5 +1,13 @@
 {
   "compilerOptions": {
+      "types": ["node"],
+      "baseUrl": "./",
+      "paths": {
+        "langium": ["../node_modules/langium/lib/index.d.ts"],
+        "langium/*": ["../node_modules/langium/lib/*/index.d.ts", "../node_modules/langium/lib/*"],
+        "langium-sprotty": ["../node_modules/langium-sprotty/lib/index.d.ts"],
+        "langium-sprotty/*": ["../node_modules/langium-sprotty/lib/*/index.d.ts", "../node_modules/langium-sprotty/lib/*"]
+      },
       "outDir": "pack",
       "sourceMap": true,
       "strict": true, // enable all strict type-checking options

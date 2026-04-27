@@ -15,10 +15,9 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-import { ContextCell } from "./utils";
-import { ContextTableRule, ContextTableVariable, Type } from "./utils-classes";
+import { getColumnIndexForRule } from "./utils";
+import { ContextTableRule, ContextTableVariable, Type, ContextCell } from "./utils-classes";
 
-/**
 /**
  * Determines the used rules of {@code rules} and for which column they apply.
  * @param variables The variable values of the current row.
@@ -36,50 +35,30 @@ export function determineUsedRules(
     selectedType: number
 ): ContextTableRule[][] {
     // keeps track of the used rules, whereby the index determines the column
-    let usedRules: ContextTableRule[][] = [[], [], [], []];
-    switch (selectedType) {
-        case Type.NOT_PROVIDED:
-            usedRules = [[]];
-            break;
-        case Type.PROVIDED:
-            usedRules = [[], [], []];
-            break;
-        case Type.BOTH:
-            usedRules = [[], [], [], []];
-            break;
-        default:
-            console.log("Something went wrong. An undefined control action type is selected.");
-    }
-    // determine the used rules
+    // Initialize array based on selectedType
+    const numColumns = selectedType === Type.NOT_PROVIDED ? 1 
+                    : selectedType === Type.PROVIDED ? 3 
+                    : 4; 
+
+    const usedRules: ContextTableRule[][] = Array.from({ length: numColumns }, () => []);
+
+    // Determine the used rules
     rules.forEach(rule => {
-        // compare control action of the rule with the selected one and
+        // Compare control action of the rule with the selected one and
         // the context of the rule with the current context
         if (
             rule.controlAction.controller === selectedController &&
             rule.controlAction.action === selectedAction &&
             checkValues(rule.variables, variables)
         ) {
-            // determine the column for which the rule applies
-            const ruleType = rule.type.toLowerCase();
-            if (selectedType === Type.NOT_PROVIDED && ruleType === "not-provided") {
-                usedRules[0].push(rule);
-            } else if (selectedType !== Type.NOT_PROVIDED && ruleType === "provided") {
-                usedRules[0].push(rule);
-            } else if (
-                selectedType !== Type.NOT_PROVIDED &&
-                (ruleType === "too-early" || ruleType === "too-late" || ruleType === "wrong-time")
-            ) {
-                usedRules[1].push(rule);
-            } else if (
-                selectedType !== Type.NOT_PROVIDED &&
-                (ruleType === "stopped-too-soon" || ruleType === "applied-too-long")
-            ) {
-                usedRules[2].push(rule);
-            } else if (selectedType === Type.BOTH && ruleType === "not-provided") {
-                usedRules[3].push(rule);
+            // Get the column index for this rule
+            const columnIndex = getColumnIndexForRule(rule, selectedType);
+            if (columnIndex !== null && columnIndex < usedRules.length) {
+                usedRules[columnIndex].push(rule);
             }
         }
     });
+
     return usedRules;
 }
 
@@ -90,32 +69,33 @@ export function determineUsedRules(
  */
 export function createResults(results: { hazards: string[]; rules: ContextTableRule[] }[]): ContextCell[] {
     const cells: ContextCell[] = [];
-    // keeps track on how many neihbouring columns have no rule applied
-    let noAppliedRuleCounter: number = 0;
-    // go through all of the hazardous columns
-    for (let hazardColumn = 0; hazardColumn < results.length; hazardColumn++) {
-        if (results[hazardColumn].rules.length === 0) {
-            // there is no rule for this column
-            noAppliedRuleCounter++;
-            if (hazardColumn + 1 === results.length) {
-                // its the last column so we can fill the missing columns with a cell containing the value "No"
-                cells.push({ cssClass: "result", value: "No", colSpan: noAppliedRuleCounter });
-            }
-        } else {
-            // it may be that previous columns had no rule
-            // in this case a cell with value "No" must be created that covers these columns
-            if (noAppliedRuleCounter !== 0) {
-                cells.push({ cssClass: "result", value: "No", colSpan: noAppliedRuleCounter });
-                noAppliedRuleCounter = 0;
-            }
-            const ucas = results[hazardColumn].rules.map(rule => rule.id);
-            // add the hazards, defined by the rule, as a cell
+    const len = results.length;
+    let i = 0;
+
+    while (i < len) {
+        if (results[i].rules.length !== 0) {
+            const ucas = results[i].rules.map(rule => rule.id);
             cells.push({
                 cssClass: "result",
                 value: ucas.toString(),
                 colSpan: 1,
-                title: results[hazardColumn].hazards.toString(),
+                title: results[i].hazards.toString()
             });
+            i++;
+        } else {
+            // start of an empty run
+            let j = i + 1;
+            while (j < len && results[j].rules.length === 0) {j++;}
+            const runLength = j - i;
+            for (let k = 0; k < runLength; k++) {
+                const posClass = runLength === 1 ? 'result-no-start-end' : ((k === 0) ? "result-no-start" : ((k === runLength - 1) ? 'result-no-end' : 'result-no-mid'));
+                cells.push({
+                    cssClass: posClass,
+                    value: '',
+                    colSpan: 1
+                });
+            }
+            i = j;
         }
     }
     return cells;

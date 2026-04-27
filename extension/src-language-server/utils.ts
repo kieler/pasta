@@ -112,7 +112,7 @@ export function getDescription(
  * @param validator The STPA validator.
  */
 export function updateValidationChecks(options: Record<string, any>, validator: StpaValidator): void {
-    // TODO: save options alos in record and use them in the validator
+    // TODO: save options also in record and use them in the validator
     // set options if they are set
     Object.entries(options).forEach(([key, value]) => {
         switch (key) {

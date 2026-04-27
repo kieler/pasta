@@ -218,10 +218,10 @@ function registerSTPACommands(
         vscode.commands.registerCommand(
             options.extensionPrefix + ".contextTable.open",
             async (...commandArgs: any[]) => {
-                manager.createContextTable(context);
+                const uri = (commandArgs[0] as vscode.Uri);
+                manager.createContextTable(context, uri);
                 await manager.contextTable.ready();
-                const uri = (commandArgs[0] as vscode.Uri).toString();
-                languageClient.sendNotification("contextTable/getData", uri);
+                languageClient.sendNotification("contextTable/getData", uri.toString());
             }
         )
     );

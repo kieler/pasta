@@ -49,6 +49,7 @@ import {
  * @param idToSNode The map of the generated IDs to their generated SNodes.
  * @param options The synthesis options of the STPA model.
  * @param idCache The ID cache of the STPA model.
+ * @param missingReferences The Map of elements with missing references with their warning messages.
  * @param highlightedIDs [optional] List of node and edge IDs that are currently highlighted
  * @returns the relationship graph for the STPA model.
  */
@@ -58,9 +59,10 @@ export function createRelationshipGraph(
     idToSNode: Map<string, SNode>,
     options: StpaSynthesisOptions,
     idCache: IdCache<AstNode>,
-    highlightedIDs?: string[]
+    missingReferences: Map<string, string[]>,
+    highlightedIDs?: string[],
 ): ParentNode {
-    const children = createRelationshipGraphChildren(filteredModel, model, idToSNode, options, idCache, highlightedIDs);
+    const children = createRelationshipGraphChildren(filteredModel, model, idToSNode, options, idCache, missingReferences, highlightedIDs);
 
     // filtering the nodes of the STPA graph
     const stpaNodes: STPANode[] = [];
@@ -89,6 +91,7 @@ export function createRelationshipGraph(
  * @param idToSNode The map of the generated IDs to their generated SNodes.
  * @param options The synthesis options of the STPA model.
  * @param idCache The ID cache of the STPA model.
+ * @param missingReferences The Map of elements with missing references with their warning messages.
  * @param highlightedIDs [optional] List of node and edge IDs that are currently highlighted
  * @returns the children of the relationship graph.
  */
@@ -98,7 +101,8 @@ export function createRelationshipGraphChildren(
     idToSNode: Map<string, SNode>,
     options: StpaSynthesisOptions,
     idCache: IdCache<AstNode>,
-    highlightedIDs?: string[]
+    missingReferences: Map<string, string[]>,
+    highlightedIDs?: string[],
 ): SModelElement[] {
     const showDescriptions = options.getshowDescriptions();
     const labelManagement = options.getLabelManagement();
@@ -109,7 +113,7 @@ export function createRelationshipGraphChildren(
     // in order to be able to set the target IDs of the edges, the nodes must be created in the correct order
     const showLossLabel = showDescriptionOfAspect(STPAAspect.LOSS, aspectsToShowDescriptions, showDescriptions, labelManagement);
     let stpaChildren: SModelElement[] = filteredModel.losses?.map(l =>
-        generateSTPANode(l, showLossLabel, idToSNode, options, idCache, highlightedIDs)
+        generateSTPANode(l, showLossLabel, idToSNode, options, idCache, missingReferences, highlightedIDs)
     );
     const showHazardDescription = showDescriptionOfAspect(
         STPAAspect.HAZARD,
@@ -130,7 +134,7 @@ export function createRelationshipGraphChildren(
         const sysCons = collectElementsWithSubComps(filteredModel.systemLevelConstraints);
         stpaChildren = stpaChildren?.concat([
             ...hazards
-                .map(hazard => generateAspectWithEdges(hazard, showHazardDescription, idToSNode, options, idCache, highlightedIDs))
+                .map(hazard => generateAspectWithEdges(hazard, showHazardDescription, idToSNode, options, idCache, missingReferences, highlightedIDs))
                 .flat(1),
             ...sysCons
                 .map(systemConstraint =>
@@ -140,6 +144,7 @@ export function createRelationshipGraphChildren(
                         idToSNode,
                         options,
                         idCache,
+                        missingReferences,
                         highlightedIDs
                     )
                 )
@@ -149,7 +154,7 @@ export function createRelationshipGraphChildren(
         // subcomponents are contained in the parent
         stpaChildren = stpaChildren?.concat([
             ...filteredModel.hazards
-                ?.map(hazard => generateAspectWithEdges(hazard, showHazardDescription, idToSNode, options, idCache, highlightedIDs))
+                ?.map(hazard => generateAspectWithEdges(hazard, showHazardDescription, idToSNode, options, idCache, missingReferences, highlightedIDs))
                 .flat(1),
             ...filteredModel.systemLevelConstraints
                 ?.map(systemConstraint =>
@@ -159,7 +164,8 @@ export function createRelationshipGraphChildren(
                         idToSNode,
                         options,
                         idCache,
-                        highlightedIDs
+                        missingReferences,
+                        highlightedIDs,
                     )
                 )
                 .flat(1),
@@ -206,7 +212,7 @@ export function createRelationshipGraphChildren(
         ...filteredModel.responsibilities
             ?.map(r =>
                 r.responsiblitiesForOneSystem.map(resp =>
-                    generateAspectWithEdges(resp, showResponsibilitiesDescription, idToSNode, options, idCache, highlightedIDs)
+                    generateAspectWithEdges(resp, showResponsibilitiesDescription, idToSNode, options, idCache, missingReferences, highlightedIDs)
                 )
             )
             .flat(2),
@@ -214,24 +220,24 @@ export function createRelationshipGraphChildren(
             ?.map(sysUCA =>
                 sysUCA.providingUcas
                     .concat(sysUCA.notProvidingUcas, sysUCA.wrongTimingUcas, sysUCA.continousUcas)
-                    .map(uca => generateAspectWithEdges(uca, showUCAsDescription, idToSNode, options, idCache, highlightedIDs))
+                    .map(uca => generateAspectWithEdges(uca, showUCAsDescription, idToSNode, options, idCache, missingReferences, highlightedIDs))
             )
             .flat(2),
         ...filteredModel.rules
             ?.map(rule =>
                 rule.contexts.map(context =>
-                    generateAspectWithEdges(context, showUCAsDescription, idToSNode, options, idCache, highlightedIDs)
+                    generateAspectWithEdges(context, showUCAsDescription, idToSNode, options, idCache, missingReferences, highlightedIDs)
                 )
             )
             .flat(2),
         ...filteredModel.controllerConstraints
-            ?.map(c => generateAspectWithEdges(c, showControllerConstraintDescription, idToSNode, options, idCache, highlightedIDs))
+            ?.map(c => generateAspectWithEdges(c, showControllerConstraintDescription, idToSNode, options, idCache, missingReferences, highlightedIDs))
             .flat(1),
         ...filteredModel.scenarios
-            ?.map(s => generateAspectWithEdges(s, showScenarioDescription, idToSNode, options, idCache, highlightedIDs))
+            ?.map(s => generateAspectWithEdges(s, showScenarioDescription, idToSNode, options, idCache, missingReferences, highlightedIDs))
             .flat(1),
         ...filteredModel.safetyCons
-            ?.map(sr => generateAspectWithEdges(sr, showSafetyConsDescription, idToSNode, options, idCache, highlightedIDs))
+            ?.map(sr => generateAspectWithEdges(sr, showSafetyConsDescription, idToSNode, options, idCache, missingReferences, highlightedIDs))
             .flat(1),
     ]);
     return stpaChildren;
@@ -310,6 +316,7 @@ function showDescriptionOfAspect(
  * Generates a node and the edges for the given {@code node}.
  * @param node STPA component for which a node and edges should be generated.
  * @param idCache The ID cache of the STPA model.
+ * @param missingReferences The Map of elements with missing references with their warning messages.
  * @param highlightedIDs [optional] List of node and edge IDs that are currently highlighted
  * @returns A node representing {@code node} and edges representing the references {@code node} contains.
  */
@@ -319,10 +326,11 @@ export function generateAspectWithEdges(
     idToSNode: Map<string, SNode>,
     options: StpaSynthesisOptions,
     idCache: IdCache<AstNode>,
-    highlightedIDs?: string[]
+    missingReferences: Map<string, string[]>,
+    highlightedIDs?: string[],
 ): SModelElement[] {
     // node must be created first in order to access the id when creating the edges
-    const stpaNode = generateSTPANode(node, showDescription, idToSNode, options, idCache, highlightedIDs);
+    const stpaNode = generateSTPANode(node, showDescription, idToSNode, options, idCache, missingReferences, highlightedIDs);
     // uca nodes need to save their control action in order to be able to group them by the actions
     if ((isUCA(node) || isContext(node)) && node.$container.system.ref) {
         stpaNode.controlAction = node.$container.system.ref.name + "." + node.$container.action.ref?.name;
@@ -348,6 +356,7 @@ export function generateAspectWithEdges(
  * Generates a single STPANode for the given {@code node}.
  * @param node The STPA component the node should be created for.
  * @param idCache The ID cache of the STPA model.
+ * @param missingReferences The Map of elements with missing references with their warning messages.
  * @param highlightedIDs [optional] List of node and edge IDs that are currently highlighted
  * @returns A STPANode representing {@code node}.
  */
@@ -357,7 +366,8 @@ export function generateSTPANode(
     idToSNode: Map<string, SNode>,
     options: StpaSynthesisOptions,
     idCache: IdCache<AstNode>,
-    highlightedIDs?: string[]
+    missingReferences: Map<string, string[]>,
+    highlightedIDs?: string[],
 ): STPANode {
     const nodeId = idCache.uniqueId(node.name.replace(/[.]/g, "_"), node);
     const showHighlights = options.getShowDescriptionsHighlights(); 
@@ -381,25 +391,27 @@ export function generateSTPANode(
     if (options.getHierarchy() && isHazard(node) && node.subComponents.length !== 0) {
         // adds subhazards
         children = children.concat(
-            node.subComponents?.map((sc: Hazard) => generateSTPANode(sc, showDescription, idToSNode, options, idCache, highlightedIDs))
+            node.subComponents?.map((sc: Hazard) => generateSTPANode(sc, showDescription, idToSNode, options, idCache, missingReferences, highlightedIDs))
         );
     }
     if (options.getHierarchy() && isSystemConstraint(node) && node.subComponents.length !== 0) {
         // adds subconstraints
         children = children.concat(
             node.subComponents?.map((sc: SystemConstraint) =>
-                generateSTPANode(sc, showDescription, idToSNode, options, idCache, highlightedIDs)
+                generateSTPANode(sc, showDescription, idToSNode, options, idCache, missingReferences, highlightedIDs)
             )
         );
     }
 
     if (isContext(node)) {
         // context UCAs have no description
-        const result = createSTPANode(node, nodeId, lvl, "", children, options);
+        const extra: string[] | undefined = missingReferences?.has(node.name) ? missingReferences.get(node.name)! : undefined;
+        const result = createSTPANode(node, nodeId, lvl, "", children, options, extra);
         idToSNode.set(nodeId, result);
         return result;
     } else {
-        const result = createSTPANode(node, nodeId, lvl, node.description, children, options);
+        const extra: string[] | undefined = missingReferences?.has(node.name) ? missingReferences.get(node.name)! : undefined;
+        const result = createSTPANode(node, nodeId, lvl, node.description, children, options, extra);
         idToSNode.set(nodeId, result);
         return result;
     }

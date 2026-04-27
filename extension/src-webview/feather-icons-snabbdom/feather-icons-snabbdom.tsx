@@ -32,6 +32,7 @@ export function FeatherIcon(props: { iconId: string }): VNode {
   // be necessary anyways.
   const classes: Record<string, boolean> = {"feather": true};
   classes[`feather-${props.iconId}`] = true;
+  const icon = icons[props.iconId as keyof typeof icons];
 
   return <svg 
     style={{
@@ -44,6 +45,6 @@ export function FeatherIcon(props: { iconId: string }): VNode {
       strokeLinejoin: 'round'
     }}
     class={classes}
-    props={{innerHTML: icons[props.iconId].toString()}}
+    props={{innerHTML: icon ? icon.toString() : ""}}
   />;
 }

@@ -42,11 +42,15 @@ export class StpaLspVscodeExtension extends LspWebviewPanelManager {
     readonly storage: StorageService;
 
     protected extensionPrefix: string;
+    private readonly DIAGRAM_INITIALIZATION_DELAY_MS: number = 100; // Time in ms for server to initialize diagram
+    private readonly WEBVIEW_READY_RETRY_DELAY_MS: number = 300;
+    private readonly WEBVIEW_READY_MAX_RETRIES: number = 10;
 
     public contextTable: ContextTablePanel;
     /** Saves the last selected UCA in the context table. */
     protected lastSelectedUCA: string[];
     clientId: string | undefined;
+    protected contextTableClientId?: string;
 
     protected resolveLSReady: () => void;
     readonly lsReady = new Promise<void>(resolve => (this.resolveLSReady = resolve));
@@ -187,7 +191,7 @@ export class StpaLspVscodeExtension extends LspWebviewPanelManager {
         }
     }
 
-    createContextTable(context: vscode.ExtensionContext): void {
+    createContextTable(context: vscode.ExtensionContext, uri: vscode.Uri): void {
         const extensionPath = this.options.extensionUri.fsPath;
         const tablePanel = new ContextTablePanel(
             "Context-Table",
@@ -196,6 +200,34 @@ export class StpaLspVscodeExtension extends LspWebviewPanelManager {
             createFileUri(extensionPath, "pack", "src-context-table", "main.css")
         );
         this.contextTable = tablePanel;
+
+        // Forward incoming messages posted by the context-table webview to the language server
+        const attachContextTableForwarder = (panel: any, retryCount = 0): void => {
+            if (panel && panel.webview) {
+                panel.webview.onDidReceiveMessage(async (message: any) => {
+                    const payload = message?.addRule ?? message?.action;
+                    if (!payload) 
+                        {
+                            return;
+                        }
+
+                    this.languageClient.sendNotification("contextTable/addRule", {
+                        sourceUri: uri.toString(),
+                        type: payload.type,
+                        controlAction: payload.controlAction,
+                        varMap: payload.varMap
+                    });
+                });
+            } else if (retryCount < this.WEBVIEW_READY_MAX_RETRIES) {
+                setTimeout(
+                    () => attachContextTableForwarder(panel, retryCount + 1),
+                    this.WEBVIEW_READY_RETRY_DELAY_MS
+                );
+            } else {
+                console.error("Context table webview failed to initialize after maximum retries");
+            }
+        };
+        attachContextTableForwarder(this.contextTable);
 
         // adds listener for mouse click on a cell
         context.subscriptions.push(

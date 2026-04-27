@@ -54,7 +54,7 @@ import { StpaServices } from "./stpa/stpa-module.js";
 import { SynthesisOptions } from "./synthesis-options.js";
 
 // matches id of a node to its expansion state. True means expanded, false and undefined means collapsed
-export let expansionState = new Map<string, boolean>();
+export const expansionState = new Map<string, boolean>();
 
 export class PastaDiagramServer extends SnippetDiagramServer {
     protected synthesisOptions: SynthesisOptions | undefined;
