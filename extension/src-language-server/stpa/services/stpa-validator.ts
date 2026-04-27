@@ -77,6 +77,10 @@ export class StpaValidator {
     checkMissingFeedback = true;
 
     checkForConflictingUCAs = true;
+    
+    // TODO: user should be able to toggle this check
+    /** Boolean option to toggle the check whether there is only one action to send in each context. */
+    checkForSingleAction = false;
 
     /**
      * Map from node ID to a list of nodes to which a feedback is missing.
@@ -284,6 +288,11 @@ export class StpaValidator {
         }
         // check for conflicts between UCAs and DCAs
         this.checkForConflictsBetweenUCAsAndDCAs(model.rules, model.allDCAs, accept);
+
+        if (this.checkForSingleAction) {
+            // check that in each context only one action should be provided, otherwise the generated statechart sbm does not work
+            this.checkSingleAction(model.rules, model.allDCAs, accept);
+        }
     }
 
     /**
@@ -358,6 +367,85 @@ export class StpaValidator {
     }
 
     /**
+     * Validates that only one action is provided in each context.
+     * When multiple actions should be provided in the same context, the generated statechart SBM does not work.
+     * @param ucas The UCAs to check.
+     * @param dcas The DCAs to check.
+     * @param accept
+     */
+    protected checkSingleAction(ucas: Rule[], dcas: DCARule[], accept: ValidationAcceptor): void {
+        // check the UCAs among each other
+        for (let i = 0; i < ucas.length; i++) {
+            const uca = ucas[i];
+            for (let j = i + 1; j < ucas.length; j++) {
+                const otherUca = ucas[j];
+                // can only violate the single action constraint if they have different control actions and state that they should be provided
+                const uca1Type = uca.type === UCA_TYPE.PROVIDED ? UCA_TYPE.PROVIDED : UCA_TYPE.NOT_PROVIDED;
+                const uca2Type = otherUca.type === UCA_TYPE.PROVIDED ? UCA_TYPE.PROVIDED : UCA_TYPE.NOT_PROVIDED;
+                const uca1Action = uca.system?.$refText + "." + uca.action?.$refText;
+                const uca2Action = otherUca.system?.$refText + "." + otherUca.action?.$refText;
+                if (uca1Action !== uca2Action && uca1Type === UCA_TYPE.NOT_PROVIDED && uca2Type === UCA_TYPE.NOT_PROVIDED) {
+                    for (const context of otherUca.contexts) {
+                        for (const otherContext of uca.contexts) {
+                            // if they both state that the action must be sent and have same context for different control actions, they violate the constraint
+                            if (this.isSameContext(context, otherContext)) {
+                                accept("warning", "Violates single action constraint, see " + uca.name + " " + otherContext.name, {
+                                    node: context,
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // check the DCAs among each other
+        for (let i = 0; i < dcas.length; i++) {
+            const dca = dcas[i];
+            for (let j = i + 1; j < dcas.length; j++) {
+                const otherDca = dcas[j];
+                // can only violate the single action constraint if they have different control actions and state that they should be provided
+                const dca1Action = dca.system?.$refText + "." + dca.action?.$refText;
+                const dca2Action = otherDca.system?.$refText + "." + otherDca.action?.$refText;
+                if (dca1Action !== dca2Action && dca.type === UCA_TYPE.PROVIDED && otherDca.type === UCA_TYPE.PROVIDED) {
+                    for (const context of otherDca.contexts) {
+                        for (const otherContext of dca.contexts) {
+                            // if they both state that the action must be sent and have same context for different control actions, they violate the constraint
+                            if (this.isSameContext(context, otherContext)) {
+                                accept("warning", "Violates single action constraint, see " + dca.name + " " + otherContext.name, {
+                                    node: context,
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // check the UCAs against the DCAs, as a DCA of type provided also provides an action and can therefore conflict with a UCA of type not provided
+        for (const dca of dcas) {
+            for (const uca of ucas) {
+                // can only violate the single action constraint if they have different control actions and state that they should be provided
+                const ucaType = uca.type === UCA_TYPE.PROVIDED ? UCA_TYPE.PROVIDED : UCA_TYPE.NOT_PROVIDED;
+                const dcaAction = dca.system?.$refText + "." + dca.action?.$refText;
+                const ucaAction = uca.system?.$refText + "." + uca.action?.$refText;
+                if (dcaAction !== ucaAction && dca.type === UCA_TYPE.PROVIDED && ucaType === UCA_TYPE.NOT_PROVIDED) {
+                    for (const context of dca.contexts) {
+                        for (const otherContext of uca.contexts) {
+                            // if they both state that the action must be sent and have same context for different control actions, they violate the constraint
+                            if (this.isSameContext(context, otherContext)) {
+                                accept("warning", "Violates single action constraint, see " + uca.name + " " + otherContext.name, {
+                                    node: context,
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Validates that there are no conflicts between UCAs and DCAs.
      * A DCA is not allowed to have the same type and context as a UCA.
      * @param ucas The UCAs to check.
@@ -401,7 +489,7 @@ export class StpaValidator {
                 v => v.variable.$refText === context1.assignedValues[i].variable.$refText
             );
             if (
-                varIndex === -1 ||
+                varIndex !== -1 &&
                 context2.assignedValues[varIndex].value.$refText !== context1.assignedValues[i].value.$refText
             ) {
                 isSame = false;
@@ -416,7 +504,7 @@ export class StpaValidator {
                     v => v.variable.$refText === context2.assignedValues[i].variable.$refText
                 );
                 if (
-                    varIndex === -1 ||
+                    varIndex !== -1 &&
                     context1.assignedValues[varIndex].value.$refText !== context2.assignedValues[i].value.$refText
                 ) {
                     isSame = false;
