@@ -70,8 +70,11 @@ export class StpaValidator {
     /** Boolean option to toggle the check whether all scenarios are covered by safety requirements. */
     checkSafetyRequirementsForScenarios = true;
 
-    /** Maps elements that are missing references to their warning messages. */
-    missingReferences: Map<string, string[]> = new Map();
+    /** Maps the document to a map of elements that are missing references to their warning messages. */
+    missingReferencesByUri: Map<string, Map<string, string[]>> = new Map();
+
+    /** The URI of the document that is currently validated. Needed for the missingReferences map. */
+    docUri: string = "";
 
     /** Boolean option to toggle the check whether system components are missing feedback in the control structure. */
     checkMissingFeedback = true;
@@ -79,9 +82,9 @@ export class StpaValidator {
     checkForConflictingUCAs = true;
 
     /**
-     * Map from node ID to a list of nodes to which a feedback is missing.
+     * Maps the document to a map of elements of node ID that maps to a list of nodes to which a feedback is missing.
      */
-    missingFeedback: Map<string, Node[]> = new Map();
+    missingFeedbackByUri: Map<string, Map<string, Node[]>> = new Map();
 
     /**
      * Executes validation checks for the whole model.
@@ -89,7 +92,15 @@ export class StpaValidator {
      * @param accept
      */
     checkModel(model: Model, accept: ValidationAcceptor): void {
-        this.missingReferences.clear();
+        this.docUri = model.$document?.uri?.toString() ?? "";
+        if (this.docUri) {
+            if (!this.missingReferencesByUri.has(this.docUri)) {
+                this.missingReferencesByUri.set(this.docUri, new Map<string, string[]>());
+            } else {
+                this.missingReferencesByUri.get(this.docUri)?.clear();
+            }
+        }
+
         this.checkAllAspectsPresent(model, accept);
         this.checkForTODOs(model, accept);
 
@@ -104,12 +115,12 @@ export class StpaValidator {
         const contexts = model.rules?.map(rule => rule.contexts).flat(1);
 
         // check that all losses are referenced by at least one hazard
-        this.checkThatElementsAreReferenced(model.losses, hazards, this.missingReferences, "This loss is not referenced by any hazard", accept, );
+        this.checkThatElementsAreReferenced(model.losses, hazards, this.missingReferencesByUri, "This loss is not referenced by any hazard", accept, );
         // check that all hazards are referenced by at least one system-level constraint
         this.checkThatElementsAreReferenced(
             hazards,
             sysCons,
-            this.missingReferences,
+            this.missingReferencesByUri,
             "This hazard is not referenced by any system-level constraint",
             accept,
         );
@@ -119,7 +130,7 @@ export class StpaValidator {
             this.checkThatElementsAreReferenced(
                 sysCons,
                 responsibilities,
-                this.missingReferences,
+                this.missingReferencesByUri,
                 "This system-level constraint is not referenced by any responsibility",
                 accept,
             );
@@ -128,7 +139,7 @@ export class StpaValidator {
         this.checkThatElementsAreReferenced(
             hazards,
             [...ucas.map(uca => uca.list), ...contexts.map(context => context.list)],
-            this.missingReferences,
+            this.missingReferencesByUri,
             "This hazard is not referenced by any UCA",
             accept,
         );
@@ -145,12 +156,12 @@ export class StpaValidator {
             if (this.checkConstraintsForUCAs && !constraintsRefs.has(node.name)) {
                 const warning: string = "This element is not referenced by any controller constraint";
                 accept("warning", warning, { node: node, property: "name" });
-                    this.missingReferences.set(node.name, [...(this.missingReferences.get(node.name) ?? []), warning]); 
+                    this.missingReferencesByUri.get(this.docUri)?.set(node.name, [...(this.missingReferencesByUri.get(this.docUri)?.get(node.name) ?? []), warning]);
             }
             if (this.checkScenariosForUCAs && !scenarioRefs.includes(node.name)) {
                 const warning: string = "This element is not referenced by any scenario";
                 accept("warning", warning, { node: node, property: "name" });
-                    this.missingReferences.set(node.name, [...(this.missingReferences.get(node.name) ?? []), warning]); 
+                    this.missingReferencesByUri.get(this.docUri)?.set(node.name, [...(this.missingReferencesByUri.get(this.docUri)?.get(node.name) ?? []), warning]);
             }
         }
 
@@ -159,7 +170,7 @@ export class StpaValidator {
             this.checkThatElementsAreReferenced(
                 model.scenarios,
                 model.safetyCons,
-                this.missingReferences,
+                this.missingReferencesByUri,
                 "This scenario is not referenced by any safety requirement",
                 accept,
             );
@@ -185,7 +196,7 @@ export class StpaValidator {
             ...model.allUCAs.map(alluca => alluca.system?.ref?.name + "." + alluca.action?.ref?.name),
             ...model.rules.map(rule => rule.system?.ref?.name + "." + rule.action?.ref?.name),
         ];
-        this.checkControlActionsReferencedByUCA(model.controlStructure?.nodes ?? [], ucaActions, this.missingReferences, accept);
+        this.checkControlActionsReferencedByUCA(model.controlStructure?.nodes ?? [], ucaActions, this.missingReferencesByUri, accept);
         // check UCAs and DCAs
         this.checkUCAsAndDCAs(model, accept);
     }
@@ -202,7 +213,7 @@ export class StpaValidator {
     checkThatElementsAreReferenced(
         elementsThatShouldBeReferenced: elementWithName[],
         elementsThatReference: elementWithRefs[],
-        missingElementsMap: Map<string, string[]>,
+        missingElementsMap: Map<string, Map<string, string[]>>,
         warning: string,
         accept: ValidationAcceptor,
     ): void {
@@ -210,7 +221,7 @@ export class StpaValidator {
         for (const element of elementsThatShouldBeReferenced) {
             if (!referencedElements.has(element.name)) {
                 accept("warning", warning, { node: element, property: "name" });
-                missingElementsMap.set(element.name, [...(missingElementsMap.get(element.name) ?? []), warning]);
+                missingElementsMap.get(this.docUri)?.set(element.name, [...(missingElementsMap.get(this.docUri)?.get(element.name) ?? []), warning]);
             }
         }
     }
@@ -225,7 +236,7 @@ export class StpaValidator {
     protected checkControlActionsReferencedByUCA(
         nodes: Node[],
         ucaActions: string[],
-        missingElementsMap: Map<string, string[]>,
+        missingElementsMap: Map<string, Map<string, string[]>>,
         accept: ValidationAcceptor,
     ): void {
         nodes.forEach(node => {
@@ -238,7 +249,7 @@ export class StpaValidator {
                             node: command,
                             property: "name",
                         });
-                        missingElementsMap.set(name, [...(missingElementsMap.get(name) ?? []), warning]);
+                        missingElementsMap.get(this.docUri)?.set(name, [...(missingElementsMap.get(this.docUri)?.get(name) ?? []), warning]);
                     }
                 })
             );
@@ -493,7 +504,13 @@ export class StpaValidator {
      */
     protected checkForMissingFeedback(nodes: Node[], accept: ValidationAcceptor): void {
         // fill the map with the missing feedback
-        this.missingFeedback.clear();
+        if (this.docUri) {
+            if (!this.missingFeedbackByUri.has(this.docUri)) {
+                this.missingFeedbackByUri.set(this.docUri, new Map<string, Node[]>());
+            } else {
+                this.missingFeedbackByUri.get(this.docUri)?.clear();
+            }
+        }
         for (const node of nodes) {
             const nodeID = node.name;
             // check for each action of the node whether feedback is missing
@@ -505,10 +522,10 @@ export class StpaValidator {
                     if (!sentFeedback) {
                         // add the missing feedback to the map
                         const targetID = target.name;
-                        if (!this.missingFeedback.has(targetID)) {
-                            this.missingFeedback.set(targetID, [node]);
+                        if (!this.missingFeedbackByUri.get(this.docUri)?.has(targetID)) {
+                            this.missingFeedbackByUri.get(this.docUri)?.set(targetID, [node]);
                         } else {
-                            this.missingFeedback.get(targetID)?.push(node);
+                            this.missingFeedbackByUri.get(this.docUri)?.get(targetID)?.push(node);
                         }
                     }
                 }
@@ -518,7 +535,7 @@ export class StpaValidator {
         // show warnings for all nodes that have missing feedback
         if (this.checkMissingFeedback) {
             nodes.forEach(node => {
-                const missingTargets = this.missingFeedback.get(node.name);
+                const missingTargets = this.missingFeedbackByUri.get(this.docUri)?.get(node.name);
                 if (missingTargets) {
                     accept(
                         "warning",
