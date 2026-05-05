@@ -46,7 +46,6 @@ export class StpaDiagramGenerator extends SnippetGraphGenerator {
     /**
      * Generates an SGraph for the given {@code snippet}.
      * @param snippet The snippet for which a graph should be generated.
-     * @param uri The URI of the model, needed for the missing references highlighting
      * @returns the SGraph for {@code snippet}.
      */
     async generateSnippetRoot(snippet: LanguageSnippet): Promise<SModelRoot | undefined> {
