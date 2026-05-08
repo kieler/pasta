@@ -18,7 +18,7 @@
 import { AstNode } from "langium";
 import { GeneratorContext, IdCache, LangiumDiagramGenerator } from "langium-sprotty";
 import { SLabel, SModelElement, SModelRoot, SNode } from "sprotty-protocol";
-import { Component, Condition, Gate, ModelFTA, isComponent, isCondition, isKNGate } from "../../generated/ast.js";
+import { Component, Condition, Gate, ModelFTA, isComponent, isCondition, isInhibitGate, isKNGate } from "../../generated/ast.js";
 import { HEADER_LABEL_TYPE } from "../../stpa/diagram/stpa-model.js";
 import { getDescription } from "../../utils.js";
 import { topOfAnalysis } from "../analysis/fta-cutSet-calculator.js";
@@ -71,8 +71,8 @@ export class FtaDiagramGenerator extends LangiumDiagramGenerator {
         const ftaChildren: SModelElement[] = [
             // create nodes for top event, components, conditions, and gates
             ...model.components.map(component => this.generateFTNode(component, idCache)),
-            ...model.conditions.map(condition => this.generateFTNode(condition, idCache)),
             ...model.gates.map(gate => this.generateGate(gate, idCache)),
+            ...model.conditions.map(condition => this.generateFTNode(condition, idCache)),
             // create edges for the gates and the top event
             ...model.gates.map(gate => this.generateEdges(gate, idCache)).flat(1),
         ];
@@ -113,7 +113,9 @@ export class FtaDiagramGenerator extends LangiumDiagramGenerator {
                 // create port for the source node
                 const sourceNode = this.idToSNode.get(sourceId);
                 const sourcePortId = idCache.uniqueId(edgeId + "_port");
-                sourceNode?.children?.push(this.createFTAPort(sourcePortId, PortSide.SOUTH));
+                // for inhibit gates the condition is on the east side, all other edges are on the south side
+                const portSide = isInhibitGate(node) && targets.indexOf(target) === 1 ? PortSide.EAST : PortSide.SOUTH;
+                sourceNode?.children?.push(this.createFTAPort(sourcePortId, portSide));
 
                 // create port for source parent and edge to this port
                 let sourceParentPortId: string | undefined;
