@@ -540,12 +540,12 @@ const showInlineMarkersOption: ValuedSynthesisOption = {
         id: showInlineMarkersID,
         name: "Inline Markers",
         type: TransformationOptionType.CHECK,
-        initialValue: true,
-        currentValue: true,
+        initialValue: false,
+        currentValue: false,
         values: [true, false],
         category: filterCategory,
     },
-    currentValue: true,
+    currentValue: false,
 };
 
 

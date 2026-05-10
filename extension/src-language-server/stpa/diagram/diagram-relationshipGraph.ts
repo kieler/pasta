@@ -371,13 +371,21 @@ export function generateSTPANode(
     highlightedIDs?: string[],
 ): STPANode {
     const nodeId = idCache.uniqueId(node.name.replace(/[.]/g, "_"), node);
-    const showHighlights = options.getShowDescriptionsHighlights(); 
+    const showHighlights = options.getShowDescriptionsHighlights();
+    
+    // Get the label text, ensuring inline markers are stripped 
+    const getRawLabel = (): string => {
+        const raw = getRawStringInnerFromCst(node); // get the raw string from the CST so that backslashes remain
+        if (!raw) return "";
+        
+        return options.getShowInlineMarkers() ? raw : stripInlineMarkers(raw);
+    };
+    
     const label = isContext(node) 
         ? createUCAContextDescription(node)
-        : options.getShowInlineMarkers() 
-            ? getRawStringInnerFromCst(node)
-            : stripInlineMarkers(getRawStringInnerFromCst(node) ?? "") ?? "";
+        : getRawLabel();
             
+        
     // determines the hierarchy level for subcomponents. For other components the value is 0.
     let lvl = 0;
     let container = node.$container;
