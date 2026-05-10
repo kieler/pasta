@@ -72,11 +72,11 @@ export class InlineMarkdownDecorator {
         // Update decorations when cursor position changes
         this.disposables.push(
             window.onDidChangeTextEditorSelection(event => {
-                // console.log('Cursor moved, updating decorations');
                 this.updateDecorations(event.textEditor);
             })
         );
 
+        // Update decorations when document content changes
         this.disposables.push(
             workspace.onDidChangeTextDocument(event => {
                 const editor = window.activeTextEditor;
@@ -103,6 +103,21 @@ export class InlineMarkdownDecorator {
              this.updateDecorations(editor); // pass as param
         }
     }
+
+     /**
+      * Clears all decorations managed by this decorator from the provided editor.
+      * @param editor The text editor to clear decorations from.
+      */
+     private clearDecorations(editor: TextEditor): void {
+         for (const cfg of this.markerConfigs) {
+             editor.setDecorations(cfg.decoration, []);
+             if (cfg.doubleDecoration) {
+                 editor.setDecorations(cfg.doubleDecoration, []);
+             }
+         }
+         editor.setDecorations(this.markerDecoration, []);
+         editor.setDecorations(this.escapeDecoration, []);
+     }
 
     /**
      * Utility to push a range into the map of decoration ranges, creating the array if it doesn't exist yet.
@@ -238,6 +253,10 @@ export class InlineMarkdownDecorator {
      * @param editor The text editor to update decorations for.
      */
     private updateDecorations(editor: TextEditor): void {
+         if (editor.document.languageId !== "stpa") {
+             this.clearDecorations(editor);
+             return;
+         }
         const text = editor.document.getText();
         const cursorOffset = editor.document.offsetAt(editor.selection.active);
 
@@ -247,11 +266,22 @@ export class InlineMarkdownDecorator {
         // Stores content ranges per decoration type
         const decorationRangesByDecoration = new Map<TextEditorDecorationType, Range[]>();
 
+        // Initialize all known decoration types so stale ranges are cleared,
+        // even when a type has no matches in this update cycle.
+        for (const cfg of this.markerConfigs) {
+            if (!decorationRangesByDecoration.has(cfg.decoration)) {
+                decorationRangesByDecoration.set(cfg.decoration, []);
+            }
+            if (cfg.doubleDecoration && !decorationRangesByDecoration.has(cfg.doubleDecoration)) {
+                decorationRangesByDecoration.set(cfg.doubleDecoration, []);
+            }
+        }
+
         const stringRegex = /"([^"]*)"|'([^']*)'/g;
         let stringMatch: RegExpExecArray | null;
 
         while ((stringMatch = stringRegex.exec(text)) !== null) {
-            const stringContent = stringMatch[1] || stringMatch[2];
+            const stringContent = (stringMatch[1] || stringMatch[2]) ?? "";
             const stringStartOffset = stringMatch.index + 1;
 
             for (const cfg of this.markerConfigs) {
