@@ -137,11 +137,12 @@ export class StpaDiagramGenerator extends SnippetGraphGenerator {
             delete args.state.options.highlightedIDs;
         }
 
+        const uri = args.document.uri.toString() ?? "";
         const { document } = args;
         if (document.parseResult.lexerErrors.length === 0 && document.parseResult.parserErrors.length === 0) {
             const model: Model = document.parseResult.value;
             this.idCache = args.idCache;
-            return this.generateGraph(model, highlightedIds);
+            return this.generateGraph(model, uri, highlightedIds);
         } else {
             // return empty graph if the model is not valid
             return {
@@ -155,12 +156,15 @@ export class StpaDiagramGenerator extends SnippetGraphGenerator {
     /**
      * Generates an SGraph for the given {@code model}.
      * @param model The Model for which a graph should be generated.
+     * @param uri [optional] The URI of the model, needed for the missing references highlighting
      * @param highlightedIDs [optional] List of node and edge IDs that are currently highlighted
      * @returns an SGraph.
      */
-    private generateGraph(model: Model, highlightedIDs?: string[] | undefined): SModelRoot {
+    private generateGraph(model: Model, uri?: string, highlightedIDs?: string[] | undefined): SModelRoot {
         // filter model based on the options set by the user
         const filteredModel = filterModel(model, this.options);
+        const missingReferences = this.services.validation.StpaValidator.missingReferencesByUri.get(uri ?? "") ?? new Map<string, string[]>();
+        
 
         const rootChildren: SModelElement[] = [];
         if (filteredModel.controlStructure) {
@@ -171,14 +175,14 @@ export class StpaDiagramGenerator extends SnippetGraphGenerator {
                     this.idToSNode,
                     this.options,
                     this.idCache,
-                    this.options.getShowMissingReferencesOption() ? this.services.validation.StpaValidator.missingReferences : new Map<string, string[]>(),
+                    this.options.getShowMissingReferencesOption() ? missingReferences : new Map<string, string[]>(),
                     this.options.getShowUnclosedFeedbackLoopsOption(),
-                    this.services.validation.StpaValidator.missingFeedback
+                    this.services.validation.StpaValidator.missingFeedbackByUri.get(uri ?? "")
                 )
             );
         }
         // add relationship graph to roots children
-        rootChildren.push(createRelationshipGraph(filteredModel, model, this.idToSNode, this.options, this.idCache, this.options.getShowMissingReferencesOption() ? this.services.validation.StpaValidator.missingReferences : new Map<string, string[]>(), highlightedIDs ?? [],));
+        rootChildren.push(createRelationshipGraph(filteredModel, model, this.idToSNode, this.options, this.idCache, this.options.getShowMissingReferencesOption() ? missingReferences : new Map<string, string[]>(), highlightedIDs ?? [],));
         // return root
         return {
             type: "graph",

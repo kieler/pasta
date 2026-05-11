@@ -30,7 +30,7 @@ export const buttonID = 'snippetAddBnt';
  * The actual snippets are patched into the placeholder later.
  */
 export const panel: VNode = <div class-sidebar__content="true">
-    <h3 class-sidebar__title="true">{"Diagram Blueprints"}</h3>
+    <h3>{"Diagram Blueprints"}</h3>
     <input type="text" id={textFieldID} />
     <button type="button" id={buttonID}>Add Diagram Blueprint</button>
     <div class-sidebar__panel-content="true" id="snippets"><div id={placeholderForSnippetsID}></div></div>
