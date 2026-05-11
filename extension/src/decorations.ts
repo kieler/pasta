@@ -15,6 +15,7 @@ export class InlineMarkdownDecorator {
     private italicDecoration: TextEditorDecorationType;
     private underlineDecoration: TextEditorDecorationType;
     private strikethroughDecoration: TextEditorDecorationType;
+    private selectionUpdateTimer: ReturnType<typeof setTimeout> | undefined;
     
 
     constructor() {
@@ -69,10 +70,13 @@ export class InlineMarkdownDecorator {
             })
         );
 
-        // Update decorations when cursor position changes
+        // Update decorations when cursor position changes (debounced to avoid heavy work)
         this.disposables.push(
             window.onDidChangeTextEditorSelection(event => {
-                this.updateDecorations(event.textEditor);
+                if (this.selectionUpdateTimer) {
+                    clearTimeout(this.selectionUpdateTimer);
+                }
+                this.selectionUpdateTimer = setTimeout(() => this.updateDecorations(event.textEditor), 16);
             })
         );
 
@@ -341,5 +345,9 @@ export class InlineMarkdownDecorator {
         // dispose utility decorations
         this.markerDecoration.dispose();
         this.escapeDecoration.dispose();
+        if (this.selectionUpdateTimer) {
+            clearTimeout(this.selectionUpdateTimer);
+            this.selectionUpdateTimer = undefined;
+        }
     }
 }
