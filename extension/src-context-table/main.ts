@@ -30,8 +30,6 @@ import {
 } from "./utils";
 import { ContextTableControlAction, ContextTableRule, ContextTableSystemVariables, ContextTableVariable, ContextTableVariableValues, Row, Type, ContextCell } from './utils-classes';
 
-declare const vscode: { postMessage(message: any): void };
-
 
 export class ContextTable extends Table {
     /** Ids for the html elements */

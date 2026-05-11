@@ -376,7 +376,9 @@ export function generateSTPANode(
     // Get the label text, ensuring inline markers are stripped 
     const getRawLabel = (): string => {
         const raw = getRawStringInnerFromCst(node); // get the raw string from the CST so that backslashes remain
-        if (!raw) return "";
+        if (!raw) {
+            return "";
+        } 
         
         return options.getShowInlineMarkers() ? raw : stripInlineMarkers(raw);
     };
