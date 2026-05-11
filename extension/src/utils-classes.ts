@@ -95,7 +95,7 @@ export type MarkerDefinition = {
     marker: string;
 };
 
-// single truth for which markers can be uses
+// single truth for which markers can be used
 export const INLINE_MARKER_DEFINITIONS: readonly MarkerDefinition[] = [
     { marker: "_" },
     { marker: "~" },

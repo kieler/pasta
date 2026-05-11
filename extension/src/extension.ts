@@ -94,13 +94,14 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.executeCommand("setContext", "pasta.markersVisible", false);
 
     const storage = new StorageService(context.workspaceState);
-    let decorationProvider: InlineMarkdownDecorator | undefined; //use let, so can be commented out
-
-    // To deactivate highlighting in .stpa files comment out the following two lines
-    decorationProvider = new InlineMarkdownDecorator();
-    context.subscriptions.push(decorationProvider);
 
     if (diagramMode === "panel") {
+        let decorationProvider: InlineMarkdownDecorator | undefined; //use let, so can be commented out
+
+        // To deactivate highlighting in .stpa files comment out the following two lines
+        decorationProvider = new InlineMarkdownDecorator();
+        context.subscriptions.push(decorationProvider);
+
         // Set up webview panel manager for freestyle webviews
         const webviewPanelManager = new StpaLspVscodeExtension(
             {

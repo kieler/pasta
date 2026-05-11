@@ -22,7 +22,8 @@ import { SLabel } from "sprotty-protocol";
 import { URI } from "vscode-uri";
 import { StpaValidator } from "./stpa/services/stpa-validator.js";
 import { labelManagementValue } from "./synthesis-options.js";
-import { MarkerDefinition, INLINE_MARKER_DEFINITIONS } from "../src/utils-classes.js";
+import type { MarkerDefinition } from "../src/utils-classes.js";
+import { INLINE_MARKER_DEFINITIONS } from "../src/utils-classes.js";
 
 function escapeForRegexLiteral(s: string): string {
     return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
