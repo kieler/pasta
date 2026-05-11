@@ -141,6 +141,8 @@ export enum EdgeType {
     MISSING_FEEDBACK,
     INPUT,
     OUTPUT,
+    COORDINATION,
+    BI_COORDINATION,
     UNDEFINED,
 }
 

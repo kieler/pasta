@@ -222,6 +222,8 @@ export function generateVerticalCSEdges(
         edges.push(...translateIOToEdgeAndNode(node.inputs, node, EdgeType.INPUT, idToSNode, idCache));
         // create edges representing the other outputs
         edges.push(...translateIOToEdgeAndNode(node.outputs, node, EdgeType.OUTPUT, idToSNode, idCache));
+        // create edges for internal coordination
+        edges.push(...translateCommandsToEdges(node, node.coordinations, EdgeType.COORDINATION, idToSNode, idCache, missingReferences, false));
 
         // add edges of the children of the node if the node is expanded
         if (expansionState.get(node.name) === true) {
@@ -269,7 +271,6 @@ export function translateCommandsToEdges(
             // multiple commands to same target is represented by one edge -> combine labels to one
             const label = edge.comms.map(com => com.label);
             const isReferenceMissing: [boolean, string[]][] = controlActions.map(ca => [missingReferences.has(ca), missingReferences.get(ca) ?? []]);
-
             createEdgeForCommand(source, target, edgeId, edgeType, label, idToSNode, idCache, edges, controlActions, isReferenceMissing);
         }
     }
@@ -463,7 +464,7 @@ export function generateIntermediateCSEdges(
         source,
         assocEdge,
         edgeId,
-        edgeType === EdgeType.CONTROL_ACTION ? PortSide.SOUTH : PortSide.NORTH,
+        edgeType === EdgeType.CONTROL_ACTION ? PortSide.SOUTH : (edgeType === EdgeType.COORDINATION || edgeType === EdgeType.BI_COORDINATION) ? PortSide.EAST : PortSide.NORTH,
         idToSNode,
         idCache,
         ancestor
@@ -472,7 +473,7 @@ export function generateIntermediateCSEdges(
         target,
         assocEdge,
         edgeId,
-        edgeType === EdgeType.CONTROL_ACTION ? PortSide.NORTH : PortSide.SOUTH,
+        edgeType === EdgeType.CONTROL_ACTION ? PortSide.NORTH : (edgeType === EdgeType.COORDINATION || edgeType === EdgeType.BI_COORDINATION) ? PortSide.WEST : PortSide.SOUTH,
         idToSNode,
         idCache,
         ancestor

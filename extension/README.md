@@ -109,30 +109,41 @@ SC1 "Vessel must not be exposed to major damage or breakdown" [H1] {
 ControlStructure
 Ferry {
     ControlCentre {
-        hierarchyLevel 0
         processModel {
             mode: [docking, driving]
         }
         input [weather "weather", other "Other information"]
         output [info "information"]
         controlActions {
-            [navi "Route navigation", data "Weather data"] -> VirtualCaptain 
+            [navi "Route navigation", data "Weather data"] -> VirtualCaptain
+            [captNavi "Route navigation", captData "Weather data"] -> Captain
             [manual "Manual setting"] -> Engine
         }
     }
     VirtualCaptain {
-        hierarchyLevel 1
         controlActions {
             [pars "Set parameters"] -> Engine
         }
         feedback {
             [status "System status", faults "Faults"] -> ControlCentre 
         }
+        coordination {
+            bi [course "Course intention"] -> Captain
+            [hstatus "hazard status"] -> Captain
+        }
+    }
+    Captain {
+        controlActions {
+            [nav "Captain navigation"] -> Engine
+        }
+        feedback {
+            [location "Location information"] -> ControlCentre
+        }
     }
     Engine {
-        hierarchyLevel 2
         feedback {
             [motion "Motion"] -> VirtualCaptain
+            [captMotion "Motion"] -> Captain
         }
     }
 }
@@ -142,7 +153,7 @@ VirtualCaptain {
     R1 "Actuate reverse gear when too close to a No Go Area" [SC1]
 }
 ControlCentre {
-    R3 "Manually set parameters of engine in case of a malfunction" [SC1]
+    R2 "Manually set parameters of engine in case of a malfunction" [SC1]
 }
 
 UCAs
