@@ -74,6 +74,7 @@ export class StpaLayoutConfigurator extends DefaultLayoutConfigurator {
             options["org.eclipse.elk.layered.nodePlacement.networkSimplex.nodeFlexibility.default"] = "NONE";
         } else if (relationshipNode) {
             options["org.eclipse.elk.layered.spacing.edgeEdgeBetweenLayers"] = "6";
+            options["org.eclipse.elk.layered.spacing.edgeNodeBetweenLayers"] = "13";
         }
 
         // model order is used to determine the order of the children

@@ -70,18 +70,25 @@ export class StpaValidator {
     /** Boolean option to toggle the check whether all scenarios are covered by safety requirements. */
     checkSafetyRequirementsForScenarios = true;
 
-    /** Maps elements that are missing references to their warning messages. */
-    missingReferences: Map<string, string[]> = new Map();
+    /** Maps the document to a map of elements that are missing references to their warning messages. */
+    missingReferencesByUri: Map<string, Map<string, string[]>> = new Map();
+
+    /** The URI of the document that is currently validated. Needed for the missingReferences map. */
+    docUri: string = "";
 
     /** Boolean option to toggle the check whether system components are missing feedback in the control structure. */
     checkMissingFeedback = true;
 
     checkForConflictingUCAs = true;
+    
+    // TODO: user should be able to toggle this check
+    /** Boolean option to toggle the check whether there is only one action to send in each context. */
+    checkForSingleAction = false;
 
     /**
-     * Map from node ID to a list of nodes to which a feedback is missing.
+     * Maps the document to a map of elements of node ID that maps to a list of nodes to which a feedback is missing.
      */
-    missingFeedback: Map<string, Node[]> = new Map();
+    missingFeedbackByUri: Map<string, Map<string, Node[]>> = new Map();
 
     /**
      * Executes validation checks for the whole model.
@@ -89,7 +96,15 @@ export class StpaValidator {
      * @param accept
      */
     checkModel(model: Model, accept: ValidationAcceptor): void {
-        this.missingReferences.clear();
+        this.docUri = model.$document?.uri?.toString() ?? "";
+        if (this.docUri) {
+            if (!this.missingReferencesByUri.has(this.docUri)) {
+                this.missingReferencesByUri.set(this.docUri, new Map<string, string[]>());
+            } else {
+                this.missingReferencesByUri.get(this.docUri)?.clear();
+            }
+        }
+
         this.checkAllAspectsPresent(model, accept);
         this.checkForTODOs(model, accept);
 
@@ -104,12 +119,12 @@ export class StpaValidator {
         const contexts = model.rules?.map(rule => rule.contexts).flat(1);
 
         // check that all losses are referenced by at least one hazard
-        this.checkThatElementsAreReferenced(model.losses, hazards, this.missingReferences, "This loss is not referenced by any hazard", accept, );
+        this.checkThatElementsAreReferenced(model.losses, hazards, this.missingReferencesByUri, "This loss is not referenced by any hazard", accept, );
         // check that all hazards are referenced by at least one system-level constraint
         this.checkThatElementsAreReferenced(
             hazards,
             sysCons,
-            this.missingReferences,
+            this.missingReferencesByUri,
             "This hazard is not referenced by any system-level constraint",
             accept,
         );
@@ -119,7 +134,7 @@ export class StpaValidator {
             this.checkThatElementsAreReferenced(
                 sysCons,
                 responsibilities,
-                this.missingReferences,
+                this.missingReferencesByUri,
                 "This system-level constraint is not referenced by any responsibility",
                 accept,
             );
@@ -128,7 +143,7 @@ export class StpaValidator {
         this.checkThatElementsAreReferenced(
             hazards,
             [...ucas.map(uca => uca.list), ...contexts.map(context => context.list)],
-            this.missingReferences,
+            this.missingReferencesByUri,
             "This hazard is not referenced by any UCA",
             accept,
         );
@@ -145,12 +160,12 @@ export class StpaValidator {
             if (this.checkConstraintsForUCAs && !constraintsRefs.has(node.name)) {
                 const warning: string = "This element is not referenced by any controller constraint";
                 accept("warning", warning, { node: node, property: "name" });
-                    this.missingReferences.set(node.name, [...(this.missingReferences.get(node.name) ?? []), warning]); 
+                    this.missingReferencesByUri.get(this.docUri)?.set(node.name, [...(this.missingReferencesByUri.get(this.docUri)?.get(node.name) ?? []), warning]);
             }
             if (this.checkScenariosForUCAs && !scenarioRefs.includes(node.name)) {
                 const warning: string = "This element is not referenced by any scenario";
                 accept("warning", warning, { node: node, property: "name" });
-                    this.missingReferences.set(node.name, [...(this.missingReferences.get(node.name) ?? []), warning]); 
+                    this.missingReferencesByUri.get(this.docUri)?.set(node.name, [...(this.missingReferencesByUri.get(this.docUri)?.get(node.name) ?? []), warning]);
             }
         }
 
@@ -159,7 +174,7 @@ export class StpaValidator {
             this.checkThatElementsAreReferenced(
                 model.scenarios,
                 model.safetyCons,
-                this.missingReferences,
+                this.missingReferencesByUri,
                 "This scenario is not referenced by any safety requirement",
                 accept,
             );
@@ -185,7 +200,7 @@ export class StpaValidator {
             ...model.allUCAs.map(alluca => alluca.system?.ref?.name + "." + alluca.action?.ref?.name),
             ...model.rules.map(rule => rule.system?.ref?.name + "." + rule.action?.ref?.name),
         ];
-        this.checkControlActionsReferencedByUCA(model.controlStructure?.nodes ?? [], ucaActions, this.missingReferences, accept);
+        this.checkControlActionsReferencedByUCA(model.controlStructure?.nodes ?? [], ucaActions, this.missingReferencesByUri, accept);
         // check UCAs and DCAs
         this.checkUCAsAndDCAs(model, accept);
     }
@@ -202,7 +217,7 @@ export class StpaValidator {
     checkThatElementsAreReferenced(
         elementsThatShouldBeReferenced: elementWithName[],
         elementsThatReference: elementWithRefs[],
-        missingElementsMap: Map<string, string[]>,
+        missingElementsMap: Map<string, Map<string, string[]>>,
         warning: string,
         accept: ValidationAcceptor,
     ): void {
@@ -210,7 +225,7 @@ export class StpaValidator {
         for (const element of elementsThatShouldBeReferenced) {
             if (!referencedElements.has(element.name)) {
                 accept("warning", warning, { node: element, property: "name" });
-                missingElementsMap.set(element.name, [...(missingElementsMap.get(element.name) ?? []), warning]);
+                missingElementsMap.get(this.docUri)?.set(element.name, [...(missingElementsMap.get(this.docUri)?.get(element.name) ?? []), warning]);
             }
         }
     }
@@ -225,7 +240,7 @@ export class StpaValidator {
     protected checkControlActionsReferencedByUCA(
         nodes: Node[],
         ucaActions: string[],
-        missingElementsMap: Map<string, string[]>,
+        missingElementsMap: Map<string, Map<string, string[]>>,
         accept: ValidationAcceptor,
     ): void {
         nodes.forEach(node => {
@@ -238,7 +253,7 @@ export class StpaValidator {
                             node: command,
                             property: "name",
                         });
-                        missingElementsMap.set(name, [...(missingElementsMap.get(name) ?? []), warning]);
+                        missingElementsMap.get(this.docUri)?.set(name, [...(missingElementsMap.get(this.docUri)?.get(name) ?? []), warning]);
                     }
                 })
             );
@@ -284,6 +299,11 @@ export class StpaValidator {
         }
         // check for conflicts between UCAs and DCAs
         this.checkForConflictsBetweenUCAsAndDCAs(model.rules, model.allDCAs, accept);
+
+        if (this.checkForSingleAction) {
+            // check that in each context only one action should be provided, otherwise the generated statechart sbm does not work
+            this.checkSingleAction(model.rules, model.allDCAs, accept);
+        }
     }
 
     /**
@@ -358,6 +378,85 @@ export class StpaValidator {
     }
 
     /**
+     * Validates that only one action is provided in each context.
+     * When multiple actions should be provided in the same context, the generated statechart SBM does not work.
+     * @param ucas The UCAs to check.
+     * @param dcas The DCAs to check.
+     * @param accept
+     */
+    protected checkSingleAction(ucas: Rule[], dcas: DCARule[], accept: ValidationAcceptor): void {
+        // check the UCAs among each other
+        for (let i = 0; i < ucas.length; i++) {
+            const uca = ucas[i];
+            for (let j = i + 1; j < ucas.length; j++) {
+                const otherUca = ucas[j];
+                // can only violate the single action constraint if they have different control actions and state that they should be provided
+                const uca1Type = uca.type === UCA_TYPE.PROVIDED ? UCA_TYPE.PROVIDED : UCA_TYPE.NOT_PROVIDED;
+                const uca2Type = otherUca.type === UCA_TYPE.PROVIDED ? UCA_TYPE.PROVIDED : UCA_TYPE.NOT_PROVIDED;
+                const uca1Action = uca.system?.$refText + "." + uca.action?.$refText;
+                const uca2Action = otherUca.system?.$refText + "." + otherUca.action?.$refText;
+                if (uca1Action !== uca2Action && uca1Type === UCA_TYPE.NOT_PROVIDED && uca2Type === UCA_TYPE.NOT_PROVIDED) {
+                    for (const context of otherUca.contexts) {
+                        for (const otherContext of uca.contexts) {
+                            // if they both state that the action must be sent and have same context for different control actions, they violate the constraint
+                            if (this.isSameContext(context, otherContext)) {
+                                accept("warning", "Violates single action constraint, see " + uca.name + " " + otherContext.name, {
+                                    node: context,
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // check the DCAs among each other
+        for (let i = 0; i < dcas.length; i++) {
+            const dca = dcas[i];
+            for (let j = i + 1; j < dcas.length; j++) {
+                const otherDca = dcas[j];
+                // can only violate the single action constraint if they have different control actions and state that they should be provided
+                const dca1Action = dca.system?.$refText + "." + dca.action?.$refText;
+                const dca2Action = otherDca.system?.$refText + "." + otherDca.action?.$refText;
+                if (dca1Action !== dca2Action && dca.type === UCA_TYPE.PROVIDED && otherDca.type === UCA_TYPE.PROVIDED) {
+                    for (const context of otherDca.contexts) {
+                        for (const otherContext of dca.contexts) {
+                            // if they both state that the action must be sent and have same context for different control actions, they violate the constraint
+                            if (this.isSameContext(context, otherContext)) {
+                                accept("warning", "Violates single action constraint, see " + dca.name + " " + otherContext.name, {
+                                    node: context,
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // check the UCAs against the DCAs, as a DCA of type provided also provides an action and can therefore conflict with a UCA of type not provided
+        for (const dca of dcas) {
+            for (const uca of ucas) {
+                // can only violate the single action constraint if they have different control actions and state that they should be provided
+                const ucaType = uca.type === UCA_TYPE.PROVIDED ? UCA_TYPE.PROVIDED : UCA_TYPE.NOT_PROVIDED;
+                const dcaAction = dca.system?.$refText + "." + dca.action?.$refText;
+                const ucaAction = uca.system?.$refText + "." + uca.action?.$refText;
+                if (dcaAction !== ucaAction && dca.type === UCA_TYPE.PROVIDED && ucaType === UCA_TYPE.NOT_PROVIDED) {
+                    for (const context of dca.contexts) {
+                        for (const otherContext of uca.contexts) {
+                            // if they both state that the action must be sent and have same context for different control actions, they violate the constraint
+                            if (this.isSameContext(context, otherContext)) {
+                                accept("warning", "Violates single action constraint, see " + uca.name + " " + otherContext.name, {
+                                    node: context,
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Validates that there are no conflicts between UCAs and DCAs.
      * A DCA is not allowed to have the same type and context as a UCA.
      * @param ucas The UCAs to check.
@@ -401,7 +500,7 @@ export class StpaValidator {
                 v => v.variable.$refText === context1.assignedValues[i].variable.$refText
             );
             if (
-                varIndex === -1 ||
+                varIndex !== -1 &&
                 context2.assignedValues[varIndex].value.$refText !== context1.assignedValues[i].value.$refText
             ) {
                 isSame = false;
@@ -416,7 +515,7 @@ export class StpaValidator {
                     v => v.variable.$refText === context2.assignedValues[i].variable.$refText
                 );
                 if (
-                    varIndex === -1 ||
+                    varIndex !== -1 &&
                     context1.assignedValues[varIndex].value.$refText !== context2.assignedValues[i].value.$refText
                 ) {
                     isSame = false;
@@ -493,7 +592,13 @@ export class StpaValidator {
      */
     protected checkForMissingFeedback(nodes: Node[], accept: ValidationAcceptor): void {
         // fill the map with the missing feedback
-        this.missingFeedback.clear();
+        if (this.docUri) {
+            if (!this.missingFeedbackByUri.has(this.docUri)) {
+                this.missingFeedbackByUri.set(this.docUri, new Map<string, Node[]>());
+            } else {
+                this.missingFeedbackByUri.get(this.docUri)?.clear();
+            }
+        }
         for (const node of nodes) {
             const nodeID = node.name;
             // check for each action of the node whether feedback is missing
@@ -505,10 +610,10 @@ export class StpaValidator {
                     if (!sentFeedback) {
                         // add the missing feedback to the map
                         const targetID = target.name;
-                        if (!this.missingFeedback.has(targetID)) {
-                            this.missingFeedback.set(targetID, [node]);
+                        if (!this.missingFeedbackByUri.get(this.docUri)?.has(targetID)) {
+                            this.missingFeedbackByUri.get(this.docUri)?.set(targetID, [node]);
                         } else {
-                            this.missingFeedback.get(targetID)?.push(node);
+                            this.missingFeedbackByUri.get(this.docUri)?.get(targetID)?.push(node);
                         }
                     }
                 }
@@ -518,7 +623,7 @@ export class StpaValidator {
         // show warnings for all nodes that have missing feedback
         if (this.checkMissingFeedback) {
             nodes.forEach(node => {
-                const missingTargets = this.missingFeedback.get(node.name);
+                const missingTargets = this.missingFeedbackByUri.get(this.docUri)?.get(node.name);
                 if (missingTargets) {
                     accept(
                         "warning",
