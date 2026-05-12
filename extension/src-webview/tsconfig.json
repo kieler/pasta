@@ -10,7 +10,6 @@
     "rootDir": "../",
     "module": "commonjs",
     "moduleResolution": "node",
-    "jsx": "react",
-    "ignoreDeprecations": "6.0"
+    "jsx": "react"
   }
 }
