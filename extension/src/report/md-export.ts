@@ -18,7 +18,8 @@
 import dayjs from "dayjs";
 import * as vscode from "vscode";
 import { StpaLspVscodeExtension } from "../language-extension";
-import { UCA_TYPE, createFile } from "../utils";
+import { createFile } from "../utils";
+import { UCA_TYPE } from "../utils-classes";
 import {
     COMPLETE_GRAPH_PATH,
     CONTROLLER_CONSTRAINT_PATH,

@@ -7,9 +7,9 @@
         "es2017",
         "dom"
     ],
-    "rootDir": ".",
+    "rootDir": "../",
     "module": "commonjs",
     "moduleResolution": "node",
-    "jsx": "react",
+    "jsx": "react"
   }
 }

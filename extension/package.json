@@ -78,6 +78,18 @@
                 "category": "Context Table"
             },
             {
+                "command": "pasta.editor.editorMode",
+                "title": "Switch to read mode",
+                "icon": "$(edit)",
+                "category": "navigation"
+            },
+            {
+                "command": "pasta.editor.watchMode",
+                "title": "Switch to editor mode",
+                "icon": "$(book)",
+                "category": "navigation"
+            },
+            {
                 "command": "pasta.diagram.fit",
                 "title": "Fit to Screen",
                 "category": "PASTA Diagram"
@@ -442,6 +454,16 @@
                 {
                     "command": "pasta.contextTable.open",
                     "when": "editorLangId == 'stpa'",
+                    "group": "navigation"
+                },
+                {
+                    "command": "pasta.editor.editorMode",
+                    "when": "pasta.highlightingActive && editorLangId == 'stpa' && pasta.markersVisible",
+                    "group": "navigation"
+                },
+                {
+                    "command": "pasta.editor.watchMode",
+                    "when": "pasta.highlightingActive && editorLangId == 'stpa' && !pasta.markersVisible",
                     "group": "navigation"
                 }
             ],

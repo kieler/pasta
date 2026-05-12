@@ -178,6 +178,16 @@ RL1 {
 }
 ```
 
+#### Highlighting
+Strings in `.stpa` files support inline markers that highlight specific parts of the text. These markers allow formatting such as italic, bold, underline, and strikethrough.
+By default, markers are hidden during normal reading and only appear when the cursor is placed within the highlighted section. One can switch to editor mode using the toggle in the top-right corner of the interface. In this mode, all markers are always visible, regardless of cursor position.
+If a marker character needs to be displayed literally (without it being interpreted as formatting), one can escape it with a backslash (`\`).
+Supported markers are:
+- `*<text>*` for italic
+- `**<text>**` for bold
+- `_<text>_` for underline
+- `~<text>~` for strikethrough
+
 ### FTA
 
 The file in which the analysis is done must have `.fta` as its file ending. Each component type in the fault tree has its own section. Components are stated with an ID and a descriptions. Afterwards, Conditions for Inhibit gates can be stated. The actual fault tree is than stated with a top event and the gates leading to this event. The gates can be annotated with a description as well. The gate types Or, And, Inhibit, and n/k are supported.

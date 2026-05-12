@@ -67,3 +67,37 @@ export class Row {
     variables: ContextTableVariable[];
     results: { hazards: string[]; rules: ContextTableRule[] }[];
 }
+
+/**
+ * Provides the different UCA types.
+ */
+export class UCA_TYPE {
+    static NOT_PROVIDED = "not-provided";
+    static PROVIDED = "provided";
+    static TOO_EARLY = "too-early";
+    static TOO_LATE = "too-late";
+    static APPLIED_TOO_LONG = "applied-too-long";
+    static STOPPED_TOO_SOON = "stopped-too-soon";
+    static WRONG_TIME = "wrong-time";
+    static CONTINUOUS = "continuous-problem";
+    static UNDEFINED = "undefined";
+}
+
+export type MarkerConfig<TDecoration = unknown> = {
+    marker: string;
+    /** Decoration applied to the content (between markers). */
+    decoration: TDecoration;
+     /** Optional: if defined, treat markerCount==2 as this decoration, and >=3 as both. */
+    doubleDecoration?: TDecoration;
+};
+
+export type MarkerDefinition = {
+    marker: string;
+};
+
+// single truth for which markers can be used
+export const INLINE_MARKER_DEFINITIONS: readonly MarkerDefinition[] = [
+    { marker: "_" },
+    { marker: "~" },
+    { marker: "*" },
+] as const;
