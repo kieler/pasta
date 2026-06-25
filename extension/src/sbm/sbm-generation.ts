@@ -20,6 +20,8 @@ import { createFile } from "../utils";
 import { createSCChartText } from "./scchart-creation";
 import { EMPTY_STATE_NAME, Enum, LTLFormula, State, Transition, UCA_TYPE, Variable } from "./utils";
 
+const noCAEnumValue = "NONE";
+
 /**
  * Creates a safe behavioral model for each controller.
  * @param controlActionsMap The control actions for each controller.
@@ -93,7 +95,8 @@ async function createControllerSBM(
         variables,
         contextVariables.enums,
         ltlFormulas,
-        ["NULL"].concat(controlActions)
+        // enum values are upper case
+        [noCAEnumValue].concat(controlActions.map(ca => ca.toUpperCase()))
     );
     createFile(uri.path, scchartText);
 }
@@ -269,7 +272,7 @@ function createStatesForActions(controlActions: string[]): State[] {
     const states: State[] = [
         {
             name: EMPTY_STATE_NAME,
-            controlAction: "NULL",
+            controlAction: noCAEnumValue,
             transitions: [],
         },
     ];
@@ -277,7 +280,7 @@ function createStatesForActions(controlActions: string[]): State[] {
     controlActions.forEach(controlAction => {
         const state: State = {
             name: controlAction,
-            controlAction: controlAction,
+            controlAction: controlAction.toUpperCase(),
             transitions: [],
         };
         states.push(state);

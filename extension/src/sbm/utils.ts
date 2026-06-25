@@ -58,7 +58,7 @@ export class State {
 /**
  * The name for the empty state in the safe behavioral model.
  */
-export const EMPTY_STATE_NAME = "NoAction";
+export const EMPTY_STATE_NAME = "no_action";
 
 /**
  * Represents a transition in a safe behavioral model.
