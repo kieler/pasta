@@ -281,7 +281,7 @@ export function renderKnGate(node: SNodeImpl, k: number, n: number): VNode {
     return (
         <g>
             <path d={path} />
-            <text x={midX - 7.0} y={botY - 4.5} text-anchor="middle" class-fta-text={true}>
+            <text x={midX} y={botY - 4.5} text-anchor="middle" class-fta-text={true}>
                 {`${k}/${n}`}
             </text>
         </g>

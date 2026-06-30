@@ -29,6 +29,7 @@ export class FtaLayoutConfigurator extends DefaultLayoutConfigurator {
             "org.eclipse.elk.portConstraints": "FIXED_SIDE",
             "org.eclipse.elk.spacing.portPort": "0.0",
             "org.eclipse.elk.layered.nodePlacement.bk.fixedAlignment": "BALANCED",
+            "org.eclipse.elk.hierarchyHandling": "INCLUDE_CHILDREN",
         };
 
         if (sgraph.modelOrder) {

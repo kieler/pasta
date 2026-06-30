@@ -143,10 +143,10 @@ LossScenario:
     (name=ID ('<' factor=CausalFactor '>')? 'for' (uca=[UCA] | uca=[Context]) description=STRING (list=HazardList)?);
 
 CausalFactor returns string:
-    'controlAction' | 'inadequateOperation' | 'delayedOperation' | 'componentFailure' | 'changesOverTime' |
-    'conflictingCA' | 'wrongProcessInput' | 'disturbance' | 'processOutput' | 'delayedFeedback' | 
-    'measurementInaccurate' | 'incorrectInformationProvided' | 'missingFeedback' | 'inadequateControlAlgorithm' |
-    'wrongProcessModel' | 'wrongControlInput';
+    'ControlAction' | 'InadequateOperation' | 'DelayedOperation' | 'ComponentFailure' | 'ChangesOverTime' |
+    'ConflictingCA' | 'WrongProcessInput' | 'Disturbance' | 'ProcessOutput' | 'DelayedFeedback' | 
+    'MeasurementInaccurate' | 'IncorrectInformationProvided' | 'MissingFeedback' | 'InadequateControlAlgorithm' |
+    'WrongProcessModel' | 'WrongControlInput';
 
 HazardList:
     '[' refs+=[Hazard:SubID] (',' refs+=[Hazard:SubID])*']';

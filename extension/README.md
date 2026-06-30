@@ -159,7 +159,7 @@ ControllerConstraints
 C1 "ControlCentre must provide the Manual setting control action during VC malfunctioning and vessel too close to No Go Area" [UCA1]
 
 LossScenarios
-Scenario1 <componentFailure> for UCA1 "Abnormal vessel behavior occurs. Vessel comes too close to a No Go Area and ControlCentre does not manual set the parameters of the engine, causing the entering of a No Go Area." [H1]
+Scenario1 <ComponentFailure> for UCA1 "Abnormal vessel behavior occurs. Vessel comes too close to a No Go Area and ControlCentre does not manual set the parameters of the engine, causing the entering of a No Go Area." [H1]
 Scenario2 "Virtual Captain sends the Set parameters command upon coming too close to a No Go Area, but decceleration is not applied due to actuator failure." [H1]
 
 SafetyRequirements
@@ -239,4 +239,5 @@ The extension provides several diagram options to adjust the diagram.
 ### FTA 
 * Show Gate Descriptions: Shows the descriptions of the gates in the diagram.
 * Show Component Descriptions: Shows the descriptions of the components in the diagram.
+* Show Redundant Gates: Show gates with just one input.
 * Highlight Cut Set: To use this first the action to generate the cut sets must be executed. Then here a cut set can be selected. The components belonging to the cut set are highlighted in red, components and gates irrelevant for the failure are faded out, and the top event is highlighted in blue. Thus, when only a subtree is analyzed, the root of this subtree is highlighted. Additionally, the option SPoFs in the dropdown menu highlights all single point of failures.
