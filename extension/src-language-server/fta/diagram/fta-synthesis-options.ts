@@ -116,7 +116,7 @@ const cutSets: ValuedSynthesisOption = {
 };
 
 export class FtaSynthesisOptions extends SynthesisOptions {
-    protected spofs: string[];
+    protected spofs: string[] = [];
     constructor() {
         super();
         this.options.push(...[analysisCategoryOption, cutSets, showGateDescriptionsOptions, showComponentDescriptionsOptions, showRedundantGatesOptions]);

@@ -119,7 +119,7 @@ export class FtaDiagramGenerator extends LangiumDiagramGenerator {
                 }
                 const sourcePortId = idCache.uniqueId(edgeId + "_port");
                 // for inhibit gates the condition is on the east side, all other edges are on the south side
-                const portSide = isInhibitGate(node) && targets.indexOf(target) === 1 ? PortSide.EAST : PortSide.SOUTH;
+                const portSide = isInhibitGate(node) && isCondition(target) ? PortSide.EAST : PortSide.SOUTH;
                 sourceNode?.children?.push(this.createFTAPort(sourcePortId, portSide));
 
                 // create port for source parent and edge to this port
@@ -242,7 +242,7 @@ export class FtaDiagramGenerator extends LangiumDiagramGenerator {
             return descriptionNode;
         }
 
-        // if no description should be shown, the invisivle parent node is not needed
+        // if no description should be shown, the invisible parent node is not needed
         if (!this.options.getShowGateDescriptions() || node.description === undefined) {
             return gateNode;
         }
