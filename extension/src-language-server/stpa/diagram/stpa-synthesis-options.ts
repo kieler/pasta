@@ -39,6 +39,7 @@ const showSafetyConstraintsID = "showSafetyConstraints";
 const filterCategoryID = "filterCategory";
 const labelCategoryID = "labelCategory";
 const highlightsID = "highlights";
+const showInlineMarkersID = "showInlineMarkers";
 
 const showControlStructureID = "showControlStructure";
 const showProcessModelsID = "showProcessModels";
@@ -531,6 +532,22 @@ const showDescriptionsHighlightsOption: ValuedSynthesisOption = {
     currentValue: false,
 };
 
+/**
+ * Boolean option to toggle the visualization of inline highlights in the diagram.
+ */
+const showInlineMarkersOption: ValuedSynthesisOption = {
+    synthesisOption: {
+        id: showInlineMarkersID,
+        name: "Inline Markers",
+        type: TransformationOptionType.CHECK,
+        initialValue: false,
+        currentValue: false,
+        values: [true, false],
+        category: filterCategory,
+    },
+    currentValue: false,
+};
+
 
 /**
  * Boolean option to toggle the visualization of missing feedback in the control structure.
@@ -598,6 +615,7 @@ export class StpaSynthesisOptions extends SynthesisOptions {
                 showDescriptionsScenariosOption,
                 showDescriptionsSafetyConstraintsOption,
                 showDescriptionsHighlightsOption,
+                showInlineMarkersOption,
                 groupingOfUCAs,
                 useHyperedgesOption,
                 hierarchicalGraphOption,
@@ -788,6 +806,14 @@ export class StpaSynthesisOptions extends SynthesisOptions {
 
     getShowMissingReferencesOption(): boolean {
         return this.getOption(showMissingReferencesID)?.currentValue;
+    }
+
+    getShowInlineMarkers(): boolean {
+        return this.getOption(showInlineMarkersID)?.currentValue;
+    }
+
+    setShowInlineMarkers(value: boolean): void {
+        this.setOption(showInlineMarkersID, value);
     }
 
     setUseHyperEdges(value: boolean): void {

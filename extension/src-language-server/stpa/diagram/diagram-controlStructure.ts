@@ -36,6 +36,7 @@ import {
 } from "./stpa-model.js";
 import { StpaSynthesisOptions } from "./stpa-synthesis-options.js";
 import { getCommonAncestor, sortPorts } from "./utils.js";
+import { getRawStringInnerFromCst, stripInlineMarkers } from "../../utils.js";
 
 /**
  * Creates the control structure diagram for the given {@code controlStructure}.
@@ -64,7 +65,7 @@ export function createControlStructure(
     // children (nodes and edges) of the control structure
     const CSChildren = [
         ...csNodes,
-        ...generateVerticalCSEdges(controlStructure.nodes, idToSNode, idCache, missingReferences, addMissing, missingFeedback),
+        ...generateVerticalCSEdges(controlStructure.nodes, idToSNode, options, idCache, missingReferences, addMissing, missingFeedback),
         //...this.generateHorizontalCSEdges(filteredModel.controlStructure.edges, idCache)
     ];
     // sort the ports in order to group edges based on the nodes they are connected to
@@ -186,6 +187,8 @@ export function createProcessModelNode(variables: Variable[], idCache: IdCache<A
 /**
  * Creates the edges for the control structure.
  * @param nodes The nodes of the control structure.
+ * @param idToSNode The map of IDs to SNodes.
+ * @param options The synthesis options of the STPA model.
  * @param idCache The ID cache of the STPA model.
  * @param missingReferences The Map of elements with missing references with their warning messages.
  * @param addMissing Whether missing feedback should be added to the control structure.
@@ -195,6 +198,7 @@ export function createProcessModelNode(variables: Variable[], idCache: IdCache<A
 export function generateVerticalCSEdges(
     nodes: Node[],
     idToSNode: Map<string, SNode>,
+    options: StpaSynthesisOptions,
     idCache: IdCache<AstNode>,
     missingReferences: Map<string, string[]>,
     addMissing: boolean,
@@ -210,6 +214,7 @@ export function generateVerticalCSEdges(
                 node.actions,
                 EdgeType.CONTROL_ACTION,
                 idToSNode,
+                options,
                 idCache,
                 missingReferences,
                 addMissing,
@@ -217,16 +222,16 @@ export function generateVerticalCSEdges(
             )
         );
         // create edges representing feedback
-        edges.push(...translateCommandsToEdges(node, node.feedbacks, EdgeType.FEEDBACK, idToSNode, idCache, missingReferences, false));
+        edges.push(...translateCommandsToEdges(node, node.feedbacks, EdgeType.FEEDBACK, idToSNode, options, idCache, missingReferences, false));
         // create edges representing the other inputs
-        edges.push(...translateIOToEdgeAndNode(node.inputs, node, EdgeType.INPUT, idToSNode, idCache));
+        edges.push(...translateIOToEdgeAndNode(node.inputs, node, EdgeType.INPUT, idToSNode, options, idCache));
         // create edges representing the other outputs
-        edges.push(...translateIOToEdgeAndNode(node.outputs, node, EdgeType.OUTPUT, idToSNode, idCache));
+        edges.push(...translateIOToEdgeAndNode(node.outputs, node, EdgeType.OUTPUT, idToSNode, options, idCache));
 
         // add edges of the children of the node if the node is expanded
         if (expansionState.get(node.name) === true) {
             // create edges for children and add the ones that must be added at the top level
-            edges.push(...generateVerticalCSEdges(node.children, idToSNode, idCache, missingReferences, addMissing, missingFeedback));
+            edges.push(...generateVerticalCSEdges(node.children, idToSNode, options, idCache, missingReferences, addMissing, missingFeedback));
         }
     }
     return edges;
@@ -235,6 +240,7 @@ export function generateVerticalCSEdges(
 /**
  * Translates the commands (control action or feedback) of a node to (intermediate) edges and adds them to the correct nodes.
  * @param node The node of the commands.
+ * @param options The synthesis options of the STPA model.
  * @param commands The control actions or feedback of a node.
  * @param edgeType The type of the edge (control action or feedback).
  * @param idToSNode The map of IDs to SNodes.
@@ -249,6 +255,7 @@ export function translateCommandsToEdges(
     commands: VerticalEdge[],
     edgeType: EdgeType,
     idToSNode: Map<string, SNode>,
+    options: StpaSynthesisOptions,
     idCache: IdCache<AstNode>,
     missingReferences: Map<string, string[]>,
     addMissing: boolean,
@@ -267,7 +274,17 @@ export function translateCommandsToEdges(
 
         if (target) {
             // multiple commands to same target is represented by one edge -> combine labels to one
-            const label = edge.comms.map(com => com.label);
+            const label: string[] = [];
+            for (let i = 0; i < edge.comms.length; i++) {
+                const com = edge.comms[i];
+                
+                let raw = getRawStringInnerFromCst(com) ?? com.label ?? ""; // get the raw string from the CST so that backslashes remain
+                // Strip markers when showInlineMarkers is false 
+                if (!options.getShowInlineMarkers()) {
+                    raw = stripInlineMarkers(raw);
+                }
+                label.push(raw);
+            }
             const isReferenceMissing: [boolean, string[]][] = controlActions.map(ca => [missingReferences.has(ca), missingReferences.get(ca) ?? []]);
 
             createEdgeForCommand(source, target, edgeId, edgeType, label, idToSNode, idCache, edges, controlActions, isReferenceMissing);
@@ -363,6 +380,8 @@ export function createEdgeForCommand(
  * @param io The inputs or outputs of a node.
  * @param node The node of the inputs or outputs.
  * @param edgetype The type of the edge (input or output).
+ * @param idToSNode The map of IDs to SNodes.
+ * @param options The synthesis options of the STPA model.
  * @param idCache The ID cache of the STPA model.
  * @returns a list of edges representing the inputs or outputs that should be added at the top level.
  */
@@ -371,6 +390,7 @@ export function translateIOToEdgeAndNode(
     node: Node,
     edgetype: EdgeType,
     idToSNode: Map<string, SNode>,
+    options: StpaSynthesisOptions,
     idCache: IdCache<AstNode>
 ): (CSNode | CSEdge)[] {
     if (io.length !== 0) {
@@ -379,8 +399,14 @@ export function translateIOToEdgeAndNode(
         // create the label of the edge
         const label: string[] = [];
         for (let i = 0; i < io.length; i++) {
-            const command = io[i];
-            label.push(command.label);
+            const com = io[i];
+
+            let raw = getRawStringInnerFromCst(com) ?? com.label ?? ""; // get the raw string from the CST so that backslashes remain
+                // Strip markers when showInlineMarkers is false 
+                if (!options.getShowInlineMarkers()) {
+                    raw = stripInlineMarkers(raw);
+                }
+            label.push(raw);
         }
 
         let graphComponents: (CSNode | CSEdge)[] = [];
