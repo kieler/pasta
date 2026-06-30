@@ -82,6 +82,7 @@ export function createRelationshipGraph(
         modelOrder: options.getModelOrder(),
         showBorder: options.getShowControlStructure(),
         showEdges: options.getShowEdges(),
+        recomputeNodePlacement: options.getRecomputeNodePlacement(),
     };
 }
 
@@ -486,6 +487,12 @@ export function generateSTPAEdge(
     const targetId = idCache.getId(target);
     const sourceId = idCache.getId(source);
     const edgeId = idCache.uniqueId(`${sourceId}_${targetId}`, undefined);
+
+    // increase incoming edges counter of the target node
+    const targetSTPANode = idToSNode.get(targetId!) as STPANode;
+    if (targetSTPANode) {
+        targetSTPANode.incoming++;
+    }
 
     if (sourceId && targetId) {
         // create the label of the edge

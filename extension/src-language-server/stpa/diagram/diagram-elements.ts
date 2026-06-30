@@ -68,6 +68,9 @@ export function createSTPANode(
         },
         modelOrder: options.getModelOrder(),
         missingReference: missing ? missing : undefined,
+        unzipLevel: options.getUnzipLevel(getAspect(node)),
+        incoming: 0,
+        nodeFlexibility: options.getNodeFlexibility(),
     };
 }
 

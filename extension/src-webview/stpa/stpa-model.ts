@@ -42,6 +42,7 @@ export class ParentNode extends SNodeImpl {
     showBorder: boolean;
     static readonly DEFAULT_FEATURES = [connectableFeature, selectFeature, layoutContainerFeature, fadeFeature];
     showEdges: boolean;
+    recomputeNodePlacement?: boolean;
 }
 
 /**
@@ -53,6 +54,9 @@ export class STPANode extends SNodeImpl {
     aspect: STPAAspect = STPAAspect.UNDEFINED;
     description: string = "";
     hierarchyLvl: number = 0;
+    unzipLevel: number;
+    incoming: number;
+    nodeFlexibility: number;
     highlight?: boolean;
     level?: number;
     controlAction?: string;

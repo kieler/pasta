@@ -64,15 +64,19 @@ export class StpaLayoutConfigurator extends DefaultLayoutConfigurator {
             "org.eclipse.elk.direction": direction,
             // nodes with many edges are streched
             "org.eclipse.elk.layered.nodePlacement.strategy": "NETWORK_SIMPLEX",
-            "org.eclipse.elk.layered.nodePlacement.networkSimplex.nodeFlexibility.default": "NODE_SIZE",
             "org.eclipse.elk.spacing.portPort": "10",
             // edges do no start at the border of the node
             "org.eclipse.elk.spacing.portsSurrounding": "[top=10.0,left=10.0,bottom=10.0,right=10.0]",
             "org.eclipse.elk.priority": priority,
+            "org.eclipse.elk.layered.layerUnzipping.strategy": "ALTERNATING",
         };
+        if (snode.recomputeNodePlacement) {
+            options["org.eclipse.elk.layered.nodePlacement.networkSimplex.nodeFlexibility.recomputeNodePlacement"] = "BRANDES_KOEPF";
+            options["org.eclipse.elk.layered.nodePlacement.networkSimplex.nodeFlexibility.default"] = "NODE_SIZE";
+            options["org.eclipse.elk.layered.nodePlacement.networkSimplex.nodeFlexibility"] = "NODE_SIZE";
+        }
         if (!snode.showEdges) {
             options["org.eclipse.elk.layered.spacing.edgeEdgeBetweenLayers"] = "0";
-            options["org.eclipse.elk.layered.nodePlacement.networkSimplex.nodeFlexibility.default"] = "NONE";
         } else if (relationshipNode) {
             options["org.eclipse.elk.layered.spacing.edgeEdgeBetweenLayers"] = "6";
             options["org.eclipse.elk.layered.spacing.edgeNodeBetweenLayers"] = "13";
@@ -88,6 +92,7 @@ export class StpaLayoutConfigurator extends DefaultLayoutConfigurator {
             options["org.eclipse.elk.layered.considerModelOrder.strategy"] = "NODES_AND_EDGES";
             options["org.eclipse.elk.layered.crossingMinimization.forceNodeModelOrder"] = "true";
             options["org.eclipse.elk.layered.cycleBreaking.strategy"] = "MODEL_ORDER";
+            options["org.eclipse.elk.layered.nodePlacement.networkSimplex.nodeFlexibility.default"] = "NODE_SIZE";
         }
 
         return options;
@@ -135,7 +140,6 @@ export class StpaLayoutConfigurator extends DefaultLayoutConfigurator {
             "org.eclipse.elk.layered.cycleBreaking.strategy": "MODEL_ORDER",
             // nodes with many edges are streched
             "org.eclipse.elk.layered.nodePlacement.strategy": "NETWORK_SIMPLEX",
-            "org.eclipse.elk.layered.nodePlacement.networkSimplex.nodeFlexibility.default": "NODE_SIZE",
             "org.eclipse.elk.spacing.portsSurrounding": "[top=10.0,left=10.0,bottom=10.0,right=10.0]",
         };
     }
@@ -148,13 +152,19 @@ export class StpaLayoutConfigurator extends DefaultLayoutConfigurator {
             // node has further children nodes
             return this.parentSTPANodeOptions(node);
         } else {
-            return {
-                "org.eclipse.elk.alignment": "CENTER",
-                "org.eclipse.elk.nodeLabels.placement": "INSIDE V_CENTER H_CENTER",
-                "org.eclipse.elk.partitioning.partition": "" + node.level,
-                "org.eclipse.elk.portConstraints": "FIXED_SIDE",
-                "org.eclipse.elk.nodeSize.constraints": "NODE_LABELS",
+            const options: LayoutOptions = {
+                    "org.eclipse.elk.alignment": "CENTER",
+                    "org.eclipse.elk.nodeLabels.placement": "INSIDE V_CENTER H_CENTER",
+                    "org.eclipse.elk.partitioning.partition": "" + node.level,
+                    "org.eclipse.elk.portConstraints": "FIXED_SIDE",
+                    "org.eclipse.elk.nodeSize.constraints": "NODE_LABELS",
+                    "org.eclipse.elk.layered.layerUnzipping.minimizeEdgeLength": "true",
+                    "org.eclipse.elk.layered.layerUnzipping.layerSplit": "" + node.unzipLevel,
             };
+            if (node.incoming >= node.nodeFlexibility) {
+                options["org.eclipse.elk.layered.nodePlacement.networkSimplex.nodeFlexibility"] = "NODE_SIZE";
+            } 
+            return options;
         }
     }
 
@@ -171,11 +181,13 @@ export class StpaLayoutConfigurator extends DefaultLayoutConfigurator {
             "org.eclipse.elk.nodeSize.constraints": "NODE_LABELS",
             // nodes with many edges are streched
             "org.eclipse.elk.layered.nodePlacement.strategy": "NETWORK_SIMPLEX",
-            "org.eclipse.elk.layered.nodePlacement.networkSimplex.nodeFlexibility.default": "NODE_SIZE",
             // edges do no start at the border of the node
             "org.eclipse.elk.spacing.portsSurrounding": "[top=10.0,left=10.0,bottom=10.0,right=10.0]",
             "org.eclipse.elk.portConstraints": "FIXED_SIDE",
         };
+        if (node.incoming >= node.nodeFlexibility) {
+            options["org.eclipse.elk.layered.nodePlacement.networkSimplex.nodeFlexibility"] = "NODE_SIZE";
+        }
 
         // model order is used to determine the order of the children
         if (node.modelOrder) {

@@ -22,6 +22,7 @@ export interface ParentNode extends SNode {
     modelOrder: boolean;
     showBorder: boolean;
     showEdges: boolean;
+    recomputeNodePlacement?: boolean;
 }
 
 /**
@@ -31,6 +32,9 @@ export interface STPANode extends SNode {
     aspect: STPAAspect;
     description: string;
     hierarchyLvl: number;
+    unzipLevel: number;
+    incoming: number;
+    nodeFlexibility: number;
     highlight?: boolean;
     level?: number;
     controlAction?: string;

@@ -17,11 +17,13 @@
 
 import {
     DropDownOption,
+    RangeOption,
     SynthesisOption,
     TransformationOptionType,
     ValuedSynthesisOption,
 } from "../../options/option-models.js";
 import { SynthesisOptions, layoutCategory } from "../../synthesis-options.js";
+import { STPAAspect } from './stpa-model.js';
 
 const hierarchyID = "hierarchy";
 const useHyperedgesID = "useHyperedges";
@@ -47,6 +49,19 @@ const showUnclosedFeedbackLoopsID = "showUnclosedFeedbackLoops";
 const showMissingReferencesID = "showMissingReferences";
 const showRelationshipGraphID = "showRelationshipGraph";
 const showEdgesID = "showEdges";
+
+const unzippingCategoryID = "unzippingCategory";
+const unzipLossesID = "unzipLosses";
+const unzipHazardsID = "unzipHazards";
+const unzipSystemConstraintsID = "unzipSystemConstraints";
+const unzipUCAsID = "unzipUCAs";
+const unzipControllerConstraintsID = "unzipControllerConstraints";
+const unzipResponsibilitiesID = "unzipResponsibilities";
+const unzipScenariosID = "unzipScenarios";
+const unzipSafetyRequirementsID = "unzipSafetyRequirements";
+
+const nodeFlexibilityID = "nodeFlexibility";
+const recomputeNodePlacementID = "recomputeNodePlacement";
 
 /**
  * Values for filtering the node labels.
@@ -582,7 +597,7 @@ const showMissingReferencesOption: ValuedSynthesisOption = {
 };
 
 /**
- * Boolean option to toggle the visualization of loss scenarios.
+ * Boolean option to toggle the use of hyperedges.
  */
 const useHyperedgesOption: ValuedSynthesisOption = {
     synthesisOption: {
@@ -597,6 +612,208 @@ const useHyperedgesOption: ValuedSynthesisOption = {
     currentValue: true,
 };
 
+
+/**
+ * Option to unzip nodes based on the aspect of the node.
+ * Category for the unzipping options.
+ */
+const unzippingCategory: SynthesisOption = {
+    id: unzippingCategoryID,
+    name: "Unzip Nodes Belonging to",
+    type: TransformationOptionType.CATEGORY,
+    initialValue: 0,
+    currentValue: 0,
+    values: [],
+    category: layoutCategory
+};
+
+/**
+ * The option for the unzipping category.
+ */
+const unzippingCategoryOption: ValuedSynthesisOption = {
+    synthesisOption: unzippingCategory,
+    currentValue: 0,
+};
+
+/**
+ * Slider to set the desired unzipping level for Losses.
+ */
+const unzipLossesOption: ValuedSynthesisOption = {
+    synthesisOption: {
+        id: unzipLossesID,
+        name: "Losses",
+        type: TransformationOptionType.RANGE,
+        initialValue: 1,
+        currentValue: 1,
+        range: { first: 1, second: 5 },
+        stepSize: 1,
+        values: [],
+        category: unzippingCategory,
+    } as RangeOption,
+    currentValue: 1,
+};
+
+/**
+ * Slider to set the desired unzipping level for Hazards.
+ */
+const unzipHazardsOption: ValuedSynthesisOption = {
+    synthesisOption: {
+        id: unzipHazardsID,
+        name: "Hazards",
+        type: TransformationOptionType.RANGE,
+        initialValue: 1,
+        currentValue: 1,
+        range: { first: 1, second: 5 },
+        stepSize: 1,
+        values: [],
+        category: unzippingCategory,
+    } as RangeOption,
+    currentValue: 1,
+};
+
+/**
+ * Slider to set the desired unzipping level for System Constraints.
+ */
+const unzipSystemConstraintsOption: ValuedSynthesisOption = {
+    synthesisOption: {
+        id: unzipSystemConstraintsID,
+        name: "System Constraints",
+        type: TransformationOptionType.RANGE,
+        initialValue: 1,
+        currentValue: 1,
+        range: { first: 1, second: 5 },
+        stepSize: 1,
+        values: [],
+        category: unzippingCategory,
+    } as RangeOption,
+    currentValue: 1,
+};
+
+/**
+ * Slider to set the desired unzipping level for UCAs.
+ */
+const unzipUCAsOption: ValuedSynthesisOption = {
+    synthesisOption: {
+        id: unzipUCAsID,
+        name: "UCAs",
+        type: TransformationOptionType.RANGE,
+        initialValue: 1,
+        currentValue: 1,
+        range: { first: 1, second: 5 },
+        stepSize: 1,
+        values: [],
+        category: unzippingCategory,
+    } as RangeOption,
+    currentValue: 1,
+};
+
+/**
+ * Slider to set the desired unzipping level for Controller Constraints.
+ */
+const unzipControllerConstraintsOption: ValuedSynthesisOption = {
+    synthesisOption: {
+        id: unzipControllerConstraintsID,
+        name: "Controller Constraints",
+        type: TransformationOptionType.RANGE,
+        initialValue: 1,
+        currentValue: 1,
+        range: { first: 1, second: 5 },
+        stepSize: 1,
+        values: [],
+        category: unzippingCategory,
+    } as RangeOption,
+    currentValue: 1,
+};
+
+/**
+ * Slider to set the desired unzipping level for Responsibilities.
+ */
+const unzipResponsibilitiesOption: ValuedSynthesisOption = {
+    synthesisOption: {
+        id: unzipResponsibilitiesID,
+        name: "Responsibilities",
+        type: TransformationOptionType.RANGE,
+        initialValue: 1,
+        currentValue: 1,
+        range: { first: 1, second: 5 },
+        stepSize: 1,
+        values: [],
+        category: unzippingCategory,
+    } as RangeOption,
+    currentValue: 1,
+};
+
+/**
+ * Slider to set the desired unzipping level for Scenarios.
+ */
+const unzipScenariosOption: ValuedSynthesisOption = {
+    synthesisOption: {
+        id: unzipScenariosID,
+        name: "Scenarios",
+        type: TransformationOptionType.RANGE,
+        initialValue: 2,
+        currentValue: 2,
+        range: { first: 1, second: 5 },
+        stepSize: 1,
+        values: [],
+        category: unzippingCategory,
+    } as RangeOption,
+    currentValue: 2,
+};
+
+/**
+ * Slider to set the desired unzipping level for Safety Requirements.
+ */
+const unzipSafetyRequirementsOption: ValuedSynthesisOption = {
+    synthesisOption: {
+        id: unzipSafetyRequirementsID,
+        name: "Safety Requirements",
+        type: TransformationOptionType.RANGE,
+        initialValue: 1,
+        currentValue: 1,
+        range: { first: 1, second: 5 },
+        stepSize: 1,
+        values: [],
+        category: unzippingCategory,
+    } as RangeOption,
+    currentValue: 1,
+};
+
+/**
+ * Slider to set the number of input edges that activate the node flexibility.
+ */
+const nodeFlexibilityOption: ValuedSynthesisOption = {
+    synthesisOption: {
+        id: nodeFlexibilityID,
+        name: "Widen Nodes with >= X Inputs",
+        type: TransformationOptionType.RANGE,
+        initialValue: 3,
+        currentValue: 3,
+        range: { first: 1, second: 10 },
+        stepSize: 1,
+        values: [],
+        category: layoutCategory,
+    } as RangeOption,
+    currentValue: 3,
+};
+
+/**
+ * Boolean option to toggle the recomputation of node placement.
+ */
+const recomputeNodePlacementOption: ValuedSynthesisOption = {
+    synthesisOption: {
+        id: recomputeNodePlacementID,
+        name: "Recompute Node Placement",
+        type: TransformationOptionType.CHECK,
+        initialValue: false,
+        currentValue: false,
+        values: [true, false],
+        category: layoutCategory,
+    },
+    currentValue: false,
+};
+
+
 export class StpaSynthesisOptions extends SynthesisOptions {
     constructor() {
         super();
@@ -604,6 +821,7 @@ export class StpaSynthesisOptions extends SynthesisOptions {
             ...[
                 filterCategoryOption,
                 labelCategoryOption,
+                unzippingCategoryOption,             
                 showDescriptionsAllOption,
                 showDescriptionsAutomaticOption,
                 showDescriptionsLossesOption,
@@ -615,6 +833,16 @@ export class StpaSynthesisOptions extends SynthesisOptions {
                 showDescriptionsScenariosOption,
                 showDescriptionsSafetyConstraintsOption,
                 showDescriptionsHighlightsOption,
+                unzipLossesOption,                
+                unzipHazardsOption,
+                unzipSystemConstraintsOption,
+                unzipUCAsOption,
+                unzipControllerConstraintsOption,
+                unzipResponsibilitiesOption,
+                unzipScenariosOption,
+                unzipSafetyRequirementsOption,   
+                nodeFlexibilityOption,
+                recomputeNodePlacementOption,
                 showInlineMarkersOption,
                 groupingOfUCAs,
                 useHyperedgesOption,
@@ -822,6 +1050,69 @@ export class StpaSynthesisOptions extends SynthesisOptions {
 
     getUseHyperEdges(): boolean {
         return this.getOption(useHyperedgesID)?.currentValue;
+    }
+
+    getUnzipLevel(aspect: STPAAspect): number {
+        switch (aspect) {
+            case STPAAspect.LOSS:
+                return this.getUnzipLosses();
+            case STPAAspect.HAZARD:
+                return this.getUnzipHazards();
+            case STPAAspect.SYSTEMCONSTRAINT:
+                return this.getUnzipSystemConstraints();
+            case STPAAspect.UCA:
+                return this.getUnzipUCAs();
+            case STPAAspect.CONTROLLERCONSTRAINT:
+                return this.getUnzipControllerConstraints();
+            case STPAAspect.RESPONSIBILITY:
+                return this.getUnzipResponsibilities();
+            case STPAAspect.SCENARIO:
+                return this.getUnzipScenarios();
+            case STPAAspect.SAFETYREQUIREMENT:
+                return this.getUnzipSafetyRequirements();
+            default:
+                throw new Error(`Unhandled aspect: ${aspect}`);
+        }
+    }
+
+    getUnzipLosses(): number {
+        return this.getOption(unzipLossesID)?.currentValue;
+    }
+
+    getUnzipHazards(): number {
+        return this.getOption(unzipHazardsID)?.currentValue;
+    }
+
+    getUnzipSystemConstraints(): number {
+        return this.getOption(unzipSystemConstraintsID)?.currentValue;
+    }
+
+    getUnzipUCAs(): number {
+        return this.getOption(unzipUCAsID)?.currentValue;
+    }
+
+    getUnzipControllerConstraints(): number {
+        return this.getOption(unzipControllerConstraintsID)?.currentValue;
+    }
+
+    getUnzipResponsibilities(): number {
+        return this.getOption(unzipResponsibilitiesID)?.currentValue;
+    }
+
+    getUnzipScenarios(): number {
+        return this.getOption(unzipScenariosID)?.currentValue;
+    }
+
+    getUnzipSafetyRequirements(): number {
+        return this.getOption(unzipSafetyRequirementsID)?.currentValue;
+    }
+
+    getNodeFlexibility(): number {
+        return this.getOption(nodeFlexibilityID)?.currentValue;
+    }
+
+    getRecomputeNodePlacement(): boolean {
+        return this.getOption(recomputeNodePlacementID)?.currentValue;
     }
 
     /**
