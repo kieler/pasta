@@ -61,6 +61,8 @@ export class CustomSvgExporter extends SvgExporter {
         svgElementNew.setAttribute('version', '1.1');
         const bounds = this.getBounds(root, docCopy);
 
+        // adjust the viewBox and size of the SVG because the line width of objects are otherwise not considered and the exported SVG is cropped
+        // the values are adjusted by 10px on each side to ensure that the entire diagram is visible in the exported SVG.
         svgElementNew.setAttribute('viewBox', `${bounds.x-10} ${bounds.y-10} ${bounds.width+20} ${bounds.height+20}`);
         svgElementNew.setAttribute('width', `${bounds.width+20}`);
         svgElementNew.setAttribute('height', `${bounds.height+20}`);
