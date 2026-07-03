@@ -41,4 +41,39 @@ export class CustomSvgExporter extends SvgExporter {
             }
         }
     }
+
+    
+    createSvg(svgElementOrig: SVGSVGElement, root: SModelRootImpl): string {
+        const serializer = new XMLSerializer();
+        const svgCopy = serializer.serializeToString(svgElementOrig);
+        const iframe: HTMLIFrameElement = document.createElement('iframe');
+        document.body.appendChild(iframe);
+        if (!iframe.contentWindow)
+            throw new Error('IFrame has no contentWindow');
+        const docCopy = iframe.contentWindow.document;
+        docCopy.open();
+        docCopy.write(svgCopy);
+        docCopy.close();
+        const svgElementNew = docCopy.querySelector('svg')!;
+        svgElementNew.removeAttribute('opacity');
+        // inline-size copied from sprotty-hidden svg shrinks the svg so it is not visible.
+        this.copyStyles(svgElementOrig, svgElementNew, ['width', 'height', 'opacity', 'inline-size']);
+        svgElementNew.setAttribute('version', '1.1');
+        const bounds = this.getBounds(root, docCopy);
+
+        // adjust the viewBox and size of the SVG because the line width of objects are otherwise not considered and the exported SVG is cropped
+        // the values are adjusted by 10px on each side to ensure that the entire diagram is visible in the exported SVG.
+        svgElementNew.setAttribute('viewBox', `${bounds.x-10} ${bounds.y-10} ${bounds.width+20} ${bounds.height+20}`);
+        svgElementNew.setAttribute('width', `${bounds.width+20}`);
+        svgElementNew.setAttribute('height', `${bounds.height+20}`);
+
+        this.postprocessors.forEach(postprocessor => {
+            postprocessor.postUpdate(svgElementNew, undefined);
+        });
+
+        const svgCode = serializer.serializeToString(svgElementNew);
+        document.body.removeChild(iframe);
+
+        return svgCode;
+    }
 }
