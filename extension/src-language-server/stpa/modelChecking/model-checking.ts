@@ -121,7 +121,7 @@ async function translateUCAsToLTLFormulas(model: Model, map: Record<string, LTLF
 async function translateRuleToLTLFormulas(rule: Rule | DCARule, map: Record<string, LTLFormula[]>): Promise<void> {
     const controller = rule.system.$refText;
     // control action string
-    const controlAction = controller + "." + rule.action.$refText;
+    const controlAction = controller + "." + rule.action.$refText.toUpperCase();
     for (const uca of rule.contexts) {
         // calculate the contextVariable string
         let contextVariables = await createLTLContextVariable(uca.assignedValues[0].variable, uca.assignedValues[0].value.$refText);

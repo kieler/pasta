@@ -233,7 +233,7 @@ function groupFormulasByActionAndType(ltlFormulas: LTLFormula[]): {
     const appliedTooLongMap = new Map<string, LTLFormula[]>();
     const stoppedTooSoonMap = new Map<string, LTLFormula[]>();
     ltlFormulas.forEach(formula => {
-        const action = getControlActionFromLTL(formula);
+        const action = getControlActionFromLTL(formula).toLowerCase();
         switch (formula.type) {
             case UCA_TYPE.NOT_PROVIDED:
             case UCA_TYPE.TOO_LATE:
