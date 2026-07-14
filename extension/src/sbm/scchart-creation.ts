@@ -15,11 +15,36 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-import { EMPTY_STATE_NAME, Enum, LTLFormula, State, Variable } from "./utils";
+import { EMPTY_STATE_NAME, Enum, LTLFormula, State, Variable } from "./utils-classes";
 
 // TODO: should be set by the user through the UI
 /** Determines whether the system should do a boot up step in the beginning. If true, the formulas are modified with an additional X operator at the start. */
 const bootUpStep = true;
+
+export function createDataflowSCChart(
+    controllerName: string,
+    variables: Variable[],
+    enums: Enum[],
+    ltlFormulas: LTLFormula[],
+): string {
+    let result = "";
+    // ltl annotations at the top
+    ltlFormulas.forEach(LTLFormula => (result += createLTLAnnotation(LTLFormula)));
+    // name of the scchart
+    result += `scchart SBM_${controllerName} {\n\n`;
+    // add enums if there are any
+    enums.forEach(enumDeclaration => (result += createEnum(enumDeclaration.name, enumDeclaration.values)));
+    // add input and output variables
+    result += createVariables(variables);
+    // start with dataflow
+    result += "dataflow {\n";
+    // add equations for each control action
+    // TODO: add equations 
+    
+    result += "}\n";
+    result += "}";
+    return result;
+}
 
 /**
  * Creates the text for an scchart based on the given arguments.
@@ -31,23 +56,23 @@ const bootUpStep = true;
  * @param controlActions The control actions which will be modelled as an enum.
  * @returns The text for an scchart.
  */
-export function createSCChartText(
+export function createFSMSCChart(
     controllerName: string,
     states: State[],
     variables: Variable[],
     enums: Enum[],
     ltlFormulas: LTLFormula[],
-    controlActions: string[]
+    controlActions: string[],
 ): string {
     let result = "";
     // ltl annotations at the top
-    ltlFormulas.forEach((LTLFormula) => (result += createLTLAnnotation(LTLFormula)));
+    ltlFormulas.forEach(LTLFormula => (result += createLTLAnnotation(LTLFormula)));
     // name of the acchart must be different to the enum name
     result += `scchart SBM_${controllerName} {\n\n`;
     // enum for the control action
     result += createEnum(controllerName, controlActions);
     // other enums
-    enums.forEach((enumDeclaration) => (result += createEnum(enumDeclaration.name, enumDeclaration.values)));
+    enums.forEach(enumDeclaration => (result += createEnum(enumDeclaration.name, enumDeclaration.values)));
     // variables and states
     // TODO: AssumeRange annotation for variables?
     result += createVariables(variables);
@@ -91,7 +116,7 @@ function createEnum(enumName: string, values: string[]): string {
  */
 function createVariables(variables: Variable[]): string {
     let variableDeclarations = "";
-    variables.forEach((variable) => {
+    variables.forEach(variable => {
         if (variable.input) {
             variableDeclarations += "input ";
         } else if (variable.output) {
@@ -110,7 +135,7 @@ function createVariables(variables: Variable[]): string {
  */
 function createStates(states: State[], enumName: string): string {
     let stateDeclarations = "";
-    states.forEach((state) => {
+    states.forEach(state => {
         // the empty state is the initial one
         if (state.name === EMPTY_STATE_NAME) {
             stateDeclarations += "initial ";
@@ -127,7 +152,7 @@ function createStates(states: State[], enumName: string): string {
         stateDeclarations += "}\n";
         // translate transitions
         // the first transition in the list has the highest priority
-        state.transitions.forEach((transition) => {
+        state.transitions.forEach(transition => {
             if (transition.trigger) {
                 stateDeclarations += `if ${transition.trigger} `;
             }
