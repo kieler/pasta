@@ -86,3 +86,8 @@ export class Enum {
     name: string;
     values: string[];
 }
+
+export class Equation {
+    left: string;
+    right: string;
+}

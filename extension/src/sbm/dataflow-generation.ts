@@ -16,8 +16,8 @@
  */
 
 import { createDataflowSCChart } from "./scchart-creation";
-import { LTLFormula } from "./utils-classes";
-import { askForPath, collectContextVariables, collectControlActionVariables } from "./sbm-generation";
+import { Equation, LTLFormula } from "./utils-classes";
+import { askForPath, collectContextVariables, collectControlActionVariables, groupFormulasByActionAndType } from "./sbm-generation";
 import { createFile } from '../utils';
 
 export async function createDataflows(
@@ -46,7 +46,7 @@ export async function createControllerDataflow(
     // collect the output variables
     const outputVariables = collectControlActionVariables(controlActions);
     // equations for each control action
-    // TODO: add equations
+    const equations = createEquations(ltlFormulas, controlActions);
 
     // create the scchart
     const scchartText = createDataflowSCChart(
@@ -54,7 +54,51 @@ export async function createControllerDataflow(
         contextVariables.variables.concat(outputVariables),
         contextVariables.enums,
         ltlFormulas,
+        equations
     );
 
     createFile(uriPath, scchartText);
+}
+
+function createEquations(ltlFormulas: LTLFormula[], controlActions: string[]): Equation[] {
+    const equations: Equation[] = [];
+    // group the formulas by control action and type
+    const formulaMap = groupFormulasByActionAndType(ltlFormulas);
+    for (const action of controlActions) {
+        const eq: Equation = {left: action, right: ""};
+
+        // construct subequation for provided formulas
+        const providedFormulas = formulaMap.providedMap.get(action) ?? [];
+        let providedSubEquation = "";
+        for (let i = 0; i < providedFormulas.length; i++) {
+            const formula = providedFormulas[i];
+            providedSubEquation += `!(${formula.contextVariables}) `;
+            if (i !== providedFormulas.length - 1) {
+                providedSubEquation += "&& ";
+            }
+        }
+
+        // construct subequation for not provided formulas
+        const notProvidedFormulas = formulaMap.notProvidedMap.get(action) ?? [];
+        let notProvidedSubEquation = "";
+        for (let i = 0; i < notProvidedFormulas.length; i++) {
+            const formula = notProvidedFormulas[i];
+            notProvidedSubEquation += `(${formula.contextVariables}) `;
+            if (i !== notProvidedFormulas.length - 1) {
+                notProvidedSubEquation += "|| ";
+            }
+        }
+
+        // combine the two subequations
+        if (providedSubEquation !== "") {
+            eq.right = `${providedSubEquation} && `;
+        }
+        eq.right += notProvidedSubEquation;
+        // if the right side is empty, it means that there are no formulas for this control action, so we don't add an equation for it
+        // should normally not happen, but possibly prevents syntactic errors in the generated scchart
+        if (eq.right !== "") {
+            equations.push(eq);
+        }
+    }
+    return equations;
 }

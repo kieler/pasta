@@ -18,7 +18,7 @@
 import * as vscode from "vscode";
 import { createDataflows } from "./dataflow-generation";
 import { createFSMs } from "./fsm-generation";
-import { Enum, LTLFormula, Variable } from "./utils-classes";
+import { Enum, LTLFormula, UCA_TYPE, Variable } from "./utils-classes";
 
 /**
  * Creates a safe behavioral model for each controller.
@@ -181,4 +181,66 @@ export function collectControlActionVariables(controlActions: string[]): Variabl
         variables.push({ name: controlAction, type: "bool", output: true });
     }
     return variables;
+}
+
+/**
+ * Groups the {@code ltlFormulas} by their control action and UCA type.
+ * TOO-LATE is grouped together with NOT-PROVIDED since they are both handled the same way in the sbm syntheses.
+ * @param ltlFormulas The ltl formulas to group.
+ * @returns the {@code ltlFormulas} grouped by their control action and UCA type.
+ */
+export function groupFormulasByActionAndType(ltlFormulas: LTLFormula[]): {
+    notProvidedMap: Map<string, LTLFormula[]>;
+    providedMap: Map<string, LTLFormula[]>;
+    appliedTooLongMap: Map<string, LTLFormula[]>;
+    stoppedTooSoonMap: Map<string, LTLFormula[]>;
+} {
+    const notProvidedMap = new Map<string, LTLFormula[]>();
+    const providedMap = new Map<string, LTLFormula[]>();
+    const appliedTooLongMap = new Map<string, LTLFormula[]>();
+    const stoppedTooSoonMap = new Map<string, LTLFormula[]>();
+    ltlFormulas.forEach(formula => {
+        const action = getControlActionFromLTL(formula).toLowerCase();
+        switch (formula.type) {
+            case UCA_TYPE.NOT_PROVIDED:
+            case UCA_TYPE.TOO_LATE:
+                notProvidedMap.has(action)
+                    ? notProvidedMap.get(action)?.push(formula)
+                    : notProvidedMap.set(action, [formula]);
+                break;
+            case UCA_TYPE.PROVIDED:
+                providedMap.has(action) ? providedMap.get(action)?.push(formula) : providedMap.set(action, [formula]);
+                break;
+            case UCA_TYPE.APPLIED_TOO_LONG:
+                appliedTooLongMap.has(action)
+                    ? appliedTooLongMap.get(action)?.push(formula)
+                    : appliedTooLongMap.set(action, [formula]);
+                break;
+            case UCA_TYPE.STOPPED_TOO_SOON:
+                stoppedTooSoonMap.has(action)
+                    ? stoppedTooSoonMap.get(action)?.push(formula)
+                    : stoppedTooSoonMap.set(action, [formula]);
+                break;
+            case UCA_TYPE.TOO_EARLY:
+                // too early is not handled since it cannot be translated to transitions
+                break;
+        }
+    });
+    return { notProvidedMap, providedMap, appliedTooLongMap, stoppedTooSoonMap };
+}
+
+
+
+/**
+ * Determines the control action the {@code ltlFormula} is defined for.
+ * @param ltlFormula The ltl formula for which the control action should be determined.
+ * @returns the control action the {@code ltlFormula} is defined for.
+ */
+function getControlActionFromLTL(ltlFormula: LTLFormula): string {
+    // Calculation based on the assumption that the control action is stated first in the description
+    // and has the form<controller.action>
+    const startIndex = ltlFormula.description.indexOf(".");
+    const endIndex = ltlFormula.description.indexOf(" ");
+    const action = ltlFormula.description.substring(startIndex + 1, endIndex);
+    return action;
 }

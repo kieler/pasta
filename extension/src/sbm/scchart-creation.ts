@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-import { EMPTY_STATE_NAME, Enum, LTLFormula, State, Variable } from "./utils-classes";
+import { EMPTY_STATE_NAME, Enum, Equation, LTLFormula, State, Variable } from "./utils-classes";
 
 // TODO: should be set by the user through the UI
 /** Determines whether the system should do a boot up step in the beginning. If true, the formulas are modified with an additional X operator at the start. */
@@ -26,6 +26,7 @@ export function createDataflowSCChart(
     variables: Variable[],
     enums: Enum[],
     ltlFormulas: LTLFormula[],
+    equations: Equation[]
 ): string {
     let result = "";
     // ltl annotations at the top
@@ -40,6 +41,9 @@ export function createDataflowSCChart(
     result += "dataflow {\n";
     // add equations for each control action
     // TODO: add equations 
+    for (const equation of equations) {
+        result += `${equation.left} = ${equation.right}\n`;
+    }
     
     result += "}\n";
     result += "}";
