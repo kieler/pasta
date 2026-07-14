@@ -93,7 +93,7 @@ function createEquations(ltlFormulas: LTLFormula[], controlActions: string[]): E
         if (providedSubEquation !== "") {
             eq.right = `${providedSubEquation} && `;
         }
-        eq.right += notProvidedSubEquation;
+        eq.right += `(${notProvidedSubEquation})`;
         // if the right side is empty, it means that there are no formulas for this control action, so we don't add an equation for it
         // should normally not happen, but possibly prevents syntactic errors in the generated scchart
         if (eq.right !== "") {
