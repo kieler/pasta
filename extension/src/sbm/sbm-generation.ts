@@ -126,7 +126,7 @@ function collectContextVariables(ltlFormulas: LTLFormula[]): { variables: Variab
                 }
                 if (!variableNames.has(varName)) {
                     variableNames.add(varName);
-                    variables.push({ name: varName, type: "bool" });
+                    variables.push({ name: varName, type: "bool", input: true });
                 }
             } else {
                 // two integer operands
