@@ -15,10 +15,15 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
+import { createFile } from "../utils";
+import {
+    askForPath,
+    collectContextVariables,
+    collectControlActionVariables,
+    groupFormulasByActionAndType,
+} from "./sbm-generation";
 import { createDataflowSCChart } from "./scchart-creation";
 import { Equation, LTLFormula } from "./utils-classes";
-import { askForPath, collectContextVariables, collectControlActionVariables, groupFormulasByActionAndType } from "./sbm-generation";
-import { createFile } from '../utils';
 
 export async function createDataflows(
     controlActionsMap: Record<string, string[]>,
@@ -48,13 +53,22 @@ export async function createControllerDataflow(
     // equations for each control action
     const equations = createEquations(ltlFormulas, controlActions);
 
+    // adjust formulas since control action is not an enum value in dataflow
+    for (const action of controlActions) {
+        const upperAction = action.toUpperCase();
+        ltlFormulas.map(formula => {
+            formula.formula = formula.formula.replace(`controlAction==${controllerName}.${upperAction}`, `${action}`);
+            formula.formula = formula.formula.replace(`controlAction!=${controllerName}.${upperAction}`, `!${action}`);
+        });
+    }
+
     // create the scchart
     const scchartText = createDataflowSCChart(
         controllerName,
         contextVariables.variables.concat(outputVariables),
         contextVariables.enums,
         ltlFormulas,
-        equations
+        equations,
     );
 
     createFile(uriPath, scchartText);
@@ -65,7 +79,7 @@ function createEquations(ltlFormulas: LTLFormula[], controlActions: string[]): E
     // group the formulas by control action and type
     const formulaMap = groupFormulasByActionAndType(ltlFormulas);
     for (const action of controlActions) {
-        const eq: Equation = {left: action, right: ""};
+        const eq: Equation = { left: action, right: "" };
 
         // construct subequation for provided formulas
         const providedFormulas = formulaMap.providedMap.get(action) ?? [];
