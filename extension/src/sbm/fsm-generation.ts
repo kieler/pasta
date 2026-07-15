@@ -18,7 +18,7 @@
 import { createFile } from "../utils";
 import { askForPath, collectContextVariables, groupFormulasByActionAndType } from "./sbm-generation";
 import { createFSMSCChart } from "./scchart-creation";
-import { EMPTY_STATE_NAME, LTLFormula, State, Transition, UCA_TYPE } from "./utils-classes";
+import { EMPTY_STATE_NAME, LTLFormula, State, Transition } from "./utils-classes";
 
 const noCAEnumValue = "NONE";
 

@@ -26,7 +26,7 @@ export function createDataflowSCChart(
     variables: Variable[],
     enums: Enum[],
     ltlFormulas: LTLFormula[],
-    equations: Equation[]
+    equations: Equation[],
 ): string {
     let result = "";
     // ltl annotations at the top
@@ -40,11 +40,11 @@ export function createDataflowSCChart(
     // start with dataflow
     result += "dataflow {\n";
     // add equations for each control action
-    // TODO: add equations 
+    // TODO: add equations
     for (const equation of equations) {
         result += `${equation.left} = ${equation.right}\n`;
     }
-    
+
     result += "}\n";
     result += "}";
     return result;

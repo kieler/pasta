@@ -229,8 +229,6 @@ export function groupFormulasByActionAndType(ltlFormulas: LTLFormula[]): {
     return { notProvidedMap, providedMap, appliedTooLongMap, stoppedTooSoonMap };
 }
 
-
-
 /**
  * Determines the control action the {@code ltlFormula} is defined for.
  * @param ltlFormula The ltl formula for which the control action should be determined.
