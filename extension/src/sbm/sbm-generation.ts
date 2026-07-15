@@ -21,19 +21,10 @@ import { createFSMs } from "./fsm-generation";
 import { Enum, LTLFormula, UCA_TYPE, Variable } from "./utils-classes";
 
 /**
- * Creates a safe behavioral model for each controller.
+ * Asks the user which type of SBM to create and creates it.
  * @param controlActionsMap The control actions for each controller.
  * @param formulaMap The ltl formulas for each controller.
  */
-// export async function createSBMs(
-//     controlActionsMap: Record<string, string[]>,
-//     formulaMap: Record<string, LTLFormula[]>
-// ): Promise<void> {
-//     for (const controller of Object.keys(controlActionsMap)) {
-//         // await createControllerSBM(controller, controlActionsMap[controller], formulaMap[controller] ?? []);
-//     }
-// }
-
 export function createSBMs(
     controlActionsMap: Record<string, string[]>,
     formulaMap: Record<string, LTLFormula[]>,
@@ -53,6 +44,10 @@ export function createSBMs(
     quickPick.show();
 }
 
+/**
+ * Ask the user for a path to save the SBM to.
+ * @returns the path to save the SBM to or undefined if the user did not pick a path.
+ */
 export async function askForPath(): Promise<string | undefined> {
     // Ask the user where to save the sbm
     const currentFolder = vscode.workspace.workspaceFolders

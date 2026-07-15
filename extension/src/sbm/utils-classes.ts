@@ -87,6 +87,9 @@ export class Enum {
     values: string[];
 }
 
+/**
+ * Represents an equation in a dataflow SBM model.
+ */
 export class Equation {
     left: string;
     right: string;

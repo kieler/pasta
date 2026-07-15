@@ -25,6 +25,11 @@ import {
 import { createDataflowSCChart } from "./scchart-creation";
 import { Equation, LTLFormula } from "./utils-classes";
 
+/**
+ * Creates an SBM as dataflow for each controller in the {@code controlActionsMap}.
+ * @param controlActionsMap The map containing the control actions for each controller.
+ * @param formulaMap The map containing the LTL formulas for each controller.
+ */
 export async function createDataflows(
     controlActionsMap: Record<string, string[]>,
     formulaMap: Record<string, LTLFormula[]>,
@@ -34,6 +39,12 @@ export async function createDataflows(
     }
 }
 
+/**
+ * Creates an SBM as dataflow for a single controller.
+ * @param controllerName The name of the controller that is modelled.
+ * @param controlActions The control actions of the controller.
+ * @param ltlFormulas The ltl formulas corresponding to the controller.
+ */
 export async function createControllerDataflow(
     controllerName: string,
     controlActions: string[],
@@ -74,6 +85,12 @@ export async function createControllerDataflow(
     createFile(uriPath, scchartText);
 }
 
+/**
+ * Creates the equations for the control actions in the dataflow model.
+ * @param ltlFormulas The ltl formulas belonging to the controller for which the model is created.
+ * @param controlActions The control actions of the controller for which the model is created.
+ * @returns the equations for the control actions in the dataflow model.
+ */
 function createEquations(ltlFormulas: LTLFormula[], controlActions: string[]): Equation[] {
     const equations: Equation[] = [];
     // group the formulas by control action and type

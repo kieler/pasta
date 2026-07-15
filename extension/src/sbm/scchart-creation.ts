@@ -21,6 +21,15 @@ import { EMPTY_STATE_NAME, Enum, Equation, LTLFormula, State, Variable } from ".
 /** Determines whether the system should do a boot up step in the beginning. If true, the formulas are modified with an additional X operator at the start. */
 const bootUpStep = true;
 
+/**
+ * Creates the text for a dataflow scchart based on the given arguments.
+ * @param controllerName The name of the controller that is modelled.
+ * @param variables The variables the scchart should contain.
+ * @param enums The enums the scchart should contain.
+ * @param ltlFormulas The ltl formulas that should be contained.
+ * @param equations The equations that should be in the actual dataflow.
+ * @returns the text for a dataflow scchart.
+ */
 export function createDataflowSCChart(
     controllerName: string,
     variables: Variable[],
@@ -40,7 +49,6 @@ export function createDataflowSCChart(
     // start with dataflow
     result += "dataflow {\n";
     // add equations for each control action
-    // TODO: add equations
     for (const equation of equations) {
         result += `${equation.left} = ${equation.right}\n`;
     }

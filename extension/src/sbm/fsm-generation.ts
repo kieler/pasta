@@ -22,6 +22,11 @@ import { EMPTY_STATE_NAME, LTLFormula, State, Transition } from "./utils-classes
 
 const noCAEnumValue = "NONE";
 
+/**
+ * Creates an SBM as FSM for each controller in the {@code controlActionsMap}.
+ * @param controlActionsMap The map containing the control actions for each controller.
+ * @param formulaMap The map containing the LTL formulas for each controller.
+ */
 export async function createFSMs(
     controlActionsMap: Record<string, string[]>,
     formulaMap: Record<string, LTLFormula[]>,
