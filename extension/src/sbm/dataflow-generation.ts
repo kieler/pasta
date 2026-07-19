@@ -68,8 +68,8 @@ export async function createControllerDataflow(
     for (const action of controlActions) {
         const upperAction = action.toUpperCase();
         ltlFormulas.map(formula => {
-            formula.formula = formula.formula.replace(`controlAction==${controllerName}.${upperAction}`, `${action}`);
-            formula.formula = formula.formula.replace(`controlAction!=${controllerName}.${upperAction}`, `!${action}`);
+            formula.formula = formula.formula.split(`controlAction==${controllerName}.${upperAction}`).join(`${action}`);
+            formula.formula = formula.formula.split(`controlAction!=${controllerName}.${upperAction}`).join(`!${action}`);
         });
     }
 
