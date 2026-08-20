@@ -126,7 +126,7 @@ function createFaulTreeForHazard(scenarios: Map<string, LossScenario[]>, hazard:
 
     // create top event
     const topEvent = {
-        name: hazard.description,
+        name: hazard.name + ": " + hazard.description,
         child: { ref: gate, $refText: gate.name },
         $container: ftaModel,
         $type: "TopEvent",

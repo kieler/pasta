@@ -15,6 +15,9 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
+import { Cell } from "@kieler/table-webview/lib/helper";
+import { RuleType } from "./utils-types";
+
 /** Type for control actions for the context table. */
 export class ContextTableControlAction {
     controller: string;
@@ -66,4 +69,18 @@ export enum Type {
 export class Row {
     variables: ContextTableVariable[];
     results: { hazards: string[]; rules: ContextTableRule[] }[];
+}
+
+/** A mapping of rule types to context table headers. */
+export interface RuleTypeMapping {
+    header: string;
+    ruleTypes: RuleType[];
+    index: number;
+}
+
+/** A cell in the context table. Can span mutliple columns. */
+export class ContextCell extends Cell {
+    colSpan: number;
+    title?: string;
+    UCAType?: string;
 }

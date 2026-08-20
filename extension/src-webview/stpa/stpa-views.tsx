@@ -25,7 +25,7 @@ import { ColorStyleOption, DifferentFormsOption, FeedbackStyleOption, RenderOpti
 import { SendModelRendererAction } from '../snippets/actions';
 import { renderCollapseIcon, renderDiamond, renderEllipse, renderExpandIcon, renderHexagon, renderMirroredTriangle, renderOval, renderPentagon, renderRectangle, renderRectangleForNode, renderRoundedRectangle, renderTrapez, renderTriangle } from '../views-rendering';
 import { collectAllChildren } from './helper-methods';
-import { CSEdge, CSNode, CS_EDGE_TYPE, CS_INTERMEDIATE_EDGE_TYPE, CS_INVISIBLE_EDGE_TYPE, CS_NODE_TYPE, EdgeType, PARENT_TYPE, ParentNode, STPAAspect, STPAEdge, STPANode, STPA_EDGE_TYPE, STPA_INTERMEDIATE_EDGE_TYPE, PROCESS_MODEL_PARENT_NODE_TYPE } from './stpa-model';
+import { CSEdge, CSNode, CS_EDGE_TYPE, CS_INTERMEDIATE_EDGE_TYPE, CS_INVISIBLE_EDGE_TYPE, CS_NODE_TYPE, EdgeType, PARENT_TYPE, ParentNode, STPAAspect, STPAEdge, STPANode, STPA_EDGE_TYPE, STPA_INTERMEDIATE_EDGE_TYPE, PROCESS_MODEL_PARENT_NODE_TYPE, EdgeLabel } from './stpa-model';
 
 /** Determines if path/aspect highlighting is currently on. */
 let highlighting: boolean;
@@ -271,13 +271,18 @@ export class STPANodeView extends RectangularNodeView {
         // if an STPANode is selected, the components not connected to it should fade out
         const greyed = highlighting && !node.highlight;
 
+        // if an STPANode has no reference, the node should be highlighted and a tooltip should show the missing reference(s)
+        const missingReference = node.missingReference;
+
         return <g
             class-print-node={printNode}
             class-stpa-node={coloredNode || lessColoredNode} aspect={aspect}
             class-sprotty-node={sprottyNode}
             class-sprotty-port={node instanceof SPortImpl}
             class-mouseover={node.hoverFeedback}
-            class-greyed-out={greyed}>
+            class-greyed-out={greyed}
+            class-missing-reference={missingReference}>
+            {missingReference ? <title>{missingReference.join('\n')}</title> : null}  
             <g class-node-selected={node.selected}>{element}</g>
             {context.renderChildren(node)}
         </g>;
@@ -412,20 +417,24 @@ export class ProcessModelLabelView extends SLabelView {
 
 @injectable()
 export class EdgeLabelView extends SLabelView {
-    render(label: Readonly<SLabelImpl>, context: RenderingContext): VNode | undefined {
+    render(label: Readonly<EdgeLabel>, context: RenderingContext): VNode | undefined {
         // label belongs to a node which may have missing feedback
         const nodeMissingFeedback = label.parent.type === CS_NODE_TYPE && (label.parent as CSNode).hasMissingFeedback;
         // label belongs to an edge which may be a missing feedback edge
         const edgeMissingFeedback = (label.parent.type === CS_EDGE_TYPE || label.parent.type === CS_INTERMEDIATE_EDGE_TYPE) && (label.parent as CSEdge).edgeType === EdgeType.MISSING_FEEDBACK;
         const missingFeedbackLabel = nodeMissingFeedback || edgeMissingFeedback;
+        // label belongs to an edge which may have a missing reference
+        const missingReference = label.missingReference;
 
         const vnode = super.render(label, context);
         if (vnode?.data?.class) {
             vnode.data.class['missing-feedback-label'] = missingFeedbackLabel ?? false;
+            vnode.data.class['missing-reference-label'] = !!missingReference?.length;
         }
         // add a background to the label to make it better readable
         const background = renderRectangle(0, 2-label.bounds.height, label.bounds.width, label.bounds.height);
         return <g>
+            {missingReference ? <title>{missingReference.join('\n')}</title> : null} 
             <g class-label-background={true}>{background}</g>
             {vnode}
         </g>;

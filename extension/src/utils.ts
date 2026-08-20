@@ -173,21 +173,6 @@ export async function createFile(uri: string, text: string): Promise<void> {
 }
 
 /**
- * Provides the different UCA types.
- */
-export class UCA_TYPE {
-    static NOT_PROVIDED = "not-provided";
-    static PROVIDED = "provided";
-    static TOO_EARLY = "too-early";
-    static TOO_LATE = "too-late";
-    static APPLIED_TOO_LONG = "applied-too-long";
-    static STOPPED_TOO_SOON = "stopped-too-soon";
-    static WRONG_TIME = "wrong-time";
-    static CONTINUOUS = "continuous-problem";
-    static UNDEFINED = "undefined";
-}
-
-/**
  * Creates an output channel with the given name and prints the given cut sets.
  * @param cutSets The cut sets to print.
  * @param channelName The name of the channel.

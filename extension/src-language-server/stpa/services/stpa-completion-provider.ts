@@ -140,7 +140,6 @@ export class STPACompletionProvider extends DefaultCompletionProvider {
     ): void {
         if (next.type === Node && next.property === "name") {
             const generatedText = `Comp {
-    hierarchyLevel 0
     label "Component"
     processModel {
     }

@@ -39,10 +39,12 @@ const showSafetyConstraintsID = "showSafetyConstraints";
 const filterCategoryID = "filterCategory";
 const labelCategoryID = "labelCategory";
 const highlightsID = "highlights";
+const showInlineMarkersID = "showInlineMarkers";
 
 const showControlStructureID = "showControlStructure";
 const showProcessModelsID = "showProcessModels";
 const showUnclosedFeedbackLoopsID = "showUnclosedFeedbackLoops";
+const showMissingReferencesID = "showMissingReferences";
 const showRelationshipGraphID = "showRelationshipGraph";
 const showEdgesID = "showEdges";
 
@@ -530,6 +532,22 @@ const showDescriptionsHighlightsOption: ValuedSynthesisOption = {
     currentValue: false,
 };
 
+/**
+ * Boolean option to toggle the visualization of inline highlights in the diagram.
+ */
+const showInlineMarkersOption: ValuedSynthesisOption = {
+    synthesisOption: {
+        id: showInlineMarkersID,
+        name: "Inline Markers",
+        type: TransformationOptionType.CHECK,
+        initialValue: false,
+        currentValue: false,
+        values: [true, false],
+        category: filterCategory,
+    },
+    currentValue: false,
+};
+
 
 /**
  * Boolean option to toggle the visualization of missing feedback in the control structure.
@@ -538,6 +556,22 @@ const showUnclosedFeedbackLoopsOption: ValuedSynthesisOption = {
     synthesisOption: {
         id: showUnclosedFeedbackLoopsID,
         name: "Missing Feedback Loops",
+        type: TransformationOptionType.CHECK,
+        initialValue: true,
+        currentValue: true,
+        values: [true, false],
+        category: filterCategory,
+    },
+    currentValue: true,
+};
+
+/**
+ * Boolean option to toggle the visualization of missing references in the diagram.
+ */
+const showMissingReferencesOption: ValuedSynthesisOption = {
+    synthesisOption: {
+        id: showMissingReferencesID,
+        name: "Missing References",
         type: TransformationOptionType.CHECK,
         initialValue: true,
         currentValue: true,
@@ -581,6 +615,7 @@ export class StpaSynthesisOptions extends SynthesisOptions {
                 showDescriptionsScenariosOption,
                 showDescriptionsSafetyConstraintsOption,
                 showDescriptionsHighlightsOption,
+                showInlineMarkersOption,
                 groupingOfUCAs,
                 useHyperedgesOption,
                 hierarchicalGraphOption,
@@ -588,6 +623,7 @@ export class StpaSynthesisOptions extends SynthesisOptions {
                 showControlStructureOption,
                 showProcessModelsOption,
                 showUnclosedFeedbackLoopsOption,
+                showMissingReferencesOption,
                 showRelationshipGraphOption,
                 showSysConsOption,
                 showRespsOption,
@@ -766,6 +802,18 @@ export class StpaSynthesisOptions extends SynthesisOptions {
 
     getShowUnclosedFeedbackLoopsOption(): boolean {
         return this.getOption(showUnclosedFeedbackLoopsID)?.currentValue;
+    }
+
+    getShowMissingReferencesOption(): boolean {
+        return this.getOption(showMissingReferencesID)?.currentValue;
+    }
+
+    getShowInlineMarkers(): boolean {
+        return this.getOption(showInlineMarkersID)?.currentValue;
+    }
+
+    setShowInlineMarkers(value: boolean): void {
+        this.setOption(showInlineMarkersID, value);
     }
 
     setUseHyperEdges(value: boolean): void {

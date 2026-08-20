@@ -28,6 +28,7 @@ import { generateLTLFormulae } from "./modelChecking/model-checking.js";
 import { createResultData } from "./result-report/result-generator.js";
 import { StpaServices } from "./stpa-module.js";
 import { getControlActions } from "./utils.js";
+import { insertRuleFromContextTable } from "./contextTable/add-rule-handler.js";
 
 let lastUri: URI;
 
@@ -85,7 +86,17 @@ function addContextTableHandler(connection: Connection, stpaServices: StpaServic
             console.log("The selected UCA could not be found in the editor.");
         }
     });
+     // a rule should be added based on the context table input
+    connection.onNotification("contextTable/addRule", async (msg: {
+        sourceUri: string;
+        type: string;
+        controlAction: { controller: string; action: string };
+        varMap: Record<string, string>;
+    }) => {
+        await insertRuleFromContextTable(msg, stpaServices, connection);
+    });
 }
+
 
 /**
  * Adds handlers for notifications regarding changes in the editor.

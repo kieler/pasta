@@ -18,7 +18,7 @@
 import { AstNode } from "langium";
 import { GeneratorContext, IdCache, LangiumDiagramGenerator } from "langium-sprotty";
 import { SLabel, SModelElement, SModelRoot, SNode } from "sprotty-protocol";
-import { Component, Condition, Gate, ModelFTA, isComponent, isCondition, isKNGate } from "../../generated/ast.js";
+import { Component, Condition, Gate, ModelFTA, isComponent, isCondition, isInhibitGate, isKNGate } from "../../generated/ast.js";
 import { HEADER_LABEL_TYPE } from "../../stpa/diagram/stpa-model.js";
 import { getDescription } from "../../utils.js";
 import { topOfAnalysis } from "../analysis/fta-cutSet-calculator.js";
@@ -37,6 +37,7 @@ import {
 } from "./fta-model.js";
 import { FtaSynthesisOptions, noCutSet, spofsSet } from "./fta-synthesis-options.js";
 import { getFTNodeType, getTargets } from "./utils.js";
+
 export class FtaDiagramGenerator extends LangiumDiagramGenerator {
     protected readonly options: FtaSynthesisOptions;
 
@@ -71,8 +72,8 @@ export class FtaDiagramGenerator extends LangiumDiagramGenerator {
         const ftaChildren: SModelElement[] = [
             // create nodes for top event, components, conditions, and gates
             ...model.components.map(component => this.generateFTNode(component, idCache)),
-            ...model.conditions.map(condition => this.generateFTNode(condition, idCache)),
             ...model.gates.map(gate => this.generateGate(gate, idCache)),
+            ...model.conditions.map(condition => this.generateFTNode(condition, idCache)),
             // create edges for the gates and the top event
             ...model.gates.map(gate => this.generateEdges(gate, idCache)).flat(1),
         ];
@@ -111,16 +112,22 @@ export class FtaDiagramGenerator extends LangiumDiagramGenerator {
                 const edgeId = idCache.uniqueId(`${sourceId}_${targetId}`, undefined);
 
                 // create port for the source node
-                const sourceNode = this.idToSNode.get(sourceId);
+                let sourceNode = this.idToSNode.get(sourceId);
+                // if redundant gates are not shown, the source node propably is a description node
+                if (!this.options.getShowRedundantGates() && this.descriptionOfGate.has(sourceId)) {
+                    sourceNode = this.descriptionOfGate.get(sourceId);
+                }
                 const sourcePortId = idCache.uniqueId(edgeId + "_port");
-                sourceNode?.children?.push(this.createFTAPort(sourcePortId, PortSide.SOUTH));
+                // for inhibit gates the condition is on the east side, all other edges are on the south side
+                const portSide = isInhibitGate(node) && isCondition(target) ? PortSide.EAST : PortSide.SOUTH;
+                sourceNode?.children?.push(this.createFTAPort(sourcePortId, portSide));
 
                 // create port for source parent and edge to this port
                 let sourceParentPortId: string | undefined;
                 if (this.parentOfGate.has(sourceId)) {
                     const parent = this.parentOfGate.get(sourceId);
                     sourceParentPortId = idCache.uniqueId(edgeId + "_port");
-                    parent?.children?.push(this.createFTAPort(sourceParentPortId, PortSide.SOUTH));
+                    parent?.children?.push(this.createFTAPort(sourceParentPortId, PortSide.SOUTH));              
                     const betweenEdgeId = idCache.uniqueId(edgeId + "_betweenEdge");
                     const e = this.generateFTEdge(
                         betweenEdgeId,
@@ -141,7 +148,11 @@ export class FtaDiagramGenerator extends LangiumDiagramGenerator {
                         targetPortId = this.nodeToPort.get(parent?.id ?? "")?.id;
                     } else {
                         // get the port id from the target node
-                        const targetNode = this.idToSNode.get(targetId);
+                        let targetNode = this.idToSNode.get(targetId);
+                        // if redundant gates are not shown, the target node propably is a description node
+                        if (!this.options.getShowRedundantGates() && this.descriptionOfGate.has(targetId)) {
+                            targetNode = this.descriptionOfGate.get(targetId);
+                        }
                         targetPortId = this.nodeToPort.get(targetNode?.id ?? "")?.id;
                     }
 
@@ -190,16 +201,13 @@ export class FtaDiagramGenerator extends LangiumDiagramGenerator {
         };
     }
 
-    protected generateGate(node: Gate, idCache: IdCache<AstNode>): FTANode {
+    protected generateGate(node: Gate, idCache: IdCache<AstNode>): SNode {
         const gateNode = this.generateFTNode(node, idCache);
         this.idToSNode.set(gateNode.id, gateNode);
-        if (!this.options.getShowGateDescriptions() || node.description === undefined) {
-            return gateNode;
-        }
         // create node for gate description
         const descriptionNodeId = idCache.uniqueId(node.name + "Description");
         const label = getDescription(
-            node.description,
+            node.description ?? "",
             this.options.getLabelManagement(),
             this.options.getLabelShorteningWidth(),
             descriptionNodeId,
@@ -220,6 +228,24 @@ export class FtaDiagramGenerator extends LangiumDiagramGenerator {
                 paddingRight: 10.0,
             },
         };
+        this.idToSNode.set(descriptionNode.id, descriptionNode);
+
+        // if redundandant gates should not be shown, only the description is displayed
+        if (!this.options.getShowRedundantGates() && !isInhibitGate(node) && node.children.length <= 1) {
+            // description node needs a port for incoming edges
+            const port = this.createFTAPort(idCache.uniqueId(descriptionNodeId + "_port"), PortSide.NORTH);
+            descriptionNode.children?.push(port);
+            this.nodeToPort.set(descriptionNode.id, port);
+
+            // map gate to its description node
+            this.descriptionOfGate.set(gateNode.id, descriptionNode);
+            return descriptionNode;
+        }
+
+        // if no description should be shown, the invisible parent node is not needed
+        if (!this.options.getShowGateDescriptions() || node.description === undefined) {
+            return gateNode;
+        }
 
         // create invisible edge from description to gate
         const invisibleEdge = this.generateFTEdge(
@@ -244,7 +270,7 @@ export class FtaDiagramGenerator extends LangiumDiagramGenerator {
         );
 
         // order is important to have the descriptionNode above the gateNode
-        const children: SModelElement[] = [
+        const children = [
             descriptionNode,
             gateNode,
             invisibleEdge,
@@ -252,7 +278,7 @@ export class FtaDiagramGenerator extends LangiumDiagramGenerator {
             invisibleEdgeParetToDescription,
         ];
 
-        // create invisible node that contains the desciprion and gate node
+        // create invisible node that contains the description and gate node
         const parent = {
             type: FTA_NODE_TYPE,
             id: parentId,
@@ -272,8 +298,6 @@ export class FtaDiagramGenerator extends LangiumDiagramGenerator {
         };
 
         // update maps
-        this.idToSNode.set(descriptionNode.id, descriptionNode);
-        this.descriptionOfGate.set(gateNode.id, descriptionNode);
         this.parentOfGate.set(gateNode.id, parent);
         this.nodeToPort.set(parent.id, port);
         return parent;
@@ -317,7 +341,7 @@ export class FtaDiagramGenerator extends LangiumDiagramGenerator {
         // single points of failure should be shown
         if (set === spofsSet.id) {
             const spofs = this.options.getSpofs();
-            includedInCutSet = spofs.includes(node.name);
+            includedInCutSet = spofs?.includes(node.name);
             notConnected = !includedInCutSet;
         }
 

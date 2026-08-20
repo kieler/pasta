@@ -47,8 +47,8 @@
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    padding: 16px;
+    gap: 6px;
+    padding: 6px;
 
     width: 100%;
     height: 100%;

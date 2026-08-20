@@ -20,6 +20,7 @@ thead,
 th {
     position: sticky;
     background-color: var(--vscode-sideBar-background);
+    z-index: 100;
 }
 
 td {
@@ -36,9 +37,141 @@ pre {
 }
 
 .contextTable .focused .context-variable {
-    background-color: var(--vscode-inputOption-hoverBackground);
+    background-color: var(--vscode-list-hoverBackground);
 }
 
 .contextTable tr .selected {
-    background-color: var(--vscode-inputOption-hoverBackground);
+    background-color: var(--vscode-list-hoverBackground);
+}
+
+td.result-no-start,
+td.result-no-mid,
+td.result-no-end,
+td.result-no-start-end {
+    background-color: var(--vscode-editor-background);
+    color: var(--vscode-editor-foreground);
+    text-align: center;
+    vertical-align: middle;
+    padding: 6px 8px;
+}
+
+/* middle parts of merged run: remove left and right borders */
+td.result-no-mid {
+    border-left: none !important;
+    border-right: none !important;
+}
+
+/* start of run: remove right border */
+td.result-no-start {
+    border-right: none !important;
+}
+
+/* end of run: remove left border*/
+td.result-no-end {
+    border-left: none !important;
+}
+
+.result-no-overlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--vscode-editor-foreground);
+    background-color: transparent;
+    pointer-events: none; /* allow clicks to reach the underlying table cells */
+    user-select: none;
+}
+
+td.result,
+td.result-no-start,
+td.result-no-mid,
+td.result-no-end,
+td.result-no-start-end {
+    position: relative; 
+    padding: 0; 
+    text-align: center; 
+}
+
+/* Container inside result cells:*/
+.resultCell {
+    position: static; 
+    display: inline-flex;     
+    align-items: center;      
+    justify-content: center;  
+    padding: 6px 6px 6px 6px;          
+    box-sizing: border-box;
+}
+
+/* the actual text element */
+.resultCell pre {
+    margin: 0;
+    display: inline-block;
+    text-align: center;
+    
+}
+
+.result-plus {
+    position: absolute; 
+    top: 0;       
+    right: 0;     
+    width: 14px;  
+    height: 14px;
+    border-radius: 2px;
+    border: none;
+    background: var(--vscode-foreground);
+    color: var(--vscode-editor-background);
+    line-height: 14px;
+    padding: 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.08s ease, opacity 0.12s ease;
+    z-index: 2;
+    box-sizing: border-box;
+}
+
+/* tactile active feedback */
+.result-plus:active {
+    transform: scale(0.95);
+}
+
+.result-plus {
+    opacity: 0;
+    pointer-events: none;
+}
+
+td:hover .result-plus,
+.resultCell:hover .result-plus,
+.resultCell:focus-within .result-plus {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* keyboard focus style */
+.result-plus:focus {
+    outline: 2px solid var(--vscode-editor-foreground);
+    outline-offset: 2px;
+}
+
+/* highlight hovered or keyboard-focused cell in the context table */
+.contextTable td:hover,
+.contextTable td:focus-within {
+    background-color: var(--vscode-list-hoverBackground);
+    border-color: var(--vscode-input-foreground);
+    transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+/* also apply to merged "No" overlay region when the underlying cell is focused/hovered */
+.contextTable .result-no-overlay,
+.contextTable td.result-no-start:hover,
+.contextTable td.result-no-mid:hover,
+.contextTable td.result-no-end:hover,
+.contextTable td.result-no-start-end:hover {
+    color: var(--vscode-editor-foreground);
+}
+
+.contextTable td:hover .result-plus,
+.contextTable td:focus-within .result-plus {
+    opacity: 1;
+    pointer-events: auto;
 }

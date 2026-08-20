@@ -30,11 +30,11 @@
 }
 
 .collapse-expand-triangle {
-    fill: darkgrey;
+    fill: var(--vscode-foreground);
 }
 
 .collapse-expand-sign {
-    stroke: white;
+    stroke: var(--vscode-editor-background);
 }
 
 .header {

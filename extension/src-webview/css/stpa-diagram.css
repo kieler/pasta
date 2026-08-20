@@ -44,24 +44,35 @@ text tspan.process-model-value {
     stroke: var(--vscode-editor-foreground);
 }
 
+/* red highlighting for visualization of missing references */
+.missing-reference .sprotty-label {
+fill: var(--vscode-editorError-foreground) !important;
+font-weight: 700;
+}
+
+.missing-reference-label {
+    fill: var(--vscode-editorError-foreground) !important; /*inputValidation-errorBorder*/
+    font-weight: 700;
+}
+
 /* red highlighting for visualization of missing feedback edges */
 .missing-feedback-label {
-    fill: red !important;
+    fill: var(--vscode-editorError-foreground) !important;
 }
 
 .missing-feedback-node {
-    stroke: red !important;
+    stroke: var(--vscode-editorError-foreground) !important;
     stroke-width: 3 !important;
 }
 
 .missing-edge {
-    stroke: red !important;
+    stroke: var(--vscode-editorError-foreground) !important;
     stroke-width: 3 !important;
 }
 
 .missing-edge-arrow {
-    stroke: red !important;
-    fill: red !important;
+    stroke: var(--vscode-editorError-foreground) !important;
+    fill: var(--vscode-editorError-foreground) !important;
 }
 
 /* Feedback edges */

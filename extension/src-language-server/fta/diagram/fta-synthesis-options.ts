@@ -21,6 +21,7 @@ import { SynthesisOptions, layoutCategory } from "../../synthesis-options.js";
 const cutSetsID = "cutSets";
 const showGateDescriptionsID = "showGateDescriptions";
 const showComponentDescriptionsID = "showComponentDescriptions";
+const showRedundantGatesID = "showRedundantGates";
 
 const analysisCategoryID = "analysisCategory";
 
@@ -81,6 +82,22 @@ const showComponentDescriptionsOptions: ValuedSynthesisOption = {
 };
 
 /**
+ * Boolean option to toggle the visualization of redundant gates.
+ */
+const showRedundantGatesOptions: ValuedSynthesisOption = {
+    synthesisOption: {
+        id: showRedundantGatesID,
+        name: "Show Redundant Gates",
+        type: TransformationOptionType.CHECK,
+        initialValue: true,
+        currentValue: true,
+        values: [true, false],
+        category: layoutCategory,
+    },
+    currentValue: true,
+};
+
+/**
  * Option to highlight the components of a cut set.
  */
 const cutSets: ValuedSynthesisOption = {
@@ -99,10 +116,10 @@ const cutSets: ValuedSynthesisOption = {
 };
 
 export class FtaSynthesisOptions extends SynthesisOptions {
-    protected spofs: string[];
+    protected spofs: string[] = [];
     constructor() {
         super();
-        this.options.push(...[analysisCategoryOption, cutSets, showGateDescriptionsOptions, showComponentDescriptionsOptions]);
+        this.options.push(...[analysisCategoryOption, cutSets, showGateDescriptionsOptions, showComponentDescriptionsOptions, showRedundantGatesOptions]);
     }
 
     getShowGateDescriptions(): boolean {
@@ -111,6 +128,10 @@ export class FtaSynthesisOptions extends SynthesisOptions {
 
     getShowComponentDescriptions(): boolean {
         return this.getOption(showComponentDescriptionsID)?.currentValue;
+    }
+
+    getShowRedundantGates(): boolean {
+        return this.getOption(showRedundantGatesID)?.currentValue;
     }
 
     /**
