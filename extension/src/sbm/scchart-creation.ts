@@ -15,7 +15,48 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 
-import { EMPTY_STATE_NAME, Enum, LTLFormula, State, Variable } from "./utils";
+import { EMPTY_STATE_NAME, Enum, Equation, LTLFormula, State, Variable } from "./utils-classes";
+
+// TODO: should be set by the user through the UI
+/** Determines whether the system should do a boot up step in the beginning. If true, the formulas are modified with an additional X operator at the start. */
+const bootUpStep = true;
+
+/**
+ * Creates the text for a dataflow scchart based on the given arguments.
+ * @param controllerName The name of the controller that is modelled.
+ * @param variables The variables the scchart should contain.
+ * @param enums The enums the scchart should contain.
+ * @param ltlFormulas The ltl formulas that should be contained.
+ * @param equations The equations that should be in the actual dataflow.
+ * @returns the text for a dataflow scchart.
+ */
+export function createDataflowSCChart(
+    controllerName: string,
+    variables: Variable[],
+    enums: Enum[],
+    ltlFormulas: LTLFormula[],
+    equations: Equation[],
+): string {
+    let result = "";
+    // ltl annotations at the top
+    ltlFormulas.forEach(LTLFormula => (result += createLTLAnnotation(LTLFormula)));
+    // name of the scchart
+    result += `scchart SBM_${controllerName} {\n\n`;
+    // add enums if there are any
+    enums.forEach(enumDeclaration => (result += createEnum(enumDeclaration.name, enumDeclaration.values)));
+    // add input and output variables
+    result += createVariables(variables);
+    // start with dataflow
+    result += "dataflow {\n";
+    // add equations for each control action
+    for (const equation of equations) {
+        result += `${equation.left} = ${equation.right}\n`;
+    }
+
+    result += "}\n";
+    result += "}";
+    return result;
+}
 
 /**
  * Creates the text for an scchart based on the given arguments.
@@ -27,23 +68,23 @@ import { EMPTY_STATE_NAME, Enum, LTLFormula, State, Variable } from "./utils";
  * @param controlActions The control actions which will be modelled as an enum.
  * @returns The text for an scchart.
  */
-export function createSCChartText(
+export function createFSMSCChart(
     controllerName: string,
     states: State[],
     variables: Variable[],
     enums: Enum[],
     ltlFormulas: LTLFormula[],
-    controlActions: string[]
+    controlActions: string[],
 ): string {
     let result = "";
     // ltl annotations at the top
-    ltlFormulas.forEach((LTLFormula) => (result += createLTLAnnotation(LTLFormula)));
+    ltlFormulas.forEach(LTLFormula => (result += createLTLAnnotation(LTLFormula)));
     // name of the acchart must be different to the enum name
     result += `scchart SBM_${controllerName} {\n\n`;
     // enum for the control action
     result += createEnum(controllerName, controlActions);
     // other enums
-    enums.forEach((enumDeclaration) => (result += createEnum(enumDeclaration.name, enumDeclaration.values)));
+    enums.forEach(enumDeclaration => (result += createEnum(enumDeclaration.name, enumDeclaration.values)));
     // variables and states
     // TODO: AssumeRange annotation for variables?
     result += createVariables(variables);
@@ -58,7 +99,8 @@ export function createSCChartText(
  * @returns an ltl annotation for the {@code ltlFormula}.
  */
 function createLTLAnnotation(ltlFormula: LTLFormula): string {
-    return `@LTL "${ltlFormula.formula}", "${ltlFormula.description}", "${ltlFormula.ucaId}" \n`;
+    const formula = bootUpStep ? `X(${ltlFormula.formula})` : ltlFormula.formula;
+    return `@LTL "${formula}", "${ltlFormula.description}", "${ltlFormula.ucaId}" \n`;
 }
 
 /**
@@ -86,7 +128,7 @@ function createEnum(enumName: string, values: string[]): string {
  */
 function createVariables(variables: Variable[]): string {
     let variableDeclarations = "";
-    variables.forEach((variable) => {
+    variables.forEach(variable => {
         if (variable.input) {
             variableDeclarations += "input ";
         } else if (variable.output) {
@@ -105,7 +147,7 @@ function createVariables(variables: Variable[]): string {
  */
 function createStates(states: State[], enumName: string): string {
     let stateDeclarations = "";
-    states.forEach((state) => {
+    states.forEach(state => {
         // the empty state is the initial one
         if (state.name === EMPTY_STATE_NAME) {
             stateDeclarations += "initial ";
@@ -122,7 +164,7 @@ function createStates(states: State[], enumName: string): string {
         stateDeclarations += "}\n";
         // translate transitions
         // the first transition in the list has the highest priority
-        state.transitions.forEach((transition) => {
+        state.transitions.forEach(transition => {
             if (transition.trigger) {
                 stateDeclarations += `if ${transition.trigger} `;
             }

@@ -29,7 +29,7 @@ import { StpaLspVscodeExtension } from "./language-extension";
 import { createSTPAResultMarkdownFile } from "./report/md-export";
 import { StpaResult } from "./report/utils";
 import { createSBMs } from "./sbm/sbm-generation";
-import { LTLFormula } from "./sbm/utils";
+import { LTLFormula } from "./sbm/utils-classes";
 import { StorageService } from "./storage-service";
 import { createFile, createOutputChannel, setStorageOption } from "./utils";
 import { InlineMarkdownDecorator } from "./decorations";
